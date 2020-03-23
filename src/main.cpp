@@ -1,12 +1,18 @@
 #include "Emulator.h"
 
 int main() {
+    using namespace ez;
 
-    const auto romPath = "C:\rom\sbm.gb";
-    EZ_ENSURE(std::filesystem::exists(romPath));
+    const auto romPath = "C:\\git\\CoronaBoy\\roms\\DMG_ROM.bin";
+    auto cart = Cart{ romPath };
 
-    ez::Emulator emu{romPath};
+    Emulator emu{cart};
+    while (true) {
+        const auto stop = emu.tick();
+        if (stop) {
+            break;
+        }
+    }
 
-    getchar();
     return 0;
 }
