@@ -34,4 +34,8 @@ namespace ez {
     #define EZ_ERROR(...) SPDLOG_ERROR(__VA_ARGS__)
 
 
+    inline uint8_t highByte(uint16_t val) { return static_cast<uint8_t>(val >> 8); }
+    inline uint8_t lowByte(uint16_t val) { return static_cast<uint8_t>(val & 0x00FF); }
+    inline void setHighByte(uint16_t& val, uint8_t to) { val = (( val & 0x00FF) | (static_cast<uint16_t>(to) << 8)); }
+    inline void setLowByte(uint16_t& val, uint8_t to) { val = (( val & 0xFF00) | static_cast<uint16_t>(to)); }
 }

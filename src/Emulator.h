@@ -34,8 +34,24 @@ namespace ez
 	};
 
 	struct InstructionResult {
-		uint8_t m_size = 0;
+		int8_t m_size = 0;
 		uint8_t m_cycles = 0;
+	};
+
+	enum class Registers {
+		A = 0,
+		F,
+		B,
+		C,
+		D,
+		E,
+		H,
+		L,
+		AF,
+		BC,
+		DE,
+		HL,
+		NUM_REGISTERS
 	};
 
 	enum class Flag {
@@ -52,36 +68,35 @@ namespace ez
 		bool tick();
 
 	private:
-		AddrInfo getAddressInfo(uint16_t address);
+		AddrInfo getAddressInfo(uint16_t address) const;
 
-		uint8_t read8(uint16_t address);
-		uint16_t read16(uint16_t address);
-		uint32_t read32(uint16_t address);
+		uint8_t read8(uint16_t address) const ;
+		uint16_t read16(uint16_t address) const;
+		uint32_t read32(uint16_t address) const;
 
 		void write8(uint16_t address, uint8_t value);
 		void write16(uint16_t address, uint16_t value);
+
+		static constexpr uint8_t getRegisterSizeBytes(Registers reg);
 
 		InstructionResult handleInstruction(uint32_t instruction);
 		InstructionResult handleInstructionXOR8(uint8_t instruction);
 		InstructionResult handleInstructionCB(uint8_t instruction);
 
-		bool getFlag(Flag flag);
+		bool getFlag(Flag flag) const;
 		void setFlag(Flag flag);
 		void clearFlag(Flag flag);
 
-		uint8_t getRegB() { return static_cast<uint8_t>(m_regBC >> 8); }
-		uint8_t getRegC() { return static_cast<uint8_t>(m_regBC & 0x00FF); }
-		uint8_t getRegD() { return static_cast<uint8_t>(m_regDE >> 8); }
-		uint8_t getRegE() { return static_cast<uint8_t>(m_regDE & 0x00FF); }
-		uint8_t getRegH() { return static_cast<uint8_t>(m_regHL >> 8); }
-		uint8_t getRegL() { return static_cast<uint8_t>(m_regHL & 0x00FF); }
+		uint8_t readReg8(Registers reg) const;
+		void writeReg8(Registers reg, uint8_t val);
+
+		uint16_t readReg16(Registers reg) const;
+		void writeReg16(Registers reg, uint16_t val);
 
 		uint16_t m_regPC = 0;
 		uint16_t m_regSP = 0;
 
-		uint8_t m_regA = 0;
-		uint8_t m_regFlags = 0;
-
+		uint16_t m_regAF = 0;
 		uint16_t m_regBC = 0;
 		uint16_t m_regDE = 0;
 		uint16_t m_regHL = 0;
