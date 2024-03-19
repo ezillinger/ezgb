@@ -5,7 +5,9 @@ file(GLOB SOURCES
 
 add_executable(CoronaBoy ${SOURCES})
 
-target_compile_features(CoronaBoy PRIVATE cxx_std_17)
-target_compile_options(CoronaBoy PRIVATE -W4)
-
-target_link_libraries(CoronaBoy PRIVATE fmt::fmt spdlog::spdlog)
+if(MSVC)
+  target_compile_options(CoronaBoy PRIVATE /W4 /WX)
+  target_compile_features(CoronaBoy PRIVATE cxx_std_20)
+else()
+  target_compile_options(CoronaBoy PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()

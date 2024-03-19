@@ -1,4 +1,5 @@
 #include "Emulator.h"
+#include "OpCodes.h"
 
 namespace ez {
 
@@ -19,7 +20,7 @@ namespace ez {
             case 0xAF: regValue = readReg8(Registers::A); break;
             default: EZ_FAIL();
         }
-            EZ_INFO("XOR");
+            log_info("XOR");
             auto aVal = readReg8(Registers::A);
             aVal ^= regValue;
             writeReg8(Registers::A, aVal);
@@ -73,40 +74,41 @@ namespace ez {
 
     InstructionResult Emulator::handleInstruction(uint32_t instruction) {
 
-        const auto inst8 = static_cast<uint8_t>( instruction & 0x000000FF);
-        //const auto inst8 = *reinterpret_cast<uint8_t*>(&instruction);
+        const auto inst8 = static_cast<uint8_t>(instruction & 0x000000FF);
+        const auto code = getOpCodeUnprefixed(inst8);
         const auto d16 = static_cast<uint16_t>((instruction >> 8) & 0x0000FFFF);
         const auto d8 = static_cast<uint8_t>((instruction >> 8) & 0x000000FF);
         const auto r8 = static_cast<int8_t>(d8); // signed offset
 
+        log_info("{}", code);
 
         switch (inst8) {
             case 0x00: // NOP
-                EZ_INFO("NOP");
+                log_info("NOP");
                 return InstructionResult{ 1, 4 };
             case 0x0E: // LD C, d8
-                writeReg8(Registers::C, d8);
+                writeReg8(Registers::C, d8); 
                 return InstructionResult{ 2, 8 };
             case 0x20: // JR NZ, r8
-                EZ_INFO("JR NZ, {:x}", d8);
+                log_info("JR NZ, {:x}", d8);
                 if (!getFlag(Flag::ZERO)) {
                     //m_regPC += d8;
-                    return InstructionResult{(2 + r8), 12 };
+                    return InstructionResult{int8_t(2 + r8), 12 };
                 }
                 else {
                     return InstructionResult{ 2, 8 };
                 }
 
             case 0x21: // LDD HL, d16
-                EZ_INFO("LD HL, {:x}", d16);
+                log_info("LD HL, {:x}", d16);
                 m_regHL = d16;
                 return InstructionResult{ 3, 12 };
             case 0x31: // LD SP, d16
-                EZ_INFO("LD SP, {:x}", d16);
+                log_info("LD SP, {:x}", d16);
                 m_regSP = d16;
                 return InstructionResult{ 3, 12 };
             case 0x32: // LDD (HL), A
-                EZ_INFO("LDD (HL), A");
+                log_info("LDD (HL), A");
                 write8(m_regHL, readReg8(Registers::A));
                 --m_regHL;
                 return InstructionResult{ 1, 8 };
@@ -122,7 +124,7 @@ namespace ez {
 
             case 0xCB: return handleInstructionCB(d8);
             default: 
-                EZ_ERROR("UNKNOWN OPCODE: {:x}", inst8);
+                log_error("UNKNOWN OPCODE: {:x}", inst8);
                 EZ_FAIL();
         }
     }
@@ -247,9 +249,9 @@ namespace ez {
             case MemoryBank::ROM_0:
                 return m_cart.read32(addr);
             case MemoryBank::WRAM_0:
-                return reinterpret_cast<uint32_t>(m_ram.data() + addr - addrInfo.m_baseAddr);
+                return *reinterpret_cast<const uint32_t*>(m_ram.data() + addr - addrInfo.m_baseAddr);
             case MemoryBank::VRAM:
-                return reinterpret_cast<uint32_t>(m_vram.data() + addr - addrInfo.m_baseAddr);
+                return *reinterpret_cast<const uint32_t*>(m_vram.data() + addr - addrInfo.m_baseAddr);
             default:
                 EZ_FAIL();
                 break;

@@ -3,7 +3,9 @@
 int main() {
     using namespace ez;
 
-    const auto romPath = "C:\\git\\CoronaBoy\\roms\\DMG_ROM.bin";
+    //const auto romPath = "C:\\git\\CoronaBoy\\roms\\DMG_ROM.bin";
+    log_info("CurrentDir: {}", fs::current_path().c_str());
+    const auto romPath = "./roms/DMG_boot.bin";
     auto cart = Cart{ romPath };
 
     Emulator emu{cart};
