@@ -1,4 +1,3 @@
-
 #pragma once
 
 /*
@@ -19,7 +18,7 @@ namespace ez {
         SUBTRACTION,
     };
 
-    struct OpCode {
+    struct OpCodeInfo {
         const bool m_prefixed = false;
         const uint8_t m_addr = 0x00;
         const char* m_mnemonic = nullptr;
@@ -34,14 +33,508 @@ namespace ez {
         const char* m_operandName1 = nullptr;
         const char* m_operandName2 = nullptr;
     };
-    
-        
+
+    enum class OpCode : uint8_t {
+        NOP = 0x00, // NOP  
+        LD_BC_d16 = 0x01, // LD BC d16
+        LD__BC__A = 0x02, // LD (BC) A
+        INC_BC = 0x03, // INC BC 
+        INC_B = 0x04, // INC B 
+        DEC_B = 0x05, // DEC B 
+        LD_B_d8 = 0x06, // LD B d8
+        RLCA = 0x07, // RLCA  
+        LD__a16__SP = 0x08, // LD (a16) SP
+        ADD_HL_BC = 0x09, // ADD HL BC
+        LD_A__BC_ = 0x0a, // LD A (BC)
+        DEC_BC = 0x0b, // DEC BC 
+        INC_C = 0x0c, // INC C 
+        DEC_C = 0x0d, // DEC C 
+        LD_C_d8 = 0x0e, // LD C d8
+        RRCA = 0x0f, // RRCA  
+        STOP_0 = 0x10, // STOP 0 
+        LD_DE_d16 = 0x11, // LD DE d16
+        LD__DE__A = 0x12, // LD (DE) A
+        INC_DE = 0x13, // INC DE 
+        INC_D = 0x14, // INC D 
+        DEC_D = 0x15, // DEC D 
+        LD_D_d8 = 0x16, // LD D d8
+        RLA = 0x17, // RLA  
+        JR_r8 = 0x18, // JR r8 
+        ADD_HL_DE = 0x19, // ADD HL DE
+        LD_A__DE_ = 0x1a, // LD A (DE)
+        DEC_DE = 0x1b, // DEC DE 
+        INC_E = 0x1c, // INC E 
+        DEC_E = 0x1d, // DEC E 
+        LD_E_d8 = 0x1e, // LD E d8
+        RRA = 0x1f, // RRA  
+        JR_NZ_r8 = 0x20, // JR NZ r8
+        LD_HL_d16 = 0x21, // LD HL d16
+        LD__HLplus__A = 0x22, // LD (HL+) A
+        INC_HL = 0x23, // INC HL 
+        INC_H = 0x24, // INC H 
+        DEC_H = 0x25, // DEC H 
+        LD_H_d8 = 0x26, // LD H d8
+        DAA = 0x27, // DAA  
+        JR_Z_r8 = 0x28, // JR Z r8
+        ADD_HL_HL = 0x29, // ADD HL HL
+        LD_A__HLplus_ = 0x2a, // LD A (HL+)
+        DEC_HL = 0x2b, // DEC HL 
+        INC_L = 0x2c, // INC L 
+        DEC_L = 0x2d, // DEC L 
+        LD_L_d8 = 0x2e, // LD L d8
+        CPL = 0x2f, // CPL  
+        JR_NC_r8 = 0x30, // JR NC r8
+        LD_SP_d16 = 0x31, // LD SP d16
+        LD__HLminus__A = 0x32, // LD (HL-) A
+        INC_SP = 0x33, // INC SP 
+        INC__HL_ = 0x34, // INC (HL) 
+        DEC__HL_ = 0x35, // DEC (HL) 
+        LD__HL__d8 = 0x36, // LD (HL) d8
+        SCF = 0x37, // SCF  
+        JR_C_r8 = 0x38, // JR C r8
+        ADD_HL_SP = 0x39, // ADD HL SP
+        LD_A__HLminus_ = 0x3a, // LD A (HL-)
+        DEC_SP = 0x3b, // DEC SP 
+        INC_A = 0x3c, // INC A 
+        DEC_A = 0x3d, // DEC A 
+        LD_A_d8 = 0x3e, // LD A d8
+        CCF = 0x3f, // CCF  
+        LD_B_B = 0x40, // LD B B
+        LD_B_C = 0x41, // LD B C
+        LD_B_D = 0x42, // LD B D
+        LD_B_E = 0x43, // LD B E
+        LD_B_H = 0x44, // LD B H
+        LD_B_L = 0x45, // LD B L
+        LD_B__HL_ = 0x46, // LD B (HL)
+        LD_B_A = 0x47, // LD B A
+        LD_C_B = 0x48, // LD C B
+        LD_C_C = 0x49, // LD C C
+        LD_C_D = 0x4a, // LD C D
+        LD_C_E = 0x4b, // LD C E
+        LD_C_H = 0x4c, // LD C H
+        LD_C_L = 0x4d, // LD C L
+        LD_C__HL_ = 0x4e, // LD C (HL)
+        LD_C_A = 0x4f, // LD C A
+        LD_D_B = 0x50, // LD D B
+        LD_D_C = 0x51, // LD D C
+        LD_D_D = 0x52, // LD D D
+        LD_D_E = 0x53, // LD D E
+        LD_D_H = 0x54, // LD D H
+        LD_D_L = 0x55, // LD D L
+        LD_D__HL_ = 0x56, // LD D (HL)
+        LD_D_A = 0x57, // LD D A
+        LD_E_B = 0x58, // LD E B
+        LD_E_C = 0x59, // LD E C
+        LD_E_D = 0x5a, // LD E D
+        LD_E_E = 0x5b, // LD E E
+        LD_E_H = 0x5c, // LD E H
+        LD_E_L = 0x5d, // LD E L
+        LD_E__HL_ = 0x5e, // LD E (HL)
+        LD_E_A = 0x5f, // LD E A
+        LD_H_B = 0x60, // LD H B
+        LD_H_C = 0x61, // LD H C
+        LD_H_D = 0x62, // LD H D
+        LD_H_E = 0x63, // LD H E
+        LD_H_H = 0x64, // LD H H
+        LD_H_L = 0x65, // LD H L
+        LD_H__HL_ = 0x66, // LD H (HL)
+        LD_H_A = 0x67, // LD H A
+        LD_L_B = 0x68, // LD L B
+        LD_L_C = 0x69, // LD L C
+        LD_L_D = 0x6a, // LD L D
+        LD_L_E = 0x6b, // LD L E
+        LD_L_H = 0x6c, // LD L H
+        LD_L_L = 0x6d, // LD L L
+        LD_L__HL_ = 0x6e, // LD L (HL)
+        LD_L_A = 0x6f, // LD L A
+        LD__HL__B = 0x70, // LD (HL) B
+        LD__HL__C = 0x71, // LD (HL) C
+        LD__HL__D = 0x72, // LD (HL) D
+        LD__HL__E = 0x73, // LD (HL) E
+        LD__HL__H = 0x74, // LD (HL) H
+        LD__HL__L = 0x75, // LD (HL) L
+        HALT = 0x76, // HALT  
+        LD__HL__A = 0x77, // LD (HL) A
+        LD_A_B = 0x78, // LD A B
+        LD_A_C = 0x79, // LD A C
+        LD_A_D = 0x7a, // LD A D
+        LD_A_E = 0x7b, // LD A E
+        LD_A_H = 0x7c, // LD A H
+        LD_A_L = 0x7d, // LD A L
+        LD_A__HL_ = 0x7e, // LD A (HL)
+        LD_A_A = 0x7f, // LD A A
+        ADD_A_B = 0x80, // ADD A B
+        ADD_A_C = 0x81, // ADD A C
+        ADD_A_D = 0x82, // ADD A D
+        ADD_A_E = 0x83, // ADD A E
+        ADD_A_H = 0x84, // ADD A H
+        ADD_A_L = 0x85, // ADD A L
+        ADD_A__HL_ = 0x86, // ADD A (HL)
+        ADD_A_A = 0x87, // ADD A A
+        ADC_A_B = 0x88, // ADC A B
+        ADC_A_C = 0x89, // ADC A C
+        ADC_A_D = 0x8a, // ADC A D
+        ADC_A_E = 0x8b, // ADC A E
+        ADC_A_H = 0x8c, // ADC A H
+        ADC_A_L = 0x8d, // ADC A L
+        ADC_A__HL_ = 0x8e, // ADC A (HL)
+        ADC_A_A = 0x8f, // ADC A A
+        SUB_B = 0x90, // SUB B 
+        SUB_C = 0x91, // SUB C 
+        SUB_D = 0x92, // SUB D 
+        SUB_E = 0x93, // SUB E 
+        SUB_H = 0x94, // SUB H 
+        SUB_L = 0x95, // SUB L 
+        SUB__HL_ = 0x96, // SUB (HL) 
+        SUB_A = 0x97, // SUB A 
+        SBC_A_B = 0x98, // SBC A B
+        SBC_A_C = 0x99, // SBC A C
+        SBC_A_D = 0x9a, // SBC A D
+        SBC_A_E = 0x9b, // SBC A E
+        SBC_A_H = 0x9c, // SBC A H
+        SBC_A_L = 0x9d, // SBC A L
+        SBC_A__HL_ = 0x9e, // SBC A (HL)
+        SBC_A_A = 0x9f, // SBC A A
+        AND_B = 0xa0, // AND B 
+        AND_C = 0xa1, // AND C 
+        AND_D = 0xa2, // AND D 
+        AND_E = 0xa3, // AND E 
+        AND_H = 0xa4, // AND H 
+        AND_L = 0xa5, // AND L 
+        AND__HL_ = 0xa6, // AND (HL) 
+        AND_A = 0xa7, // AND A 
+        XOR_B = 0xa8, // XOR B 
+        XOR_C = 0xa9, // XOR C 
+        XOR_D = 0xaa, // XOR D 
+        XOR_E = 0xab, // XOR E 
+        XOR_H = 0xac, // XOR H 
+        XOR_L = 0xad, // XOR L 
+        XOR__HL_ = 0xae, // XOR (HL) 
+        XOR_A = 0xaf, // XOR A 
+        OR_B = 0xb0, // OR B 
+        OR_C = 0xb1, // OR C 
+        OR_D = 0xb2, // OR D 
+        OR_E = 0xb3, // OR E 
+        OR_H = 0xb4, // OR H 
+        OR_L = 0xb5, // OR L 
+        OR__HL_ = 0xb6, // OR (HL) 
+        OR_A = 0xb7, // OR A 
+        CP_B = 0xb8, // CP B 
+        CP_C = 0xb9, // CP C 
+        CP_D = 0xba, // CP D 
+        CP_E = 0xbb, // CP E 
+        CP_H = 0xbc, // CP H 
+        CP_L = 0xbd, // CP L 
+        CP__HL_ = 0xbe, // CP (HL) 
+        CP_A = 0xbf, // CP A 
+        RET_NZ = 0xc0, // RET NZ 
+        POP_BC = 0xc1, // POP BC 
+        JP_NZ_a16 = 0xc2, // JP NZ a16
+        JP_a16 = 0xc3, // JP a16 
+        CALL_NZ_a16 = 0xc4, // CALL NZ a16
+        PUSH_BC = 0xc5, // PUSH BC 
+        ADD_A_d8 = 0xc6, // ADD A d8
+        RST_00H = 0xc7, // RST 00H 
+        RET_Z = 0xc8, // RET Z 
+        RET = 0xc9, // RET  
+        JP_Z_a16 = 0xca, // JP Z a16
+        PREFIX_CB = 0xcb, // PREFIX CB 
+        CALL_Z_a16 = 0xcc, // CALL Z a16
+        CALL_a16 = 0xcd, // CALL a16 
+        ADC_A_d8 = 0xce, // ADC A d8
+        RST_08H = 0xcf, // RST 08H 
+        RET_NC = 0xd0, // RET NC 
+        POP_DE = 0xd1, // POP DE 
+        JP_NC_a16 = 0xd2, // JP NC a16
+        CALL_NC_a16 = 0xd4, // CALL NC a16
+        PUSH_DE = 0xd5, // PUSH DE 
+        SUB_d8 = 0xd6, // SUB d8 
+        RST_10H = 0xd7, // RST 10H 
+        RET_C = 0xd8, // RET C 
+        RETI = 0xd9, // RETI  
+        JP_C_a16 = 0xda, // JP C a16
+        CALL_C_a16 = 0xdc, // CALL C a16
+        SBC_A_d8 = 0xde, // SBC A d8
+        RST_18H = 0xdf, // RST 18H 
+        LDH__a8__A = 0xe0, // LDH (a8) A
+        POP_HL = 0xe1, // POP HL 
+        LD__C__A = 0xe2, // LD (C) A
+        PUSH_HL = 0xe5, // PUSH HL 
+        AND_d8 = 0xe6, // AND d8 
+        RST_20H = 0xe7, // RST 20H 
+        ADD_SP_r8 = 0xe8, // ADD SP r8
+        JP__HL_ = 0xe9, // JP (HL) 
+        LD__a16__A = 0xea, // LD (a16) A
+        XOR_d8 = 0xee, // XOR d8 
+        RST_28H = 0xef, // RST 28H 
+        LDH_A__a8_ = 0xf0, // LDH A (a8)
+        POP_AF = 0xf1, // POP AF 
+        LD_A__C_ = 0xf2, // LD A (C)
+        DI = 0xf3, // DI  
+        PUSH_AF = 0xf5, // PUSH AF 
+        OR_d8 = 0xf6, // OR d8 
+        RST_30H = 0xf7, // RST 30H 
+        LD_HL_SPplusr8 = 0xf8, // LD HL SP+r8
+        LD_SP_HL = 0xf9, // LD SP HL
+        LD_A__a16_ = 0xfa, // LD A (a16)
+        EI = 0xfb, // EI  
+        CP_d8 = 0xfe, // CP d8 
+        RST_38H = 0xff, // RST 38H 
+    };
 
 
-    OpCode getOpCodeUnprefixed(uint8_t code) {
+    enum class OpCodeCB : uint8_t {
+        NOP = 0x00, // NOP  
+        LD_BC_d16 = 0x01, // LD BC d16
+        LD__BC__A = 0x02, // LD (BC) A
+        INC_BC = 0x03, // INC BC 
+        INC_B = 0x04, // INC B 
+        DEC_B = 0x05, // DEC B 
+        LD_B_d8 = 0x06, // LD B d8
+        RLCA = 0x07, // RLCA  
+        LD__a16__SP = 0x08, // LD (a16) SP
+        ADD_HL_BC = 0x09, // ADD HL BC
+        LD_A__BC_ = 0x0a, // LD A (BC)
+        DEC_BC = 0x0b, // DEC BC 
+        INC_C = 0x0c, // INC C 
+        DEC_C = 0x0d, // DEC C 
+        LD_C_d8 = 0x0e, // LD C d8
+        RRCA = 0x0f, // RRCA  
+        STOP_0 = 0x10, // STOP 0 
+        LD_DE_d16 = 0x11, // LD DE d16
+        LD__DE__A = 0x12, // LD (DE) A
+        INC_DE = 0x13, // INC DE 
+        INC_D = 0x14, // INC D 
+        DEC_D = 0x15, // DEC D 
+        LD_D_d8 = 0x16, // LD D d8
+        RLA = 0x17, // RLA  
+        JR_r8 = 0x18, // JR r8 
+        ADD_HL_DE = 0x19, // ADD HL DE
+        LD_A__DE_ = 0x1a, // LD A (DE)
+        DEC_DE = 0x1b, // DEC DE 
+        INC_E = 0x1c, // INC E 
+        DEC_E = 0x1d, // DEC E 
+        LD_E_d8 = 0x1e, // LD E d8
+        RRA = 0x1f, // RRA  
+        JR_NZ_r8 = 0x20, // JR NZ r8
+        LD_HL_d16 = 0x21, // LD HL d16
+        LD__HLplus__A = 0x22, // LD (HL+) A
+        INC_HL = 0x23, // INC HL 
+        INC_H = 0x24, // INC H 
+        DEC_H = 0x25, // DEC H 
+        LD_H_d8 = 0x26, // LD H d8
+        DAA = 0x27, // DAA  
+        JR_Z_r8 = 0x28, // JR Z r8
+        ADD_HL_HL = 0x29, // ADD HL HL
+        LD_A__HLplus_ = 0x2a, // LD A (HL+)
+        DEC_HL = 0x2b, // DEC HL 
+        INC_L = 0x2c, // INC L 
+        DEC_L = 0x2d, // DEC L 
+        LD_L_d8 = 0x2e, // LD L d8
+        CPL = 0x2f, // CPL  
+        JR_NC_r8 = 0x30, // JR NC r8
+        LD_SP_d16 = 0x31, // LD SP d16
+        LD__HLminus__A = 0x32, // LD (HL-) A
+        INC_SP = 0x33, // INC SP 
+        INC__HL_ = 0x34, // INC (HL) 
+        DEC__HL_ = 0x35, // DEC (HL) 
+        LD__HL__d8 = 0x36, // LD (HL) d8
+        SCF = 0x37, // SCF  
+        JR_C_r8 = 0x38, // JR C r8
+        ADD_HL_SP = 0x39, // ADD HL SP
+        LD_A__HLminus_ = 0x3a, // LD A (HL-)
+        DEC_SP = 0x3b, // DEC SP 
+        INC_A = 0x3c, // INC A 
+        DEC_A = 0x3d, // DEC A 
+        LD_A_d8 = 0x3e, // LD A d8
+        CCF = 0x3f, // CCF  
+        LD_B_B = 0x40, // LD B B
+        LD_B_C = 0x41, // LD B C
+        LD_B_D = 0x42, // LD B D
+        LD_B_E = 0x43, // LD B E
+        LD_B_H = 0x44, // LD B H
+        LD_B_L = 0x45, // LD B L
+        LD_B__HL_ = 0x46, // LD B (HL)
+        LD_B_A = 0x47, // LD B A
+        LD_C_B = 0x48, // LD C B
+        LD_C_C = 0x49, // LD C C
+        LD_C_D = 0x4a, // LD C D
+        LD_C_E = 0x4b, // LD C E
+        LD_C_H = 0x4c, // LD C H
+        LD_C_L = 0x4d, // LD C L
+        LD_C__HL_ = 0x4e, // LD C (HL)
+        LD_C_A = 0x4f, // LD C A
+        LD_D_B = 0x50, // LD D B
+        LD_D_C = 0x51, // LD D C
+        LD_D_D = 0x52, // LD D D
+        LD_D_E = 0x53, // LD D E
+        LD_D_H = 0x54, // LD D H
+        LD_D_L = 0x55, // LD D L
+        LD_D__HL_ = 0x56, // LD D (HL)
+        LD_D_A = 0x57, // LD D A
+        LD_E_B = 0x58, // LD E B
+        LD_E_C = 0x59, // LD E C
+        LD_E_D = 0x5a, // LD E D
+        LD_E_E = 0x5b, // LD E E
+        LD_E_H = 0x5c, // LD E H
+        LD_E_L = 0x5d, // LD E L
+        LD_E__HL_ = 0x5e, // LD E (HL)
+        LD_E_A = 0x5f, // LD E A
+        LD_H_B = 0x60, // LD H B
+        LD_H_C = 0x61, // LD H C
+        LD_H_D = 0x62, // LD H D
+        LD_H_E = 0x63, // LD H E
+        LD_H_H = 0x64, // LD H H
+        LD_H_L = 0x65, // LD H L
+        LD_H__HL_ = 0x66, // LD H (HL)
+        LD_H_A = 0x67, // LD H A
+        LD_L_B = 0x68, // LD L B
+        LD_L_C = 0x69, // LD L C
+        LD_L_D = 0x6a, // LD L D
+        LD_L_E = 0x6b, // LD L E
+        LD_L_H = 0x6c, // LD L H
+        LD_L_L = 0x6d, // LD L L
+        LD_L__HL_ = 0x6e, // LD L (HL)
+        LD_L_A = 0x6f, // LD L A
+        LD__HL__B = 0x70, // LD (HL) B
+        LD__HL__C = 0x71, // LD (HL) C
+        LD__HL__D = 0x72, // LD (HL) D
+        LD__HL__E = 0x73, // LD (HL) E
+        LD__HL__H = 0x74, // LD (HL) H
+        LD__HL__L = 0x75, // LD (HL) L
+        HALT = 0x76, // HALT  
+        LD__HL__A = 0x77, // LD (HL) A
+        LD_A_B = 0x78, // LD A B
+        LD_A_C = 0x79, // LD A C
+        LD_A_D = 0x7a, // LD A D
+        LD_A_E = 0x7b, // LD A E
+        LD_A_H = 0x7c, // LD A H
+        LD_A_L = 0x7d, // LD A L
+        LD_A__HL_ = 0x7e, // LD A (HL)
+        LD_A_A = 0x7f, // LD A A
+        ADD_A_B = 0x80, // ADD A B
+        ADD_A_C = 0x81, // ADD A C
+        ADD_A_D = 0x82, // ADD A D
+        ADD_A_E = 0x83, // ADD A E
+        ADD_A_H = 0x84, // ADD A H
+        ADD_A_L = 0x85, // ADD A L
+        ADD_A__HL_ = 0x86, // ADD A (HL)
+        ADD_A_A = 0x87, // ADD A A
+        ADC_A_B = 0x88, // ADC A B
+        ADC_A_C = 0x89, // ADC A C
+        ADC_A_D = 0x8a, // ADC A D
+        ADC_A_E = 0x8b, // ADC A E
+        ADC_A_H = 0x8c, // ADC A H
+        ADC_A_L = 0x8d, // ADC A L
+        ADC_A__HL_ = 0x8e, // ADC A (HL)
+        ADC_A_A = 0x8f, // ADC A A
+        SUB_B = 0x90, // SUB B 
+        SUB_C = 0x91, // SUB C 
+        SUB_D = 0x92, // SUB D 
+        SUB_E = 0x93, // SUB E 
+        SUB_H = 0x94, // SUB H 
+        SUB_L = 0x95, // SUB L 
+        SUB__HL_ = 0x96, // SUB (HL) 
+        SUB_A = 0x97, // SUB A 
+        SBC_A_B = 0x98, // SBC A B
+        SBC_A_C = 0x99, // SBC A C
+        SBC_A_D = 0x9a, // SBC A D
+        SBC_A_E = 0x9b, // SBC A E
+        SBC_A_H = 0x9c, // SBC A H
+        SBC_A_L = 0x9d, // SBC A L
+        SBC_A__HL_ = 0x9e, // SBC A (HL)
+        SBC_A_A = 0x9f, // SBC A A
+        AND_B = 0xa0, // AND B 
+        AND_C = 0xa1, // AND C 
+        AND_D = 0xa2, // AND D 
+        AND_E = 0xa3, // AND E 
+        AND_H = 0xa4, // AND H 
+        AND_L = 0xa5, // AND L 
+        AND__HL_ = 0xa6, // AND (HL) 
+        AND_A = 0xa7, // AND A 
+        XOR_B = 0xa8, // XOR B 
+        XOR_C = 0xa9, // XOR C 
+        XOR_D = 0xaa, // XOR D 
+        XOR_E = 0xab, // XOR E 
+        XOR_H = 0xac, // XOR H 
+        XOR_L = 0xad, // XOR L 
+        XOR__HL_ = 0xae, // XOR (HL) 
+        XOR_A = 0xaf, // XOR A 
+        OR_B = 0xb0, // OR B 
+        OR_C = 0xb1, // OR C 
+        OR_D = 0xb2, // OR D 
+        OR_E = 0xb3, // OR E 
+        OR_H = 0xb4, // OR H 
+        OR_L = 0xb5, // OR L 
+        OR__HL_ = 0xb6, // OR (HL) 
+        OR_A = 0xb7, // OR A 
+        CP_B = 0xb8, // CP B 
+        CP_C = 0xb9, // CP C 
+        CP_D = 0xba, // CP D 
+        CP_E = 0xbb, // CP E 
+        CP_H = 0xbc, // CP H 
+        CP_L = 0xbd, // CP L 
+        CP__HL_ = 0xbe, // CP (HL) 
+        CP_A = 0xbf, // CP A 
+        RET_NZ = 0xc0, // RET NZ 
+        POP_BC = 0xc1, // POP BC 
+        JP_NZ_a16 = 0xc2, // JP NZ a16
+        JP_a16 = 0xc3, // JP a16 
+        CALL_NZ_a16 = 0xc4, // CALL NZ a16
+        PUSH_BC = 0xc5, // PUSH BC 
+        ADD_A_d8 = 0xc6, // ADD A d8
+        RST_00H = 0xc7, // RST 00H 
+        RET_Z = 0xc8, // RET Z 
+        RET = 0xc9, // RET  
+        JP_Z_a16 = 0xca, // JP Z a16
+        PREFIX_CB = 0xcb, // PREFIX CB 
+        CALL_Z_a16 = 0xcc, // CALL Z a16
+        CALL_a16 = 0xcd, // CALL a16 
+        ADC_A_d8 = 0xce, // ADC A d8
+        RST_08H = 0xcf, // RST 08H 
+        RET_NC = 0xd0, // RET NC 
+        POP_DE = 0xd1, // POP DE 
+        JP_NC_a16 = 0xd2, // JP NC a16
+        CALL_NC_a16 = 0xd4, // CALL NC a16
+        PUSH_DE = 0xd5, // PUSH DE 
+        SUB_d8 = 0xd6, // SUB d8 
+        RST_10H = 0xd7, // RST 10H 
+        RET_C = 0xd8, // RET C 
+        RETI = 0xd9, // RETI  
+        JP_C_a16 = 0xda, // JP C a16
+        CALL_C_a16 = 0xdc, // CALL C a16
+        SBC_A_d8 = 0xde, // SBC A d8
+        RST_18H = 0xdf, // RST 18H 
+        LDH__a8__A = 0xe0, // LDH (a8) A
+        POP_HL = 0xe1, // POP HL 
+        LD__C__A = 0xe2, // LD (C) A
+        PUSH_HL = 0xe5, // PUSH HL 
+        AND_d8 = 0xe6, // AND d8 
+        RST_20H = 0xe7, // RST 20H 
+        ADD_SP_r8 = 0xe8, // ADD SP r8
+        JP__HL_ = 0xe9, // JP (HL) 
+        LD__a16__A = 0xea, // LD (a16) A
+        XOR_d8 = 0xee, // XOR d8 
+        RST_28H = 0xef, // RST 28H 
+        LDH_A__a8_ = 0xf0, // LDH A (a8)
+        POP_AF = 0xf1, // POP AF 
+        LD_A__C_ = 0xf2, // LD A (C)
+        DI = 0xf3, // DI  
+        PUSH_AF = 0xf5, // PUSH AF 
+        OR_d8 = 0xf6, // OR d8 
+        RST_30H = 0xf7, // RST 30H 
+        LD_HL_SPplusr8 = 0xf8, // LD HL SP+r8
+        LD_SP_HL = 0xf9, // LD SP HL
+        LD_A__a16_ = 0xfa, // LD A (a16)
+        EI = 0xfb, // EI  
+        CP_d8 = 0xfe, // CP d8 
+        RST_38H = 0xff, // RST 38H 
+    };
+
+
+    OpCodeInfo getOpCodeInfoUnprefixed(uint8_t code) {
 
         switch(code){
-
 
         case 0x00:
             return {false, 
@@ -3970,11 +4463,9 @@ namespace ez {
     }
 
 
-
-    OpCode getOpCodePrefixed(uint8_t code) {
+    OpCodeInfo getOpCodeInfoPrefixed(uint8_t code) {
 
         switch(code){
-
 
         case 0x00:
             return {true, 
@@ -8079,18 +8570,16 @@ namespace ez {
     }
 
 
-
-
 } // namespace ez
 
 // format structs must be outside ez namespace 
 
 template<>                                                   
-struct std::formatter<ez::OpCode> {
+struct std::formatter<ez::OpCodeInfo> {
     constexpr auto parse(std::format_parse_context& context) { 
         return context.begin();
     }
-    auto format(const ez::OpCode& oc, std::format_context& context) const {  
+    auto format(const ez::OpCodeInfo& oc, std::format_context& context) const {  
         return std::format_to(context.out(), "{} {} {} {} (A: {:#2x} L: {})", oc.m_mnemonic, oc.m_operandName1, 
                                                 oc.m_operandName2, oc.m_groupName, oc.m_addr,
                                                 oc.m_lengthBytes);

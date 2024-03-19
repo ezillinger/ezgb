@@ -51,7 +51,6 @@ namespace ez {
     };
 
     template <LogLevel level, typename... TArgs> log(std::string_view, TArgs&&...) -> log<level, TArgs...>;
-
     template <typename... TArgs> using log_info = log<LogLevel::INFO, TArgs...>;
     template <typename... TArgs> using log_warn = log<LogLevel::WARN, TArgs...>;
     template <typename... TArgs> using log_error = log<LogLevel::ERROR, TArgs...>;
@@ -66,6 +65,7 @@ namespace ez {
     template <typename T>
     concept is_enum = std::is_enum_v<T>;
 
+    // unary + operator converts enum to underlying type
     template <typename T> requires is_enum<T>
     std::underlying_type<T>::type operator+(T e) { return static_cast<std::underlying_type<T>::type>(e); }
 

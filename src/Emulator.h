@@ -104,6 +104,7 @@ namespace ez
 		uint16_t m_cyclesToWait = 0;
 
 		bool m_stop = false;
+		bool m_prefixCB = false;
 
 		static constexpr size_t RAM_BYTES = 8 * 1024;
 

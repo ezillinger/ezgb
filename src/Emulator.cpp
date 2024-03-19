@@ -20,7 +20,6 @@ namespace ez {
             case 0xAF: regValue = readReg8(Registers::A); break;
             default: EZ_FAIL();
         }
-            log_info("XOR");
             auto aVal = readReg8(Registers::A);
             aVal ^= regValue;
             writeReg8(Registers::A, aVal);
@@ -32,8 +31,8 @@ namespace ez {
     }
 
     // includes the 4 cycles and 1 byte from the CB opcode itself
-    InstructionResult Emulator::handleInstructionCB(uint8_t inst8) {
-        const auto isBitInstruction = (inst8 >= 0x40 && inst8 < 0x80);
+    InstructionResult Emulator::handleInstructionCB(uint8_t opByte) {
+        const auto isBitInstruction = (opByte >= 0x40 && opByte < 0x80);
         static const Registers regOrder[]= {
             Registers::B,
             Registers::C,
@@ -45,7 +44,7 @@ namespace ez {
             Registers::A
         };
         if (isBitInstruction) {
-            const auto bitInstrIdx = inst8 - 0x40;
+            const auto bitInstrIdx = opByte - 0x40;
             const auto bitNo = (bitInstrIdx) / 8;
             const auto reg = regOrder[bitInstrIdx - bitNo * 8];
             const auto regSizeBytes = getRegisterSizeBytes(reg);
@@ -74,23 +73,23 @@ namespace ez {
 
     InstructionResult Emulator::handleInstruction(uint32_t instruction) {
 
-        const auto inst8 = static_cast<uint8_t>(instruction & 0x000000FF);
-        const auto code = getOpCodeUnprefixed(inst8);
+        const auto opByte = static_cast<uint8_t>(instruction & 0x000000FF);
         const auto d16 = static_cast<uint16_t>((instruction >> 8) & 0x0000FFFF);
         const auto d8 = static_cast<uint8_t>((instruction >> 8) & 0x000000FF);
         const auto r8 = static_cast<int8_t>(d8); // signed offset
 
-        log_info("{}", code);
+        const auto opCodeInfo = getOpCodeInfoUnprefixed(opByte);
+        const auto opCode = OpCode{opByte};
 
-        switch (inst8) {
-            case 0x00: // NOP
-                log_info("NOP");
+        log_info("{}", opCodeInfo);
+
+        switch (opCode) {
+            case OpCode::NOP: 
                 return InstructionResult{ 1, 4 };
-            case 0x0E: // LD C, d8
+            case OpCode::LD_C_d8:
                 writeReg8(Registers::C, d8); 
                 return InstructionResult{ 2, 8 };
-            case 0x20: // JR NZ, r8
-                log_info("JR NZ, {:x}", d8);
+            case OpCode::JR_NZ_r8: 
                 if (!getFlag(Flag::ZERO)) {
                     //m_regPC += d8;
                     return InstructionResult{int8_t(2 + r8), 12 };
@@ -99,34 +98,32 @@ namespace ez {
                     return InstructionResult{ 2, 8 };
                 }
 
-            case 0x21: // LDD HL, d16
-                log_info("LD HL, {:x}", d16);
+            case OpCode::LD_HL_d16:
                 m_regHL = d16;
                 return InstructionResult{ 3, 12 };
-            case 0x31: // LD SP, d16
-                log_info("LD SP, {:x}", d16);
+            case OpCode::LD_SP_d16: // LD SP, d16
                 m_regSP = d16;
                 return InstructionResult{ 3, 12 };
-            case 0x32: // LDD (HL), A
-                log_info("LDD (HL), A");
+            case OpCode::LD__HL__A: // LDD (HL), A
                 write8(m_regHL, readReg8(Registers::A));
                 --m_regHL;
                 return InstructionResult{ 1, 8 };
 
             // 8 bit xors
-            case 0xA8: [[fallthrough]];
-            case 0xA9: [[fallthrough]];
-            case 0xAA: [[fallthrough]];
-            case 0xAB: [[fallthrough]];
-            case 0xAC: [[fallthrough]];
-            case 0xAD: [[fallthrough]];
-            case 0xAF: return handleInstructionXOR8(inst8);
+            case OpCode::XOR_A: [[fallthrough]];
+            case OpCode::XOR_B: [[fallthrough]];
+            case OpCode::XOR_C: [[fallthrough]];
+            case OpCode::XOR_D: [[fallthrough]];
+            case OpCode::XOR_E: [[fallthrough]];
+            case OpCode::XOR_H: [[fallthrough]];
+            case OpCode::XOR_L: return handleInstructionXOR8(opByte);
 
-            case 0xCB: return handleInstructionCB(d8);
+            case OpCode::PREFIX_CB: return handleInstructionCB(d8);
             default: 
-                log_error("UNKNOWN OPCODE: {:x}", inst8);
+                log_error("UNKNOWN OPCODE: {:x}", opByte);
                 EZ_FAIL();
         }
+
     }
 
     bool Emulator::getFlag(Flag flag) const {
