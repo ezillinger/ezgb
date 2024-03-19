@@ -50,7 +50,6 @@ namespace ez {
         }
     };
 
-
     template <LogLevel level, typename... TArgs> log(std::string_view, TArgs&&...) -> log<level, TArgs...>;
 
     template <typename... TArgs> using log_info = log<LogLevel::INFO, TArgs...>;
@@ -58,20 +57,21 @@ namespace ez {
     template <typename... TArgs> using log_error = log<LogLevel::ERROR, TArgs...>;
     template <typename... TArgs> using fail = log<LogLevel::CRITICAL, TArgs...>;
 
-    inline uint8_t highByte(uint16_t val) { return static_cast<uint8_t>(val >> 8); }
-    inline uint8_t lowByte(uint16_t val) { return static_cast<uint8_t>(val & 0x00FF); }
-    inline void setHighByte(uint16_t& val, uint8_t to) { val = (( val & 0x00FF) | (static_cast<uint16_t>(to) << 8)); }
-    inline void setLowByte(uint16_t& val, uint8_t to) { val = (( val & 0xFF00) | static_cast<uint16_t>(to)); }
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-#ifdef __clang__
-    #pragma GCC diagnostic ignored "-Wgnu-string-literal-operator-template"
-#endif
     inline auto operator"" _format(const char *s, size_t n) {
         return [=](auto &&...args) {
             return std::vformat(std::string_view(s, n), std::make_format_args(args...));
         };
     }
-#pragma GCC diagnostic pop
+
+    template <typename T>
+    concept is_enum = std::is_enum_v<T>;
+
+    template <typename T> requires is_enum<T>
+    std::underlying_type<T>::type operator+(T e) { return static_cast<std::underlying_type<T>::type>(e); }
+
+    inline constexpr uint8_t highByte(uint16_t val) { return static_cast<uint8_t>(val >> 8); }
+    inline constexpr uint8_t lowByte(uint16_t val) { return static_cast<uint8_t>(val & 0x00FF); }
+    inline constexpr void setHighByte(uint16_t& val, uint8_t to) { val = (( val & 0x00FF) | (static_cast<uint16_t>(to) << 8)); }
+    inline constexpr void setLowByte(uint16_t& val, uint8_t to) { val = (( val & 0xFF00) | static_cast<uint16_t>(to)); }
+
 }
