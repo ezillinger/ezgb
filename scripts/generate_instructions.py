@@ -2,15 +2,42 @@ import os.path as path
 import json
 
 this_script_path = path.dirname(path.realpath(__file__))
-json_path = path.realpath(path.join(this_script_path, "../data/opcodes.json"))
+json_path = path.realpath(path.join(this_script_path, "../data/opcodes_2.json"))
 
 jsonDict = None 
 with open(json_path, "r") as f:
     jsonDict = json.loads(f.read())
-
 assert(jsonDict)
-#print(json.dumps(jsonDict, indent=2))
 
+# hack second version of opcodes.json to match first one
+for k,v in jsonDict["unprefixed"].items():
+    v["addr"] = k
+    if len(v["operands"]) > 0:
+        op1 = v["operands"][0]
+        name = op1["name"]
+        if "increment" in op1:
+            name += "+"
+        elif "decrement" in op1:
+            name += "-"
+        if "$" in name:
+            name = name.removeprefix("$") + "h"
+        op1name = name if op1["immediate"] == True else f"({name})"
+        v["operand1"]  = op1name
+    if len(v["operands"]) > 1:
+        op2 = v["operands"][1]
+        name :str = op2["name"]
+        if "increment" in op2:
+            name += "+"
+        elif "decrement" in op2:
+            name += "-"
+        if "$" in name:
+            name = name.removeprefix("$") + "h"
+        op2name = name if op2["immediate"] == True else f"({name})"
+        v["operand2"]  = op2name
+    
+
+for k,v in jsonDict["cbprefixed"].items():
+    v["addr"] = k
 
 codeHeader = \
 """#pragma once
@@ -37,14 +64,13 @@ namespace ez {
         const bool m_prefixed = false;
         const uint8_t m_addr = 0x00;
         const char* m_mnemonic = nullptr;
-        const int m_lengthBytes = 0;
-        const int m_cyclesWithoutBranch = 0;
-        const int m_cyclesWithBranch = 0;
+        const int m_size = 0;
+        const int m_cycles = 0;
+        const int m_cyclesIfBranch = 0;
         FlagEffect m_flagZero = FlagEffect::NONE;
         FlagEffect m_flagSubtract = FlagEffect::NONE;
         FlagEffect m_flagHalfCarry = FlagEffect::NONE;
         FlagEffect m_flagCarry = FlagEffect::NONE;
-        const char* m_groupName = nullptr;
         const char* m_operandName1 = nullptr;
         const char* m_operandName2 = nullptr;
     };
@@ -62,9 +88,9 @@ struct std::formatter<ez::OpCodeInfo> {
         return context.begin();
     }
     auto format(const ez::OpCodeInfo& oc, std::format_context& context) const {  
-        return std::format_to(context.out(), "{} {} {} {} (A: {:#2x} L: {})", oc.m_mnemonic, oc.m_operandName1, 
-                                                oc.m_operandName2, oc.m_groupName, oc.m_addr,
-                                                oc.m_lengthBytes);
+        return std::format_to(context.out(), "{} {} {} (A: {:#2x} L: {})", oc.m_mnemonic, oc.m_operandName1, 
+                                                oc.m_operandName2, oc.m_addr,
+                                                oc.m_size);
     }
 };
 
@@ -102,14 +128,13 @@ f"""
             return {{{"true" if prefixed else "false"}, 
                     {oc["addr"]}, 
                     "{oc["mnemonic"]}",
-                    {oc["length"]},
+                    {oc["bytes"]},
                     {cyclesWo},
                     {cyclesW},
-                    {parseFlag(oc["flags"][0])},
-                    {parseFlag(oc["flags"][1])},
-                    {parseFlag(oc["flags"][2])},
-                    {parseFlag(oc["flags"][3])},
-                    "{oc["group"]}",
+                    {parseFlag(oc["flags"]["Z"])},
+                    {parseFlag(oc["flags"]["N"])},
+                    {parseFlag(oc["flags"]["H"])},
+                    {parseFlag(oc["flags"]["C"])},
                     "{oc.get("operand1", "")}",
                     "{oc.get("operand2", "")}",
                    }};
@@ -117,9 +142,11 @@ f"""
     return caseTemplate
 
 def generate_switches():
+    # TODO split into header/cpp
+
     funcHeaderTemplate = \
 """
-    OpCodeInfo {}(uint8_t code) {{
+    inline OpCodeInfo {}(uint8_t code) {{
 
         switch(code){{
 """

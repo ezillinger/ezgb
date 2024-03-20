@@ -1,6 +1,7 @@
 #pragma once
 #include "base.h"
 #include "Cart.h"
+#include "OpCodes.h"
 
 namespace ez
 {
@@ -34,8 +35,8 @@ namespace ez
 	};
 
 	struct InstructionResult {
-		int8_t m_size = 0;
-		uint8_t m_cycles = 0;
+		uint16_t m_newPC = 0;
+		int m_cycles = 0;
 	};
 
 	enum class Registers {
@@ -80,8 +81,10 @@ namespace ez
 		static constexpr uint8_t getRegisterSizeBytes(Registers reg);
 
 		InstructionResult handleInstruction(uint32_t instruction);
-		InstructionResult handleInstructionXOR8(uint8_t instruction);
-		InstructionResult handleInstructionCB(uint8_t instruction);
+		InstructionResult handleInstructionCB(uint32_t instruction);
+
+		void handleInstructionXOR8(OpCode instruction);
+		void handleInstructionBIT(OpCode instruction);
 
 		bool getFlag(Flag flag) const;
 		void setFlag(Flag flag);
@@ -104,7 +107,7 @@ namespace ez
 		uint16_t m_cyclesToWait = 0;
 
 		bool m_stop = false;
-		bool m_prefixCB = false;
+		bool m_prefix = false; // was last instruction CB prefix
 
 		static constexpr size_t RAM_BYTES = 8 * 1024;
 

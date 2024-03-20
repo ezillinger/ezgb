@@ -28,6 +28,12 @@ namespace ez {
 #define NDEBUG 1
 #endif
 
+    template<typename TTo, typename TFrom>
+    inline TTo checked_cast(const TFrom&& from ) {
+        const auto result = static_cast<TTo>(from);
+        EZ_ASSERT(static_cast<TFrom>(result) == from);
+        return result;
+    }
 
     namespace fs = std::filesystem;
     namespace chrono = std::chrono;
@@ -65,6 +71,7 @@ namespace ez {
     template <typename T>
     concept is_enum = std::is_enum_v<T>;
 
+    
     // unary + operator converts enum to underlying type
     template <typename T> requires is_enum<T>
     std::underlying_type<T>::type operator+(T e) { return static_cast<std::underlying_type<T>::type>(e); }

@@ -22,83 +22,82 @@ namespace ez {
         const bool m_prefixed = false;
         const uint8_t m_addr = 0x00;
         const char* m_mnemonic = nullptr;
-        const int m_lengthBytes = 0;
-        const int m_cyclesWithoutBranch = 0;
-        const int m_cyclesWithBranch = 0;
+        const int m_size = 0;
+        const int m_cycles = 0;
+        const int m_cyclesIfBranch = 0;
         FlagEffect m_flagZero = FlagEffect::NONE;
         FlagEffect m_flagSubtract = FlagEffect::NONE;
         FlagEffect m_flagHalfCarry = FlagEffect::NONE;
         FlagEffect m_flagCarry = FlagEffect::NONE;
-        const char* m_groupName = nullptr;
         const char* m_operandName1 = nullptr;
         const char* m_operandName2 = nullptr;
     };
 
     enum class OpCode : uint8_t {
         NOP = 0x00, // NOP  
-        LD_BC_d16 = 0x01, // LD BC d16
+        LD_BC_u16 = 0x01, // LD BC u16
         LD__BC__A = 0x02, // LD (BC) A
         INC_BC = 0x03, // INC BC 
         INC_B = 0x04, // INC B 
         DEC_B = 0x05, // DEC B 
-        LD_B_d8 = 0x06, // LD B d8
+        LD_B_u8 = 0x06, // LD B u8
         RLCA = 0x07, // RLCA  
         LD__a16__SP = 0x08, // LD (a16) SP
         ADD_HL_BC = 0x09, // ADD HL BC
-        LD_A__BC_ = 0x0a, // LD A (BC)
-        DEC_BC = 0x0b, // DEC BC 
-        INC_C = 0x0c, // INC C 
-        DEC_C = 0x0d, // DEC C 
-        LD_C_d8 = 0x0e, // LD C d8
-        RRCA = 0x0f, // RRCA  
-        STOP_0 = 0x10, // STOP 0 
-        LD_DE_d16 = 0x11, // LD DE d16
+        LD_A__BC_ = 0x0A, // LD A (BC)
+        DEC_BC = 0x0B, // DEC BC 
+        INC_C = 0x0C, // INC C 
+        DEC_C = 0x0D, // DEC C 
+        LD_C_u8 = 0x0E, // LD C u8
+        RRCA = 0x0F, // RRCA  
+        STOP_u8 = 0x10, // STOP u8 
+        LD_DE_u16 = 0x11, // LD DE u16
         LD__DE__A = 0x12, // LD (DE) A
         INC_DE = 0x13, // INC DE 
         INC_D = 0x14, // INC D 
         DEC_D = 0x15, // DEC D 
-        LD_D_d8 = 0x16, // LD D d8
+        LD_D_u8 = 0x16, // LD D u8
         RLA = 0x17, // RLA  
-        JR_r8 = 0x18, // JR r8 
+        JR_i8 = 0x18, // JR i8 
         ADD_HL_DE = 0x19, // ADD HL DE
-        LD_A__DE_ = 0x1a, // LD A (DE)
-        DEC_DE = 0x1b, // DEC DE 
-        INC_E = 0x1c, // INC E 
-        DEC_E = 0x1d, // DEC E 
-        LD_E_d8 = 0x1e, // LD E d8
-        RRA = 0x1f, // RRA  
-        JR_NZ_r8 = 0x20, // JR NZ r8
-        LD_HL_d16 = 0x21, // LD HL d16
+        LD_A__DE_ = 0x1A, // LD A (DE)
+        DEC_DE = 0x1B, // DEC DE 
+        INC_E = 0x1C, // INC E 
+        DEC_E = 0x1D, // DEC E 
+        LD_E_u8 = 0x1E, // LD E u8
+        RRA = 0x1F, // RRA  
+        JR_NZ_i8 = 0x20, // JR NZ i8
+        LD_HL_u16 = 0x21, // LD HL u16
         LD__HLplus__A = 0x22, // LD (HL+) A
         INC_HL = 0x23, // INC HL 
         INC_H = 0x24, // INC H 
         DEC_H = 0x25, // DEC H 
-        LD_H_d8 = 0x26, // LD H d8
+        LD_H_u8 = 0x26, // LD H u8
         DAA = 0x27, // DAA  
-        JR_Z_r8 = 0x28, // JR Z r8
+        JR_Z_i8 = 0x28, // JR Z i8
         ADD_HL_HL = 0x29, // ADD HL HL
-        LD_A__HLplus_ = 0x2a, // LD A (HL+)
-        DEC_HL = 0x2b, // DEC HL 
-        INC_L = 0x2c, // INC L 
-        DEC_L = 0x2d, // DEC L 
-        LD_L_d8 = 0x2e, // LD L d8
-        CPL = 0x2f, // CPL  
-        JR_NC_r8 = 0x30, // JR NC r8
-        LD_SP_d16 = 0x31, // LD SP d16
+        LD_A__HLplus_ = 0x2A, // LD A (HL+)
+        DEC_HL = 0x2B, // DEC HL 
+        INC_L = 0x2C, // INC L 
+        DEC_L = 0x2D, // DEC L 
+        LD_L_u8 = 0x2E, // LD L u8
+        CPL = 0x2F, // CPL  
+        JR_NC_i8 = 0x30, // JR NC i8
+        LD_SP_u16 = 0x31, // LD SP u16
         LD__HLminus__A = 0x32, // LD (HL-) A
         INC_SP = 0x33, // INC SP 
         INC__HL_ = 0x34, // INC (HL) 
         DEC__HL_ = 0x35, // DEC (HL) 
-        LD__HL__d8 = 0x36, // LD (HL) d8
+        LD__HL__u8 = 0x36, // LD (HL) u8
         SCF = 0x37, // SCF  
-        JR_C_r8 = 0x38, // JR C r8
+        JR_C_i8 = 0x38, // JR C i8
         ADD_HL_SP = 0x39, // ADD HL SP
-        LD_A__HLminus_ = 0x3a, // LD A (HL-)
-        DEC_SP = 0x3b, // DEC SP 
-        INC_A = 0x3c, // INC A 
-        DEC_A = 0x3d, // DEC A 
-        LD_A_d8 = 0x3e, // LD A d8
-        CCF = 0x3f, // CCF  
+        LD_A__HLminus_ = 0x3A, // LD A (HL-)
+        DEC_SP = 0x3B, // DEC SP 
+        INC_A = 0x3C, // INC A 
+        DEC_A = 0x3D, // DEC A 
+        LD_A_u8 = 0x3E, // LD A u8
+        CCF = 0x3F, // CCF  
         LD_B_B = 0x40, // LD B B
         LD_B_C = 0x41, // LD B C
         LD_B_D = 0x42, // LD B D
@@ -109,12 +108,12 @@ namespace ez {
         LD_B_A = 0x47, // LD B A
         LD_C_B = 0x48, // LD C B
         LD_C_C = 0x49, // LD C C
-        LD_C_D = 0x4a, // LD C D
-        LD_C_E = 0x4b, // LD C E
-        LD_C_H = 0x4c, // LD C H
-        LD_C_L = 0x4d, // LD C L
-        LD_C__HL_ = 0x4e, // LD C (HL)
-        LD_C_A = 0x4f, // LD C A
+        LD_C_D = 0x4A, // LD C D
+        LD_C_E = 0x4B, // LD C E
+        LD_C_H = 0x4C, // LD C H
+        LD_C_L = 0x4D, // LD C L
+        LD_C__HL_ = 0x4E, // LD C (HL)
+        LD_C_A = 0x4F, // LD C A
         LD_D_B = 0x50, // LD D B
         LD_D_C = 0x51, // LD D C
         LD_D_D = 0x52, // LD D D
@@ -125,12 +124,12 @@ namespace ez {
         LD_D_A = 0x57, // LD D A
         LD_E_B = 0x58, // LD E B
         LD_E_C = 0x59, // LD E C
-        LD_E_D = 0x5a, // LD E D
-        LD_E_E = 0x5b, // LD E E
-        LD_E_H = 0x5c, // LD E H
-        LD_E_L = 0x5d, // LD E L
-        LD_E__HL_ = 0x5e, // LD E (HL)
-        LD_E_A = 0x5f, // LD E A
+        LD_E_D = 0x5A, // LD E D
+        LD_E_E = 0x5B, // LD E E
+        LD_E_H = 0x5C, // LD E H
+        LD_E_L = 0x5D, // LD E L
+        LD_E__HL_ = 0x5E, // LD E (HL)
+        LD_E_A = 0x5F, // LD E A
         LD_H_B = 0x60, // LD H B
         LD_H_C = 0x61, // LD H C
         LD_H_D = 0x62, // LD H D
@@ -141,12 +140,12 @@ namespace ez {
         LD_H_A = 0x67, // LD H A
         LD_L_B = 0x68, // LD L B
         LD_L_C = 0x69, // LD L C
-        LD_L_D = 0x6a, // LD L D
-        LD_L_E = 0x6b, // LD L E
-        LD_L_H = 0x6c, // LD L H
-        LD_L_L = 0x6d, // LD L L
-        LD_L__HL_ = 0x6e, // LD L (HL)
-        LD_L_A = 0x6f, // LD L A
+        LD_L_D = 0x6A, // LD L D
+        LD_L_E = 0x6B, // LD L E
+        LD_L_H = 0x6C, // LD L H
+        LD_L_L = 0x6D, // LD L L
+        LD_L__HL_ = 0x6E, // LD L (HL)
+        LD_L_A = 0x6F, // LD L A
         LD__HL__B = 0x70, // LD (HL) B
         LD__HL__C = 0x71, // LD (HL) C
         LD__HL__D = 0x72, // LD (HL) D
@@ -157,12 +156,12 @@ namespace ez {
         LD__HL__A = 0x77, // LD (HL) A
         LD_A_B = 0x78, // LD A B
         LD_A_C = 0x79, // LD A C
-        LD_A_D = 0x7a, // LD A D
-        LD_A_E = 0x7b, // LD A E
-        LD_A_H = 0x7c, // LD A H
-        LD_A_L = 0x7d, // LD A L
-        LD_A__HL_ = 0x7e, // LD A (HL)
-        LD_A_A = 0x7f, // LD A A
+        LD_A_D = 0x7A, // LD A D
+        LD_A_E = 0x7B, // LD A E
+        LD_A_H = 0x7C, // LD A H
+        LD_A_L = 0x7D, // LD A L
+        LD_A__HL_ = 0x7E, // LD A (HL)
+        LD_A_A = 0x7F, // LD A A
         ADD_A_B = 0x80, // ADD A B
         ADD_A_C = 0x81, // ADD A C
         ADD_A_D = 0x82, // ADD A D
@@ -173,181 +172,192 @@ namespace ez {
         ADD_A_A = 0x87, // ADD A A
         ADC_A_B = 0x88, // ADC A B
         ADC_A_C = 0x89, // ADC A C
-        ADC_A_D = 0x8a, // ADC A D
-        ADC_A_E = 0x8b, // ADC A E
-        ADC_A_H = 0x8c, // ADC A H
-        ADC_A_L = 0x8d, // ADC A L
-        ADC_A__HL_ = 0x8e, // ADC A (HL)
-        ADC_A_A = 0x8f, // ADC A A
-        SUB_B = 0x90, // SUB B 
-        SUB_C = 0x91, // SUB C 
-        SUB_D = 0x92, // SUB D 
-        SUB_E = 0x93, // SUB E 
-        SUB_H = 0x94, // SUB H 
-        SUB_L = 0x95, // SUB L 
-        SUB__HL_ = 0x96, // SUB (HL) 
-        SUB_A = 0x97, // SUB A 
+        ADC_A_D = 0x8A, // ADC A D
+        ADC_A_E = 0x8B, // ADC A E
+        ADC_A_H = 0x8C, // ADC A H
+        ADC_A_L = 0x8D, // ADC A L
+        ADC_A__HL_ = 0x8E, // ADC A (HL)
+        ADC_A_A = 0x8F, // ADC A A
+        SUB_A_B = 0x90, // SUB A B
+        SUB_A_C = 0x91, // SUB A C
+        SUB_A_D = 0x92, // SUB A D
+        SUB_A_E = 0x93, // SUB A E
+        SUB_A_H = 0x94, // SUB A H
+        SUB_A_L = 0x95, // SUB A L
+        SUB_A__HL_ = 0x96, // SUB A (HL)
+        SUB_A_A = 0x97, // SUB A A
         SBC_A_B = 0x98, // SBC A B
         SBC_A_C = 0x99, // SBC A C
-        SBC_A_D = 0x9a, // SBC A D
-        SBC_A_E = 0x9b, // SBC A E
-        SBC_A_H = 0x9c, // SBC A H
-        SBC_A_L = 0x9d, // SBC A L
-        SBC_A__HL_ = 0x9e, // SBC A (HL)
-        SBC_A_A = 0x9f, // SBC A A
-        AND_B = 0xa0, // AND B 
-        AND_C = 0xa1, // AND C 
-        AND_D = 0xa2, // AND D 
-        AND_E = 0xa3, // AND E 
-        AND_H = 0xa4, // AND H 
-        AND_L = 0xa5, // AND L 
-        AND__HL_ = 0xa6, // AND (HL) 
-        AND_A = 0xa7, // AND A 
-        XOR_B = 0xa8, // XOR B 
-        XOR_C = 0xa9, // XOR C 
-        XOR_D = 0xaa, // XOR D 
-        XOR_E = 0xab, // XOR E 
-        XOR_H = 0xac, // XOR H 
-        XOR_L = 0xad, // XOR L 
-        XOR__HL_ = 0xae, // XOR (HL) 
-        XOR_A = 0xaf, // XOR A 
-        OR_B = 0xb0, // OR B 
-        OR_C = 0xb1, // OR C 
-        OR_D = 0xb2, // OR D 
-        OR_E = 0xb3, // OR E 
-        OR_H = 0xb4, // OR H 
-        OR_L = 0xb5, // OR L 
-        OR__HL_ = 0xb6, // OR (HL) 
-        OR_A = 0xb7, // OR A 
-        CP_B = 0xb8, // CP B 
-        CP_C = 0xb9, // CP C 
-        CP_D = 0xba, // CP D 
-        CP_E = 0xbb, // CP E 
-        CP_H = 0xbc, // CP H 
-        CP_L = 0xbd, // CP L 
-        CP__HL_ = 0xbe, // CP (HL) 
-        CP_A = 0xbf, // CP A 
-        RET_NZ = 0xc0, // RET NZ 
-        POP_BC = 0xc1, // POP BC 
-        JP_NZ_a16 = 0xc2, // JP NZ a16
-        JP_a16 = 0xc3, // JP a16 
-        CALL_NZ_a16 = 0xc4, // CALL NZ a16
-        PUSH_BC = 0xc5, // PUSH BC 
-        ADD_A_d8 = 0xc6, // ADD A d8
-        RST_00H = 0xc7, // RST 00H 
-        RET_Z = 0xc8, // RET Z 
-        RET = 0xc9, // RET  
-        JP_Z_a16 = 0xca, // JP Z a16
-        PREFIX_CB = 0xcb, // PREFIX CB 
-        CALL_Z_a16 = 0xcc, // CALL Z a16
-        CALL_a16 = 0xcd, // CALL a16 
-        ADC_A_d8 = 0xce, // ADC A d8
-        RST_08H = 0xcf, // RST 08H 
-        RET_NC = 0xd0, // RET NC 
-        POP_DE = 0xd1, // POP DE 
-        JP_NC_a16 = 0xd2, // JP NC a16
-        CALL_NC_a16 = 0xd4, // CALL NC a16
-        PUSH_DE = 0xd5, // PUSH DE 
-        SUB_d8 = 0xd6, // SUB d8 
-        RST_10H = 0xd7, // RST 10H 
-        RET_C = 0xd8, // RET C 
-        RETI = 0xd9, // RETI  
-        JP_C_a16 = 0xda, // JP C a16
-        CALL_C_a16 = 0xdc, // CALL C a16
-        SBC_A_d8 = 0xde, // SBC A d8
-        RST_18H = 0xdf, // RST 18H 
-        LDH__a8__A = 0xe0, // LDH (a8) A
-        POP_HL = 0xe1, // POP HL 
-        LD__C__A = 0xe2, // LD (C) A
-        PUSH_HL = 0xe5, // PUSH HL 
-        AND_d8 = 0xe6, // AND d8 
-        RST_20H = 0xe7, // RST 20H 
-        ADD_SP_r8 = 0xe8, // ADD SP r8
-        JP__HL_ = 0xe9, // JP (HL) 
-        LD__a16__A = 0xea, // LD (a16) A
-        XOR_d8 = 0xee, // XOR d8 
-        RST_28H = 0xef, // RST 28H 
-        LDH_A__a8_ = 0xf0, // LDH A (a8)
-        POP_AF = 0xf1, // POP AF 
-        LD_A__C_ = 0xf2, // LD A (C)
-        DI = 0xf3, // DI  
-        PUSH_AF = 0xf5, // PUSH AF 
-        OR_d8 = 0xf6, // OR d8 
-        RST_30H = 0xf7, // RST 30H 
-        LD_HL_SPplusr8 = 0xf8, // LD HL SP+r8
-        LD_SP_HL = 0xf9, // LD SP HL
-        LD_A__a16_ = 0xfa, // LD A (a16)
-        EI = 0xfb, // EI  
-        CP_d8 = 0xfe, // CP d8 
-        RST_38H = 0xff, // RST 38H 
+        SBC_A_D = 0x9A, // SBC A D
+        SBC_A_E = 0x9B, // SBC A E
+        SBC_A_H = 0x9C, // SBC A H
+        SBC_A_L = 0x9D, // SBC A L
+        SBC_A__HL_ = 0x9E, // SBC A (HL)
+        SBC_A_A = 0x9F, // SBC A A
+        AND_A_B = 0xA0, // AND A B
+        AND_A_C = 0xA1, // AND A C
+        AND_A_D = 0xA2, // AND A D
+        AND_A_E = 0xA3, // AND A E
+        AND_A_H = 0xA4, // AND A H
+        AND_A_L = 0xA5, // AND A L
+        AND_A__HL_ = 0xA6, // AND A (HL)
+        AND_A_A = 0xA7, // AND A A
+        XOR_A_B = 0xA8, // XOR A B
+        XOR_A_C = 0xA9, // XOR A C
+        XOR_A_D = 0xAA, // XOR A D
+        XOR_A_E = 0xAB, // XOR A E
+        XOR_A_H = 0xAC, // XOR A H
+        XOR_A_L = 0xAD, // XOR A L
+        XOR_A__HL_ = 0xAE, // XOR A (HL)
+        XOR_A_A = 0xAF, // XOR A A
+        OR_A_B = 0xB0, // OR A B
+        OR_A_C = 0xB1, // OR A C
+        OR_A_D = 0xB2, // OR A D
+        OR_A_E = 0xB3, // OR A E
+        OR_A_H = 0xB4, // OR A H
+        OR_A_L = 0xB5, // OR A L
+        OR_A__HL_ = 0xB6, // OR A (HL)
+        OR_A_A = 0xB7, // OR A A
+        CP_A_B = 0xB8, // CP A B
+        CP_A_C = 0xB9, // CP A C
+        CP_A_D = 0xBA, // CP A D
+        CP_A_E = 0xBB, // CP A E
+        CP_A_H = 0xBC, // CP A H
+        CP_A_L = 0xBD, // CP A L
+        CP_A__HL_ = 0xBE, // CP A (HL)
+        CP_A_A = 0xBF, // CP A A
+        RET_NZ = 0xC0, // RET NZ 
+        POP_BC = 0xC1, // POP BC 
+        JP_NZ_a16 = 0xC2, // JP NZ a16
+        JP_a16 = 0xC3, // JP a16 
+        CALL_NZ_a16 = 0xC4, // CALL NZ a16
+        PUSH_BC = 0xC5, // PUSH BC 
+        ADD_A_u8 = 0xC6, // ADD A u8
+        RST_00h = 0xC7, // RST 00h 
+        RET_Z = 0xC8, // RET Z 
+        RET = 0xC9, // RET  
+        JP_Z_a16 = 0xCA, // JP Z a16
+        PREFIX = 0xCB, // PREFIX  
+        CALL_Z_a16 = 0xCC, // CALL Z a16
+        CALL_a16 = 0xCD, // CALL a16 
+        ADC_A_u8 = 0xCE, // ADC A u8
+        RST_08h = 0xCF, // RST 08h 
+        RET_NC = 0xD0, // RET NC 
+        POP_DE = 0xD1, // POP DE 
+        JP_NC_a16 = 0xD2, // JP NC a16
+        ILLEGAL_D3 = 0xD3, // ILLEGAL_D3  
+        CALL_NC_a16 = 0xD4, // CALL NC a16
+        PUSH_DE = 0xD5, // PUSH DE 
+        SUB_A_u8 = 0xD6, // SUB A u8
+        RST_10h = 0xD7, // RST 10h 
+        RET_C = 0xD8, // RET C 
+        RETI = 0xD9, // RETI  
+        JP_C_a16 = 0xDA, // JP C a16
+        ILLEGAL_DB = 0xDB, // ILLEGAL_DB  
+        CALL_C_a16 = 0xDC, // CALL C a16
+        ILLEGAL_DD = 0xDD, // ILLEGAL_DD  
+        SBC_A_u8 = 0xDE, // SBC A u8
+        RST_18h = 0xDF, // RST 18h 
+        LDH__a8__A = 0xE0, // LDH (a8) A
+        POP_HL = 0xE1, // POP HL 
+        LD__C__A = 0xE2, // LD (C) A
+        ILLEGAL_E3 = 0xE3, // ILLEGAL_E3  
+        ILLEGAL_E4 = 0xE4, // ILLEGAL_E4  
+        PUSH_HL = 0xE5, // PUSH HL 
+        AND_A_u8 = 0xE6, // AND A u8
+        RST_20h = 0xE7, // RST 20h 
+        ADD_SP_i8 = 0xE8, // ADD SP i8
+        JP_HL = 0xE9, // JP HL 
+        LD__a16__A = 0xEA, // LD (a16) A
+        ILLEGAL_EB = 0xEB, // ILLEGAL_EB  
+        ILLEGAL_EC = 0xEC, // ILLEGAL_EC  
+        ILLEGAL_ED = 0xED, // ILLEGAL_ED  
+        XOR_A_u8 = 0xEE, // XOR A u8
+        RST_28h = 0xEF, // RST 28h 
+        LDH_A__a8_ = 0xF0, // LDH A (a8)
+        POP_AF = 0xF1, // POP AF 
+        LD_A__C_ = 0xF2, // LD A (C)
+        DI = 0xF3, // DI  
+        ILLEGAL_F4 = 0xF4, // ILLEGAL_F4  
+        PUSH_AF = 0xF5, // PUSH AF 
+        OR_A_u8 = 0xF6, // OR A u8
+        RST_30h = 0xF7, // RST 30h 
+        LD_HL_SPplus = 0xF8, // LD HL SP+
+        LD_SP_HL = 0xF9, // LD SP HL
+        LD_A__a16_ = 0xFA, // LD A (a16)
+        EI = 0xFB, // EI  
+        ILLEGAL_FC = 0xFC, // ILLEGAL_FC  
+        ILLEGAL_FD = 0xFD, // ILLEGAL_FD  
+        CP_A_u8 = 0xFE, // CP A u8
+        RST_38h = 0xFF, // RST 38h 
     };
 
 
     enum class OpCodeCB : uint8_t {
         NOP = 0x00, // NOP  
-        LD_BC_d16 = 0x01, // LD BC d16
+        LD_BC_u16 = 0x01, // LD BC u16
         LD__BC__A = 0x02, // LD (BC) A
         INC_BC = 0x03, // INC BC 
         INC_B = 0x04, // INC B 
         DEC_B = 0x05, // DEC B 
-        LD_B_d8 = 0x06, // LD B d8
+        LD_B_u8 = 0x06, // LD B u8
         RLCA = 0x07, // RLCA  
         LD__a16__SP = 0x08, // LD (a16) SP
         ADD_HL_BC = 0x09, // ADD HL BC
-        LD_A__BC_ = 0x0a, // LD A (BC)
-        DEC_BC = 0x0b, // DEC BC 
-        INC_C = 0x0c, // INC C 
-        DEC_C = 0x0d, // DEC C 
-        LD_C_d8 = 0x0e, // LD C d8
-        RRCA = 0x0f, // RRCA  
-        STOP_0 = 0x10, // STOP 0 
-        LD_DE_d16 = 0x11, // LD DE d16
+        LD_A__BC_ = 0x0A, // LD A (BC)
+        DEC_BC = 0x0B, // DEC BC 
+        INC_C = 0x0C, // INC C 
+        DEC_C = 0x0D, // DEC C 
+        LD_C_u8 = 0x0E, // LD C u8
+        RRCA = 0x0F, // RRCA  
+        STOP_u8 = 0x10, // STOP u8 
+        LD_DE_u16 = 0x11, // LD DE u16
         LD__DE__A = 0x12, // LD (DE) A
         INC_DE = 0x13, // INC DE 
         INC_D = 0x14, // INC D 
         DEC_D = 0x15, // DEC D 
-        LD_D_d8 = 0x16, // LD D d8
+        LD_D_u8 = 0x16, // LD D u8
         RLA = 0x17, // RLA  
-        JR_r8 = 0x18, // JR r8 
+        JR_i8 = 0x18, // JR i8 
         ADD_HL_DE = 0x19, // ADD HL DE
-        LD_A__DE_ = 0x1a, // LD A (DE)
-        DEC_DE = 0x1b, // DEC DE 
-        INC_E = 0x1c, // INC E 
-        DEC_E = 0x1d, // DEC E 
-        LD_E_d8 = 0x1e, // LD E d8
-        RRA = 0x1f, // RRA  
-        JR_NZ_r8 = 0x20, // JR NZ r8
-        LD_HL_d16 = 0x21, // LD HL d16
+        LD_A__DE_ = 0x1A, // LD A (DE)
+        DEC_DE = 0x1B, // DEC DE 
+        INC_E = 0x1C, // INC E 
+        DEC_E = 0x1D, // DEC E 
+        LD_E_u8 = 0x1E, // LD E u8
+        RRA = 0x1F, // RRA  
+        JR_NZ_i8 = 0x20, // JR NZ i8
+        LD_HL_u16 = 0x21, // LD HL u16
         LD__HLplus__A = 0x22, // LD (HL+) A
         INC_HL = 0x23, // INC HL 
         INC_H = 0x24, // INC H 
         DEC_H = 0x25, // DEC H 
-        LD_H_d8 = 0x26, // LD H d8
+        LD_H_u8 = 0x26, // LD H u8
         DAA = 0x27, // DAA  
-        JR_Z_r8 = 0x28, // JR Z r8
+        JR_Z_i8 = 0x28, // JR Z i8
         ADD_HL_HL = 0x29, // ADD HL HL
-        LD_A__HLplus_ = 0x2a, // LD A (HL+)
-        DEC_HL = 0x2b, // DEC HL 
-        INC_L = 0x2c, // INC L 
-        DEC_L = 0x2d, // DEC L 
-        LD_L_d8 = 0x2e, // LD L d8
-        CPL = 0x2f, // CPL  
-        JR_NC_r8 = 0x30, // JR NC r8
-        LD_SP_d16 = 0x31, // LD SP d16
+        LD_A__HLplus_ = 0x2A, // LD A (HL+)
+        DEC_HL = 0x2B, // DEC HL 
+        INC_L = 0x2C, // INC L 
+        DEC_L = 0x2D, // DEC L 
+        LD_L_u8 = 0x2E, // LD L u8
+        CPL = 0x2F, // CPL  
+        JR_NC_i8 = 0x30, // JR NC i8
+        LD_SP_u16 = 0x31, // LD SP u16
         LD__HLminus__A = 0x32, // LD (HL-) A
         INC_SP = 0x33, // INC SP 
         INC__HL_ = 0x34, // INC (HL) 
         DEC__HL_ = 0x35, // DEC (HL) 
-        LD__HL__d8 = 0x36, // LD (HL) d8
+        LD__HL__u8 = 0x36, // LD (HL) u8
         SCF = 0x37, // SCF  
-        JR_C_r8 = 0x38, // JR C r8
+        JR_C_i8 = 0x38, // JR C i8
         ADD_HL_SP = 0x39, // ADD HL SP
-        LD_A__HLminus_ = 0x3a, // LD A (HL-)
-        DEC_SP = 0x3b, // DEC SP 
-        INC_A = 0x3c, // INC A 
-        DEC_A = 0x3d, // DEC A 
-        LD_A_d8 = 0x3e, // LD A d8
-        CCF = 0x3f, // CCF  
+        LD_A__HLminus_ = 0x3A, // LD A (HL-)
+        DEC_SP = 0x3B, // DEC SP 
+        INC_A = 0x3C, // INC A 
+        DEC_A = 0x3D, // DEC A 
+        LD_A_u8 = 0x3E, // LD A u8
+        CCF = 0x3F, // CCF  
         LD_B_B = 0x40, // LD B B
         LD_B_C = 0x41, // LD B C
         LD_B_D = 0x42, // LD B D
@@ -358,12 +368,12 @@ namespace ez {
         LD_B_A = 0x47, // LD B A
         LD_C_B = 0x48, // LD C B
         LD_C_C = 0x49, // LD C C
-        LD_C_D = 0x4a, // LD C D
-        LD_C_E = 0x4b, // LD C E
-        LD_C_H = 0x4c, // LD C H
-        LD_C_L = 0x4d, // LD C L
-        LD_C__HL_ = 0x4e, // LD C (HL)
-        LD_C_A = 0x4f, // LD C A
+        LD_C_D = 0x4A, // LD C D
+        LD_C_E = 0x4B, // LD C E
+        LD_C_H = 0x4C, // LD C H
+        LD_C_L = 0x4D, // LD C L
+        LD_C__HL_ = 0x4E, // LD C (HL)
+        LD_C_A = 0x4F, // LD C A
         LD_D_B = 0x50, // LD D B
         LD_D_C = 0x51, // LD D C
         LD_D_D = 0x52, // LD D D
@@ -374,12 +384,12 @@ namespace ez {
         LD_D_A = 0x57, // LD D A
         LD_E_B = 0x58, // LD E B
         LD_E_C = 0x59, // LD E C
-        LD_E_D = 0x5a, // LD E D
-        LD_E_E = 0x5b, // LD E E
-        LD_E_H = 0x5c, // LD E H
-        LD_E_L = 0x5d, // LD E L
-        LD_E__HL_ = 0x5e, // LD E (HL)
-        LD_E_A = 0x5f, // LD E A
+        LD_E_D = 0x5A, // LD E D
+        LD_E_E = 0x5B, // LD E E
+        LD_E_H = 0x5C, // LD E H
+        LD_E_L = 0x5D, // LD E L
+        LD_E__HL_ = 0x5E, // LD E (HL)
+        LD_E_A = 0x5F, // LD E A
         LD_H_B = 0x60, // LD H B
         LD_H_C = 0x61, // LD H C
         LD_H_D = 0x62, // LD H D
@@ -390,12 +400,12 @@ namespace ez {
         LD_H_A = 0x67, // LD H A
         LD_L_B = 0x68, // LD L B
         LD_L_C = 0x69, // LD L C
-        LD_L_D = 0x6a, // LD L D
-        LD_L_E = 0x6b, // LD L E
-        LD_L_H = 0x6c, // LD L H
-        LD_L_L = 0x6d, // LD L L
-        LD_L__HL_ = 0x6e, // LD L (HL)
-        LD_L_A = 0x6f, // LD L A
+        LD_L_D = 0x6A, // LD L D
+        LD_L_E = 0x6B, // LD L E
+        LD_L_H = 0x6C, // LD L H
+        LD_L_L = 0x6D, // LD L L
+        LD_L__HL_ = 0x6E, // LD L (HL)
+        LD_L_A = 0x6F, // LD L A
         LD__HL__B = 0x70, // LD (HL) B
         LD__HL__C = 0x71, // LD (HL) C
         LD__HL__D = 0x72, // LD (HL) D
@@ -406,12 +416,12 @@ namespace ez {
         LD__HL__A = 0x77, // LD (HL) A
         LD_A_B = 0x78, // LD A B
         LD_A_C = 0x79, // LD A C
-        LD_A_D = 0x7a, // LD A D
-        LD_A_E = 0x7b, // LD A E
-        LD_A_H = 0x7c, // LD A H
-        LD_A_L = 0x7d, // LD A L
-        LD_A__HL_ = 0x7e, // LD A (HL)
-        LD_A_A = 0x7f, // LD A A
+        LD_A_D = 0x7A, // LD A D
+        LD_A_E = 0x7B, // LD A E
+        LD_A_H = 0x7C, // LD A H
+        LD_A_L = 0x7D, // LD A L
+        LD_A__HL_ = 0x7E, // LD A (HL)
+        LD_A_A = 0x7F, // LD A A
         ADD_A_B = 0x80, // ADD A B
         ADD_A_C = 0x81, // ADD A C
         ADD_A_D = 0x82, // ADD A D
@@ -422,117 +432,128 @@ namespace ez {
         ADD_A_A = 0x87, // ADD A A
         ADC_A_B = 0x88, // ADC A B
         ADC_A_C = 0x89, // ADC A C
-        ADC_A_D = 0x8a, // ADC A D
-        ADC_A_E = 0x8b, // ADC A E
-        ADC_A_H = 0x8c, // ADC A H
-        ADC_A_L = 0x8d, // ADC A L
-        ADC_A__HL_ = 0x8e, // ADC A (HL)
-        ADC_A_A = 0x8f, // ADC A A
-        SUB_B = 0x90, // SUB B 
-        SUB_C = 0x91, // SUB C 
-        SUB_D = 0x92, // SUB D 
-        SUB_E = 0x93, // SUB E 
-        SUB_H = 0x94, // SUB H 
-        SUB_L = 0x95, // SUB L 
-        SUB__HL_ = 0x96, // SUB (HL) 
-        SUB_A = 0x97, // SUB A 
+        ADC_A_D = 0x8A, // ADC A D
+        ADC_A_E = 0x8B, // ADC A E
+        ADC_A_H = 0x8C, // ADC A H
+        ADC_A_L = 0x8D, // ADC A L
+        ADC_A__HL_ = 0x8E, // ADC A (HL)
+        ADC_A_A = 0x8F, // ADC A A
+        SUB_A_B = 0x90, // SUB A B
+        SUB_A_C = 0x91, // SUB A C
+        SUB_A_D = 0x92, // SUB A D
+        SUB_A_E = 0x93, // SUB A E
+        SUB_A_H = 0x94, // SUB A H
+        SUB_A_L = 0x95, // SUB A L
+        SUB_A__HL_ = 0x96, // SUB A (HL)
+        SUB_A_A = 0x97, // SUB A A
         SBC_A_B = 0x98, // SBC A B
         SBC_A_C = 0x99, // SBC A C
-        SBC_A_D = 0x9a, // SBC A D
-        SBC_A_E = 0x9b, // SBC A E
-        SBC_A_H = 0x9c, // SBC A H
-        SBC_A_L = 0x9d, // SBC A L
-        SBC_A__HL_ = 0x9e, // SBC A (HL)
-        SBC_A_A = 0x9f, // SBC A A
-        AND_B = 0xa0, // AND B 
-        AND_C = 0xa1, // AND C 
-        AND_D = 0xa2, // AND D 
-        AND_E = 0xa3, // AND E 
-        AND_H = 0xa4, // AND H 
-        AND_L = 0xa5, // AND L 
-        AND__HL_ = 0xa6, // AND (HL) 
-        AND_A = 0xa7, // AND A 
-        XOR_B = 0xa8, // XOR B 
-        XOR_C = 0xa9, // XOR C 
-        XOR_D = 0xaa, // XOR D 
-        XOR_E = 0xab, // XOR E 
-        XOR_H = 0xac, // XOR H 
-        XOR_L = 0xad, // XOR L 
-        XOR__HL_ = 0xae, // XOR (HL) 
-        XOR_A = 0xaf, // XOR A 
-        OR_B = 0xb0, // OR B 
-        OR_C = 0xb1, // OR C 
-        OR_D = 0xb2, // OR D 
-        OR_E = 0xb3, // OR E 
-        OR_H = 0xb4, // OR H 
-        OR_L = 0xb5, // OR L 
-        OR__HL_ = 0xb6, // OR (HL) 
-        OR_A = 0xb7, // OR A 
-        CP_B = 0xb8, // CP B 
-        CP_C = 0xb9, // CP C 
-        CP_D = 0xba, // CP D 
-        CP_E = 0xbb, // CP E 
-        CP_H = 0xbc, // CP H 
-        CP_L = 0xbd, // CP L 
-        CP__HL_ = 0xbe, // CP (HL) 
-        CP_A = 0xbf, // CP A 
-        RET_NZ = 0xc0, // RET NZ 
-        POP_BC = 0xc1, // POP BC 
-        JP_NZ_a16 = 0xc2, // JP NZ a16
-        JP_a16 = 0xc3, // JP a16 
-        CALL_NZ_a16 = 0xc4, // CALL NZ a16
-        PUSH_BC = 0xc5, // PUSH BC 
-        ADD_A_d8 = 0xc6, // ADD A d8
-        RST_00H = 0xc7, // RST 00H 
-        RET_Z = 0xc8, // RET Z 
-        RET = 0xc9, // RET  
-        JP_Z_a16 = 0xca, // JP Z a16
-        PREFIX_CB = 0xcb, // PREFIX CB 
-        CALL_Z_a16 = 0xcc, // CALL Z a16
-        CALL_a16 = 0xcd, // CALL a16 
-        ADC_A_d8 = 0xce, // ADC A d8
-        RST_08H = 0xcf, // RST 08H 
-        RET_NC = 0xd0, // RET NC 
-        POP_DE = 0xd1, // POP DE 
-        JP_NC_a16 = 0xd2, // JP NC a16
-        CALL_NC_a16 = 0xd4, // CALL NC a16
-        PUSH_DE = 0xd5, // PUSH DE 
-        SUB_d8 = 0xd6, // SUB d8 
-        RST_10H = 0xd7, // RST 10H 
-        RET_C = 0xd8, // RET C 
-        RETI = 0xd9, // RETI  
-        JP_C_a16 = 0xda, // JP C a16
-        CALL_C_a16 = 0xdc, // CALL C a16
-        SBC_A_d8 = 0xde, // SBC A d8
-        RST_18H = 0xdf, // RST 18H 
-        LDH__a8__A = 0xe0, // LDH (a8) A
-        POP_HL = 0xe1, // POP HL 
-        LD__C__A = 0xe2, // LD (C) A
-        PUSH_HL = 0xe5, // PUSH HL 
-        AND_d8 = 0xe6, // AND d8 
-        RST_20H = 0xe7, // RST 20H 
-        ADD_SP_r8 = 0xe8, // ADD SP r8
-        JP__HL_ = 0xe9, // JP (HL) 
-        LD__a16__A = 0xea, // LD (a16) A
-        XOR_d8 = 0xee, // XOR d8 
-        RST_28H = 0xef, // RST 28H 
-        LDH_A__a8_ = 0xf0, // LDH A (a8)
-        POP_AF = 0xf1, // POP AF 
-        LD_A__C_ = 0xf2, // LD A (C)
-        DI = 0xf3, // DI  
-        PUSH_AF = 0xf5, // PUSH AF 
-        OR_d8 = 0xf6, // OR d8 
-        RST_30H = 0xf7, // RST 30H 
-        LD_HL_SPplusr8 = 0xf8, // LD HL SP+r8
-        LD_SP_HL = 0xf9, // LD SP HL
-        LD_A__a16_ = 0xfa, // LD A (a16)
-        EI = 0xfb, // EI  
-        CP_d8 = 0xfe, // CP d8 
-        RST_38H = 0xff, // RST 38H 
+        SBC_A_D = 0x9A, // SBC A D
+        SBC_A_E = 0x9B, // SBC A E
+        SBC_A_H = 0x9C, // SBC A H
+        SBC_A_L = 0x9D, // SBC A L
+        SBC_A__HL_ = 0x9E, // SBC A (HL)
+        SBC_A_A = 0x9F, // SBC A A
+        AND_A_B = 0xA0, // AND A B
+        AND_A_C = 0xA1, // AND A C
+        AND_A_D = 0xA2, // AND A D
+        AND_A_E = 0xA3, // AND A E
+        AND_A_H = 0xA4, // AND A H
+        AND_A_L = 0xA5, // AND A L
+        AND_A__HL_ = 0xA6, // AND A (HL)
+        AND_A_A = 0xA7, // AND A A
+        XOR_A_B = 0xA8, // XOR A B
+        XOR_A_C = 0xA9, // XOR A C
+        XOR_A_D = 0xAA, // XOR A D
+        XOR_A_E = 0xAB, // XOR A E
+        XOR_A_H = 0xAC, // XOR A H
+        XOR_A_L = 0xAD, // XOR A L
+        XOR_A__HL_ = 0xAE, // XOR A (HL)
+        XOR_A_A = 0xAF, // XOR A A
+        OR_A_B = 0xB0, // OR A B
+        OR_A_C = 0xB1, // OR A C
+        OR_A_D = 0xB2, // OR A D
+        OR_A_E = 0xB3, // OR A E
+        OR_A_H = 0xB4, // OR A H
+        OR_A_L = 0xB5, // OR A L
+        OR_A__HL_ = 0xB6, // OR A (HL)
+        OR_A_A = 0xB7, // OR A A
+        CP_A_B = 0xB8, // CP A B
+        CP_A_C = 0xB9, // CP A C
+        CP_A_D = 0xBA, // CP A D
+        CP_A_E = 0xBB, // CP A E
+        CP_A_H = 0xBC, // CP A H
+        CP_A_L = 0xBD, // CP A L
+        CP_A__HL_ = 0xBE, // CP A (HL)
+        CP_A_A = 0xBF, // CP A A
+        RET_NZ = 0xC0, // RET NZ 
+        POP_BC = 0xC1, // POP BC 
+        JP_NZ_a16 = 0xC2, // JP NZ a16
+        JP_a16 = 0xC3, // JP a16 
+        CALL_NZ_a16 = 0xC4, // CALL NZ a16
+        PUSH_BC = 0xC5, // PUSH BC 
+        ADD_A_u8 = 0xC6, // ADD A u8
+        RST_00h = 0xC7, // RST 00h 
+        RET_Z = 0xC8, // RET Z 
+        RET = 0xC9, // RET  
+        JP_Z_a16 = 0xCA, // JP Z a16
+        PREFIX = 0xCB, // PREFIX  
+        CALL_Z_a16 = 0xCC, // CALL Z a16
+        CALL_a16 = 0xCD, // CALL a16 
+        ADC_A_u8 = 0xCE, // ADC A u8
+        RST_08h = 0xCF, // RST 08h 
+        RET_NC = 0xD0, // RET NC 
+        POP_DE = 0xD1, // POP DE 
+        JP_NC_a16 = 0xD2, // JP NC a16
+        ILLEGAL_D3 = 0xD3, // ILLEGAL_D3  
+        CALL_NC_a16 = 0xD4, // CALL NC a16
+        PUSH_DE = 0xD5, // PUSH DE 
+        SUB_A_u8 = 0xD6, // SUB A u8
+        RST_10h = 0xD7, // RST 10h 
+        RET_C = 0xD8, // RET C 
+        RETI = 0xD9, // RETI  
+        JP_C_a16 = 0xDA, // JP C a16
+        ILLEGAL_DB = 0xDB, // ILLEGAL_DB  
+        CALL_C_a16 = 0xDC, // CALL C a16
+        ILLEGAL_DD = 0xDD, // ILLEGAL_DD  
+        SBC_A_u8 = 0xDE, // SBC A u8
+        RST_18h = 0xDF, // RST 18h 
+        LDH__a8__A = 0xE0, // LDH (a8) A
+        POP_HL = 0xE1, // POP HL 
+        LD__C__A = 0xE2, // LD (C) A
+        ILLEGAL_E3 = 0xE3, // ILLEGAL_E3  
+        ILLEGAL_E4 = 0xE4, // ILLEGAL_E4  
+        PUSH_HL = 0xE5, // PUSH HL 
+        AND_A_u8 = 0xE6, // AND A u8
+        RST_20h = 0xE7, // RST 20h 
+        ADD_SP_i8 = 0xE8, // ADD SP i8
+        JP_HL = 0xE9, // JP HL 
+        LD__a16__A = 0xEA, // LD (a16) A
+        ILLEGAL_EB = 0xEB, // ILLEGAL_EB  
+        ILLEGAL_EC = 0xEC, // ILLEGAL_EC  
+        ILLEGAL_ED = 0xED, // ILLEGAL_ED  
+        XOR_A_u8 = 0xEE, // XOR A u8
+        RST_28h = 0xEF, // RST 28h 
+        LDH_A__a8_ = 0xF0, // LDH A (a8)
+        POP_AF = 0xF1, // POP AF 
+        LD_A__C_ = 0xF2, // LD A (C)
+        DI = 0xF3, // DI  
+        ILLEGAL_F4 = 0xF4, // ILLEGAL_F4  
+        PUSH_AF = 0xF5, // PUSH AF 
+        OR_A_u8 = 0xF6, // OR A u8
+        RST_30h = 0xF7, // RST 30h 
+        LD_HL_SPplus = 0xF8, // LD HL SP+
+        LD_SP_HL = 0xF9, // LD SP HL
+        LD_A__a16_ = 0xFA, // LD A (a16)
+        EI = 0xFB, // EI  
+        ILLEGAL_FC = 0xFC, // ILLEGAL_FC  
+        ILLEGAL_FD = 0xFD, // ILLEGAL_FD  
+        CP_A_u8 = 0xFE, // CP A u8
+        RST_38h = 0xFF, // RST 38h 
     };
 
 
-    OpCodeInfo getOpCodeInfoUnprefixed(uint8_t code) {
+    inline OpCodeInfo getOpCodeInfoUnprefixed(uint8_t code) {
 
         switch(code){
 
@@ -547,7 +568,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/misc",
                     "",
                     "",
                    };
@@ -563,9 +583,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "BC",
-                    "d16",
+                    "u16",
                    };
 
         case 0x02:
@@ -579,7 +598,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(BC)",
                     "A",
                    };
@@ -595,7 +613,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/alu",
                     "BC",
                     "",
                    };
@@ -611,7 +628,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "B",
                     "",
                    };
@@ -627,7 +643,6 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "B",
                     "",
                    };
@@ -643,9 +658,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "B",
-                    "d8",
+                    "u8",
                    };
 
         case 0x07:
@@ -659,7 +673,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
                     "",
                     "",
                    };
@@ -675,7 +688,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "(a16)",
                     "SP",
                    };
@@ -691,14 +703,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x16/alu",
                     "HL",
                     "BC",
                    };
 
-        case 0x0a:
+        case 0x0A:
             return {false, 
-                    0x0a, 
+                    0x0A, 
                     "LD",
                     1,
                     8,
@@ -707,14 +718,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "(BC)",
                    };
 
-        case 0x0b:
+        case 0x0B:
             return {false, 
-                    0x0b, 
+                    0x0B, 
                     "DEC",
                     1,
                     8,
@@ -723,14 +733,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/alu",
                     "BC",
                     "",
                    };
 
-        case 0x0c:
+        case 0x0C:
             return {false, 
-                    0x0c, 
+                    0x0C, 
                     "INC",
                     1,
                     4,
@@ -739,14 +748,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "C",
                     "",
                    };
 
-        case 0x0d:
+        case 0x0D:
             return {false, 
-                    0x0d, 
+                    0x0D, 
                     "DEC",
                     1,
                     4,
@@ -755,14 +763,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "C",
                     "",
                    };
 
-        case 0x0e:
+        case 0x0E:
             return {false, 
-                    0x0e, 
+                    0x0E, 
                     "LD",
                     2,
                     8,
@@ -771,14 +778,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "C",
-                    "d8",
+                    "u8",
                    };
 
-        case 0x0f:
+        case 0x0F:
             return {false, 
-                    0x0f, 
+                    0x0F, 
                     "RRCA",
                     1,
                     4,
@@ -787,7 +793,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
                     "",
                     "",
                    };
@@ -796,15 +801,14 @@ namespace ez {
             return {false, 
                     0x10, 
                     "STOP",
-                    1,
+                    2,
                     4,
                     0,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/misc",
-                    "0",
+                    "u8",
                     "",
                    };
 
@@ -819,9 +823,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "DE",
-                    "d16",
+                    "u16",
                    };
 
         case 0x12:
@@ -835,7 +838,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(DE)",
                     "A",
                    };
@@ -851,7 +853,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/alu",
                     "DE",
                     "",
                    };
@@ -867,7 +868,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "D",
                     "",
                    };
@@ -883,7 +883,6 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "D",
                     "",
                    };
@@ -899,9 +898,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "D",
-                    "d8",
+                    "u8",
                    };
 
         case 0x17:
@@ -915,7 +913,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
                     "",
                     "",
                    };
@@ -931,8 +928,7 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
-                    "r8",
+                    "i8",
                     "",
                    };
 
@@ -947,14 +943,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x16/alu",
                     "HL",
                     "DE",
                    };
 
-        case 0x1a:
+        case 0x1A:
             return {false, 
-                    0x1a, 
+                    0x1A, 
                     "LD",
                     1,
                     8,
@@ -963,14 +958,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "(DE)",
                    };
 
-        case 0x1b:
+        case 0x1B:
             return {false, 
-                    0x1b, 
+                    0x1B, 
                     "DEC",
                     1,
                     8,
@@ -979,14 +973,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/alu",
                     "DE",
                     "",
                    };
 
-        case 0x1c:
+        case 0x1C:
             return {false, 
-                    0x1c, 
+                    0x1C, 
                     "INC",
                     1,
                     4,
@@ -995,14 +988,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "E",
                     "",
                    };
 
-        case 0x1d:
+        case 0x1D:
             return {false, 
-                    0x1d, 
+                    0x1D, 
                     "DEC",
                     1,
                     4,
@@ -1011,14 +1003,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "E",
                     "",
                    };
 
-        case 0x1e:
+        case 0x1E:
             return {false, 
-                    0x1e, 
+                    0x1E, 
                     "LD",
                     2,
                     8,
@@ -1027,14 +1018,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "E",
-                    "d8",
+                    "u8",
                    };
 
-        case 0x1f:
+        case 0x1F:
             return {false, 
-                    0x1f, 
+                    0x1F, 
                     "RRA",
                     1,
                     4,
@@ -1043,7 +1033,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
                     "",
                     "",
                    };
@@ -1059,9 +1048,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "NZ",
-                    "r8",
+                    "i8",
                    };
 
         case 0x21:
@@ -1075,9 +1063,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "HL",
-                    "d16",
+                    "u16",
                    };
 
         case 0x22:
@@ -1091,7 +1078,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(HL+)",
                     "A",
                    };
@@ -1107,7 +1093,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/alu",
                     "HL",
                     "",
                    };
@@ -1123,7 +1108,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "H",
                     "",
                    };
@@ -1139,7 +1123,6 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "H",
                     "",
                    };
@@ -1155,9 +1138,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "H",
-                    "d8",
+                    "u8",
                    };
 
         case 0x27:
@@ -1171,7 +1153,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "",
                     "",
                    };
@@ -1187,9 +1168,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "Z",
-                    "r8",
+                    "i8",
                    };
 
         case 0x29:
@@ -1203,14 +1183,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x16/alu",
                     "HL",
                     "HL",
                    };
 
-        case 0x2a:
+        case 0x2A:
             return {false, 
-                    0x2a, 
+                    0x2A, 
                     "LD",
                     1,
                     8,
@@ -1219,14 +1198,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "(HL+)",
                    };
 
-        case 0x2b:
+        case 0x2B:
             return {false, 
-                    0x2b, 
+                    0x2B, 
                     "DEC",
                     1,
                     8,
@@ -1235,14 +1213,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/alu",
                     "HL",
                     "",
                    };
 
-        case 0x2c:
+        case 0x2C:
             return {false, 
-                    0x2c, 
+                    0x2C, 
                     "INC",
                     1,
                     4,
@@ -1251,14 +1228,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "L",
                     "",
                    };
 
-        case 0x2d:
+        case 0x2D:
             return {false, 
-                    0x2d, 
+                    0x2D, 
                     "DEC",
                     1,
                     4,
@@ -1267,14 +1243,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "L",
                     "",
                    };
 
-        case 0x2e:
+        case 0x2E:
             return {false, 
-                    0x2e, 
+                    0x2E, 
                     "LD",
                     2,
                     8,
@@ -1283,14 +1258,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "L",
-                    "d8",
+                    "u8",
                    };
 
-        case 0x2f:
+        case 0x2F:
             return {false, 
-                    0x2f, 
+                    0x2F, 
                     "CPL",
                     1,
                     4,
@@ -1299,7 +1273,6 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "",
                     "",
                    };
@@ -1315,9 +1288,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "NC",
-                    "r8",
+                    "i8",
                    };
 
         case 0x31:
@@ -1331,9 +1303,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "SP",
-                    "d16",
+                    "u16",
                    };
 
         case 0x32:
@@ -1347,7 +1318,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(HL-)",
                     "A",
                    };
@@ -1363,7 +1333,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/alu",
                     "SP",
                     "",
                    };
@@ -1379,7 +1348,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "(HL)",
                     "",
                    };
@@ -1395,7 +1363,6 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "(HL)",
                     "",
                    };
@@ -1411,9 +1378,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(HL)",
-                    "d8",
+                    "u8",
                    };
 
         case 0x37:
@@ -1427,7 +1393,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::SET,
-                    "x8/alu",
                     "",
                     "",
                    };
@@ -1443,9 +1408,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "C",
-                    "r8",
+                    "i8",
                    };
 
         case 0x39:
@@ -1459,14 +1423,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x16/alu",
                     "HL",
                     "SP",
                    };
 
-        case 0x3a:
+        case 0x3A:
             return {false, 
-                    0x3a, 
+                    0x3A, 
                     "LD",
                     1,
                     8,
@@ -1475,14 +1438,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "(HL-)",
                    };
 
-        case 0x3b:
+        case 0x3B:
             return {false, 
-                    0x3b, 
+                    0x3B, 
                     "DEC",
                     1,
                     8,
@@ -1491,14 +1453,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/alu",
                     "SP",
                     "",
                    };
 
-        case 0x3c:
+        case 0x3C:
             return {false, 
-                    0x3c, 
+                    0x3C, 
                     "INC",
                     1,
                     4,
@@ -1507,14 +1468,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "A",
                     "",
                    };
 
-        case 0x3d:
+        case 0x3D:
             return {false, 
-                    0x3d, 
+                    0x3D, 
                     "DEC",
                     1,
                     4,
@@ -1523,14 +1483,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::NONE,
-                    "x8/alu",
                     "A",
                     "",
                    };
 
-        case 0x3e:
+        case 0x3E:
             return {false, 
-                    0x3e, 
+                    0x3E, 
                     "LD",
                     2,
                     8,
@@ -1539,14 +1498,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
-                    "d8",
+                    "u8",
                    };
 
-        case 0x3f:
+        case 0x3F:
             return {false, 
-                    0x3f, 
+                    0x3F, 
                     "CCF",
                     1,
                     4,
@@ -1555,7 +1513,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "",
                     "",
                    };
@@ -1571,7 +1528,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "B",
                     "B",
                    };
@@ -1587,7 +1543,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "B",
                     "C",
                    };
@@ -1603,7 +1558,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "B",
                     "D",
                    };
@@ -1619,7 +1573,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "B",
                     "E",
                    };
@@ -1635,7 +1588,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "B",
                     "H",
                    };
@@ -1651,7 +1603,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "B",
                     "L",
                    };
@@ -1667,7 +1618,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "B",
                     "(HL)",
                    };
@@ -1683,7 +1633,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "B",
                     "A",
                    };
@@ -1699,7 +1648,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "C",
                     "B",
                    };
@@ -1715,14 +1663,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "C",
                     "C",
                    };
 
-        case 0x4a:
+        case 0x4A:
             return {false, 
-                    0x4a, 
+                    0x4A, 
                     "LD",
                     1,
                     4,
@@ -1731,14 +1678,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "C",
                     "D",
                    };
 
-        case 0x4b:
+        case 0x4B:
             return {false, 
-                    0x4b, 
+                    0x4B, 
                     "LD",
                     1,
                     4,
@@ -1747,14 +1693,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "C",
                     "E",
                    };
 
-        case 0x4c:
+        case 0x4C:
             return {false, 
-                    0x4c, 
+                    0x4C, 
                     "LD",
                     1,
                     4,
@@ -1763,14 +1708,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "C",
                     "H",
                    };
 
-        case 0x4d:
+        case 0x4D:
             return {false, 
-                    0x4d, 
+                    0x4D, 
                     "LD",
                     1,
                     4,
@@ -1779,14 +1723,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "C",
                     "L",
                    };
 
-        case 0x4e:
+        case 0x4E:
             return {false, 
-                    0x4e, 
+                    0x4E, 
                     "LD",
                     1,
                     8,
@@ -1795,14 +1738,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "C",
                     "(HL)",
                    };
 
-        case 0x4f:
+        case 0x4F:
             return {false, 
-                    0x4f, 
+                    0x4F, 
                     "LD",
                     1,
                     4,
@@ -1811,7 +1753,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "C",
                     "A",
                    };
@@ -1827,7 +1768,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "D",
                     "B",
                    };
@@ -1843,7 +1783,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "D",
                     "C",
                    };
@@ -1859,7 +1798,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "D",
                     "D",
                    };
@@ -1875,7 +1813,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "D",
                     "E",
                    };
@@ -1891,7 +1828,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "D",
                     "H",
                    };
@@ -1907,7 +1843,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "D",
                     "L",
                    };
@@ -1923,7 +1858,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "D",
                     "(HL)",
                    };
@@ -1939,7 +1873,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "D",
                     "A",
                    };
@@ -1955,7 +1888,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "E",
                     "B",
                    };
@@ -1971,14 +1903,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "E",
                     "C",
                    };
 
-        case 0x5a:
+        case 0x5A:
             return {false, 
-                    0x5a, 
+                    0x5A, 
                     "LD",
                     1,
                     4,
@@ -1987,14 +1918,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "E",
                     "D",
                    };
 
-        case 0x5b:
+        case 0x5B:
             return {false, 
-                    0x5b, 
+                    0x5B, 
                     "LD",
                     1,
                     4,
@@ -2003,14 +1933,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "E",
                     "E",
                    };
 
-        case 0x5c:
+        case 0x5C:
             return {false, 
-                    0x5c, 
+                    0x5C, 
                     "LD",
                     1,
                     4,
@@ -2019,14 +1948,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "E",
                     "H",
                    };
 
-        case 0x5d:
+        case 0x5D:
             return {false, 
-                    0x5d, 
+                    0x5D, 
                     "LD",
                     1,
                     4,
@@ -2035,14 +1963,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "E",
                     "L",
                    };
 
-        case 0x5e:
+        case 0x5E:
             return {false, 
-                    0x5e, 
+                    0x5E, 
                     "LD",
                     1,
                     8,
@@ -2051,14 +1978,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "E",
                     "(HL)",
                    };
 
-        case 0x5f:
+        case 0x5F:
             return {false, 
-                    0x5f, 
+                    0x5F, 
                     "LD",
                     1,
                     4,
@@ -2067,7 +1993,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "E",
                     "A",
                    };
@@ -2083,7 +2008,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "H",
                     "B",
                    };
@@ -2099,7 +2023,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "H",
                     "C",
                    };
@@ -2115,7 +2038,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "H",
                     "D",
                    };
@@ -2131,7 +2053,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "H",
                     "E",
                    };
@@ -2147,7 +2068,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "H",
                     "H",
                    };
@@ -2163,7 +2083,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "H",
                     "L",
                    };
@@ -2179,7 +2098,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "H",
                     "(HL)",
                    };
@@ -2195,7 +2113,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "H",
                     "A",
                    };
@@ -2211,7 +2128,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "L",
                     "B",
                    };
@@ -2227,14 +2143,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "L",
                     "C",
                    };
 
-        case 0x6a:
+        case 0x6A:
             return {false, 
-                    0x6a, 
+                    0x6A, 
                     "LD",
                     1,
                     4,
@@ -2243,14 +2158,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "L",
                     "D",
                    };
 
-        case 0x6b:
+        case 0x6B:
             return {false, 
-                    0x6b, 
+                    0x6B, 
                     "LD",
                     1,
                     4,
@@ -2259,14 +2173,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "L",
                     "E",
                    };
 
-        case 0x6c:
+        case 0x6C:
             return {false, 
-                    0x6c, 
+                    0x6C, 
                     "LD",
                     1,
                     4,
@@ -2275,14 +2188,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "L",
                     "H",
                    };
 
-        case 0x6d:
+        case 0x6D:
             return {false, 
-                    0x6d, 
+                    0x6D, 
                     "LD",
                     1,
                     4,
@@ -2291,14 +2203,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "L",
                     "L",
                    };
 
-        case 0x6e:
+        case 0x6E:
             return {false, 
-                    0x6e, 
+                    0x6E, 
                     "LD",
                     1,
                     8,
@@ -2307,14 +2218,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "L",
                     "(HL)",
                    };
 
-        case 0x6f:
+        case 0x6F:
             return {false, 
-                    0x6f, 
+                    0x6F, 
                     "LD",
                     1,
                     4,
@@ -2323,7 +2233,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "L",
                     "A",
                    };
@@ -2339,7 +2248,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(HL)",
                     "B",
                    };
@@ -2355,7 +2263,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(HL)",
                     "C",
                    };
@@ -2371,7 +2278,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(HL)",
                     "D",
                    };
@@ -2387,7 +2293,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(HL)",
                     "E",
                    };
@@ -2403,7 +2308,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(HL)",
                     "H",
                    };
@@ -2419,7 +2323,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(HL)",
                     "L",
                    };
@@ -2435,7 +2338,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/misc",
                     "",
                     "",
                    };
@@ -2451,7 +2353,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(HL)",
                     "A",
                    };
@@ -2467,7 +2368,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "B",
                    };
@@ -2483,14 +2383,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "C",
                    };
 
-        case 0x7a:
+        case 0x7A:
             return {false, 
-                    0x7a, 
+                    0x7A, 
                     "LD",
                     1,
                     4,
@@ -2499,14 +2398,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "D",
                    };
 
-        case 0x7b:
+        case 0x7B:
             return {false, 
-                    0x7b, 
+                    0x7B, 
                     "LD",
                     1,
                     4,
@@ -2515,14 +2413,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "E",
                    };
 
-        case 0x7c:
+        case 0x7C:
             return {false, 
-                    0x7c, 
+                    0x7C, 
                     "LD",
                     1,
                     4,
@@ -2531,14 +2428,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "H",
                    };
 
-        case 0x7d:
+        case 0x7D:
             return {false, 
-                    0x7d, 
+                    0x7D, 
                     "LD",
                     1,
                     4,
@@ -2547,14 +2443,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "L",
                    };
 
-        case 0x7e:
+        case 0x7E:
             return {false, 
-                    0x7e, 
+                    0x7E, 
                     "LD",
                     1,
                     8,
@@ -2563,14 +2458,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "(HL)",
                    };
 
-        case 0x7f:
+        case 0x7F:
             return {false, 
-                    0x7f, 
+                    0x7F, 
                     "LD",
                     1,
                     4,
@@ -2579,7 +2473,6 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "A",
                    };
@@ -2595,7 +2488,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "B",
                    };
@@ -2611,7 +2503,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "C",
                    };
@@ -2627,7 +2518,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "D",
                    };
@@ -2643,7 +2533,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "E",
                    };
@@ -2659,7 +2548,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "H",
                    };
@@ -2675,7 +2563,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "L",
                    };
@@ -2691,7 +2578,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "(HL)",
                    };
@@ -2707,7 +2593,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "A",
                    };
@@ -2723,7 +2608,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "B",
                    };
@@ -2739,14 +2623,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "C",
                    };
 
-        case 0x8a:
+        case 0x8A:
             return {false, 
-                    0x8a, 
+                    0x8A, 
                     "ADC",
                     1,
                     4,
@@ -2755,14 +2638,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "D",
                    };
 
-        case 0x8b:
+        case 0x8B:
             return {false, 
-                    0x8b, 
+                    0x8B, 
                     "ADC",
                     1,
                     4,
@@ -2771,14 +2653,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "E",
                    };
 
-        case 0x8c:
+        case 0x8C:
             return {false, 
-                    0x8c, 
+                    0x8C, 
                     "ADC",
                     1,
                     4,
@@ -2787,14 +2668,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "H",
                    };
 
-        case 0x8d:
+        case 0x8D:
             return {false, 
-                    0x8d, 
+                    0x8D, 
                     "ADC",
                     1,
                     4,
@@ -2803,14 +2683,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "L",
                    };
 
-        case 0x8e:
+        case 0x8E:
             return {false, 
-                    0x8e, 
+                    0x8E, 
                     "ADC",
                     1,
                     8,
@@ -2819,14 +2698,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "(HL)",
                    };
 
-        case 0x8f:
+        case 0x8F:
             return {false, 
-                    0x8f, 
+                    0x8F, 
                     "ADC",
                     1,
                     4,
@@ -2835,7 +2713,6 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "A",
                    };
@@ -2851,9 +2728,8 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "B",
-                    "",
                    };
 
         case 0x91:
@@ -2867,9 +2743,8 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "C",
-                    "",
                    };
 
         case 0x92:
@@ -2883,9 +2758,8 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "D",
-                    "",
                    };
 
         case 0x93:
@@ -2899,9 +2773,8 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "E",
-                    "",
                    };
 
         case 0x94:
@@ -2915,9 +2788,8 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "H",
-                    "",
                    };
 
         case 0x95:
@@ -2931,9 +2803,8 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "L",
-                    "",
                    };
 
         case 0x96:
@@ -2947,9 +2818,8 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "(HL)",
-                    "",
                    };
 
         case 0x97:
@@ -2959,13 +2829,12 @@ namespace ez {
                     1,
                     4,
                     0,
-                    FlagEffect::ZERO,
                     FlagEffect::SET,
-                    FlagEffect::HALF_CARRY,
-                    FlagEffect::CARRY,
-                    "x8/alu",
+                    FlagEffect::SET,
+                    FlagEffect::UNSET,
+                    FlagEffect::UNSET,
                     "A",
-                    "",
+                    "A",
                    };
 
         case 0x98:
@@ -2979,7 +2848,6 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "B",
                    };
@@ -2995,14 +2863,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "C",
                    };
 
-        case 0x9a:
+        case 0x9A:
             return {false, 
-                    0x9a, 
+                    0x9A, 
                     "SBC",
                     1,
                     4,
@@ -3011,14 +2878,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "D",
                    };
 
-        case 0x9b:
+        case 0x9B:
             return {false, 
-                    0x9b, 
+                    0x9B, 
                     "SBC",
                     1,
                     4,
@@ -3027,14 +2893,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "E",
                    };
 
-        case 0x9c:
+        case 0x9C:
             return {false, 
-                    0x9c, 
+                    0x9C, 
                     "SBC",
                     1,
                     4,
@@ -3043,14 +2908,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "H",
                    };
 
-        case 0x9d:
+        case 0x9D:
             return {false, 
-                    0x9d, 
+                    0x9D, 
                     "SBC",
                     1,
                     4,
@@ -3059,14 +2923,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "L",
                    };
 
-        case 0x9e:
+        case 0x9E:
             return {false, 
-                    0x9e, 
+                    0x9E, 
                     "SBC",
                     1,
                     8,
@@ -3075,14 +2938,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
                     "(HL)",
                    };
 
-        case 0x9f:
+        case 0x9F:
             return {false, 
-                    0x9f, 
+                    0x9F, 
                     "SBC",
                     1,
                     4,
@@ -3090,15 +2952,14 @@ namespace ez {
                     FlagEffect::ZERO,
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
-                    FlagEffect::CARRY,
-                    "x8/alu",
+                    FlagEffect::NONE,
                     "A",
                     "A",
                    };
 
-        case 0xa0:
+        case 0xA0:
             return {false, 
-                    0xa0, 
+                    0xA0, 
                     "AND",
                     1,
                     4,
@@ -3107,14 +2968,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "B",
-                    "",
                    };
 
-        case 0xa1:
+        case 0xA1:
             return {false, 
-                    0xa1, 
+                    0xA1, 
                     "AND",
                     1,
                     4,
@@ -3123,14 +2983,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "C",
-                    "",
                    };
 
-        case 0xa2:
+        case 0xA2:
             return {false, 
-                    0xa2, 
+                    0xA2, 
                     "AND",
                     1,
                     4,
@@ -3139,14 +2998,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "D",
-                    "",
                    };
 
-        case 0xa3:
+        case 0xA3:
             return {false, 
-                    0xa3, 
+                    0xA3, 
                     "AND",
                     1,
                     4,
@@ -3155,14 +3013,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "E",
-                    "",
                    };
 
-        case 0xa4:
+        case 0xA4:
             return {false, 
-                    0xa4, 
+                    0xA4, 
                     "AND",
                     1,
                     4,
@@ -3171,14 +3028,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "H",
-                    "",
                    };
 
-        case 0xa5:
+        case 0xA5:
             return {false, 
-                    0xa5, 
+                    0xA5, 
                     "AND",
                     1,
                     4,
@@ -3187,14 +3043,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "L",
-                    "",
                    };
 
-        case 0xa6:
+        case 0xA6:
             return {false, 
-                    0xa6, 
+                    0xA6, 
                     "AND",
                     1,
                     8,
@@ -3203,14 +3058,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "(HL)",
-                    "",
                    };
 
-        case 0xa7:
+        case 0xA7:
             return {false, 
-                    0xa7, 
+                    0xA7, 
                     "AND",
                     1,
                     4,
@@ -3219,14 +3073,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::UNSET,
-                    "x8/alu",
                     "A",
-                    "",
+                    "A",
                    };
 
-        case 0xa8:
+        case 0xA8:
             return {false, 
-                    0xa8, 
+                    0xA8, 
                     "XOR",
                     1,
                     4,
@@ -3235,14 +3088,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "B",
-                    "",
                    };
 
-        case 0xa9:
+        case 0xA9:
             return {false, 
-                    0xa9, 
+                    0xA9, 
                     "XOR",
                     1,
                     4,
@@ -3251,14 +3103,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "C",
-                    "",
                    };
 
-        case 0xaa:
+        case 0xAA:
             return {false, 
-                    0xaa, 
+                    0xAA, 
                     "XOR",
                     1,
                     4,
@@ -3267,14 +3118,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "D",
-                    "",
                    };
 
-        case 0xab:
+        case 0xAB:
             return {false, 
-                    0xab, 
+                    0xAB, 
                     "XOR",
                     1,
                     4,
@@ -3283,14 +3133,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "E",
-                    "",
                    };
 
-        case 0xac:
+        case 0xAC:
             return {false, 
-                    0xac, 
+                    0xAC, 
                     "XOR",
                     1,
                     4,
@@ -3299,14 +3148,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "H",
-                    "",
                    };
 
-        case 0xad:
+        case 0xAD:
             return {false, 
-                    0xad, 
+                    0xAD, 
                     "XOR",
                     1,
                     4,
@@ -3315,14 +3163,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "L",
-                    "",
                    };
 
-        case 0xae:
+        case 0xAE:
             return {false, 
-                    0xae, 
+                    0xAE, 
                     "XOR",
                     1,
                     8,
@@ -3331,30 +3178,28 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "(HL)",
-                    "",
                    };
 
-        case 0xaf:
+        case 0xAF:
             return {false, 
-                    0xaf, 
+                    0xAF, 
                     "XOR",
                     1,
                     4,
                     0,
-                    FlagEffect::ZERO,
+                    FlagEffect::SET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
                     "A",
-                    "",
+                    "A",
                    };
 
-        case 0xb0:
+        case 0xB0:
             return {false, 
-                    0xb0, 
+                    0xB0, 
                     "OR",
                     1,
                     4,
@@ -3363,14 +3208,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "B",
-                    "",
                    };
 
-        case 0xb1:
+        case 0xB1:
             return {false, 
-                    0xb1, 
+                    0xB1, 
                     "OR",
                     1,
                     4,
@@ -3379,14 +3223,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "C",
-                    "",
                    };
 
-        case 0xb2:
+        case 0xB2:
             return {false, 
-                    0xb2, 
+                    0xB2, 
                     "OR",
                     1,
                     4,
@@ -3395,14 +3238,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "D",
-                    "",
                    };
 
-        case 0xb3:
+        case 0xB3:
             return {false, 
-                    0xb3, 
+                    0xB3, 
                     "OR",
                     1,
                     4,
@@ -3411,14 +3253,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "E",
-                    "",
                    };
 
-        case 0xb4:
+        case 0xB4:
             return {false, 
-                    0xb4, 
+                    0xB4, 
                     "OR",
                     1,
                     4,
@@ -3427,14 +3268,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "H",
-                    "",
                    };
 
-        case 0xb5:
+        case 0xB5:
             return {false, 
-                    0xb5, 
+                    0xB5, 
                     "OR",
                     1,
                     4,
@@ -3443,14 +3283,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "L",
-                    "",
                    };
 
-        case 0xb6:
+        case 0xB6:
             return {false, 
-                    0xb6, 
+                    0xB6, 
                     "OR",
                     1,
                     8,
@@ -3459,14 +3298,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
+                    "A",
                     "(HL)",
-                    "",
                    };
 
-        case 0xb7:
+        case 0xB7:
             return {false, 
-                    0xb7, 
+                    0xB7, 
                     "OR",
                     1,
                     4,
@@ -3475,14 +3313,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
                     "A",
-                    "",
+                    "A",
                    };
 
-        case 0xb8:
+        case 0xB8:
             return {false, 
-                    0xb8, 
+                    0xB8, 
                     "CP",
                     1,
                     4,
@@ -3491,14 +3328,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "B",
-                    "",
                    };
 
-        case 0xb9:
+        case 0xB9:
             return {false, 
-                    0xb9, 
+                    0xB9, 
                     "CP",
                     1,
                     4,
@@ -3507,14 +3343,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "C",
-                    "",
                    };
 
-        case 0xba:
+        case 0xBA:
             return {false, 
-                    0xba, 
+                    0xBA, 
                     "CP",
                     1,
                     4,
@@ -3523,14 +3358,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "D",
-                    "",
                    };
 
-        case 0xbb:
+        case 0xBB:
             return {false, 
-                    0xbb, 
+                    0xBB, 
                     "CP",
                     1,
                     4,
@@ -3539,14 +3373,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "E",
-                    "",
                    };
 
-        case 0xbc:
+        case 0xBC:
             return {false, 
-                    0xbc, 
+                    0xBC, 
                     "CP",
                     1,
                     4,
@@ -3555,14 +3388,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "H",
-                    "",
                    };
 
-        case 0xbd:
+        case 0xBD:
             return {false, 
-                    0xbd, 
+                    0xBD, 
                     "CP",
                     1,
                     4,
@@ -3571,14 +3403,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "L",
-                    "",
                    };
 
-        case 0xbe:
+        case 0xBE:
             return {false, 
-                    0xbe, 
+                    0xBE, 
                     "CP",
                     1,
                     8,
@@ -3587,30 +3418,28 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
+                    "A",
                     "(HL)",
-                    "",
                    };
 
-        case 0xbf:
+        case 0xBF:
             return {false, 
-                    0xbf, 
+                    0xBF, 
                     "CP",
                     1,
                     4,
                     0,
-                    FlagEffect::ZERO,
                     FlagEffect::SET,
-                    FlagEffect::HALF_CARRY,
-                    FlagEffect::CARRY,
-                    "x8/alu",
+                    FlagEffect::SET,
+                    FlagEffect::UNSET,
+                    FlagEffect::UNSET,
                     "A",
-                    "",
+                    "A",
                    };
 
-        case 0xc0:
+        case 0xC0:
             return {false, 
-                    0xc0, 
+                    0xC0, 
                     "RET",
                     1,
                     20,
@@ -3619,14 +3448,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "NZ",
                     "",
                    };
 
-        case 0xc1:
+        case 0xC1:
             return {false, 
-                    0xc1, 
+                    0xC1, 
                     "POP",
                     1,
                     12,
@@ -3635,14 +3463,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "BC",
                     "",
                    };
 
-        case 0xc2:
+        case 0xC2:
             return {false, 
-                    0xc2, 
+                    0xC2, 
                     "JP",
                     3,
                     16,
@@ -3651,14 +3478,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "NZ",
                     "a16",
                    };
 
-        case 0xc3:
+        case 0xC3:
             return {false, 
-                    0xc3, 
+                    0xC3, 
                     "JP",
                     3,
                     16,
@@ -3667,14 +3493,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "a16",
                     "",
                    };
 
-        case 0xc4:
+        case 0xC4:
             return {false, 
-                    0xc4, 
+                    0xC4, 
                     "CALL",
                     3,
                     24,
@@ -3683,14 +3508,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "NZ",
                     "a16",
                    };
 
-        case 0xc5:
+        case 0xC5:
             return {false, 
-                    0xc5, 
+                    0xC5, 
                     "PUSH",
                     1,
                     16,
@@ -3699,14 +3523,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "BC",
                     "",
                    };
 
-        case 0xc6:
+        case 0xC6:
             return {false, 
-                    0xc6, 
+                    0xC6, 
                     "ADD",
                     2,
                     8,
@@ -3715,14 +3538,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
-                    "d8",
+                    "u8",
                    };
 
-        case 0xc7:
+        case 0xC7:
             return {false, 
-                    0xc7, 
+                    0xC7, 
                     "RST",
                     1,
                     16,
@@ -3731,14 +3553,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
-                    "00H",
+                    "00h",
                     "",
                    };
 
-        case 0xc8:
+        case 0xC8:
             return {false, 
-                    0xc8, 
+                    0xC8, 
                     "RET",
                     1,
                     20,
@@ -3747,14 +3568,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "Z",
                     "",
                    };
 
-        case 0xc9:
+        case 0xC9:
             return {false, 
-                    0xc9, 
+                    0xC9, 
                     "RET",
                     1,
                     16,
@@ -3763,14 +3583,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "",
                     "",
                    };
 
-        case 0xca:
+        case 0xCA:
             return {false, 
-                    0xca, 
+                    0xCA, 
                     "JP",
                     3,
                     16,
@@ -3779,14 +3598,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "Z",
                     "a16",
                    };
 
-        case 0xcb:
+        case 0xCB:
             return {false, 
-                    0xcb, 
+                    0xCB, 
                     "PREFIX",
                     1,
                     4,
@@ -3795,14 +3613,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/misc",
-                    "CB",
+                    "",
                     "",
                    };
 
-        case 0xcc:
+        case 0xCC:
             return {false, 
-                    0xcc, 
+                    0xCC, 
                     "CALL",
                     3,
                     24,
@@ -3811,14 +3628,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "Z",
                     "a16",
                    };
 
-        case 0xcd:
+        case 0xCD:
             return {false, 
-                    0xcd, 
+                    0xCD, 
                     "CALL",
                     3,
                     24,
@@ -3827,14 +3643,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "a16",
                     "",
                    };
 
-        case 0xce:
+        case 0xCE:
             return {false, 
-                    0xce, 
+                    0xCE, 
                     "ADC",
                     2,
                     8,
@@ -3843,14 +3658,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
-                    "d8",
+                    "u8",
                    };
 
-        case 0xcf:
+        case 0xCF:
             return {false, 
-                    0xcf, 
+                    0xCF, 
                     "RST",
                     1,
                     16,
@@ -3859,14 +3673,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
-                    "08H",
+                    "08h",
                     "",
                    };
 
-        case 0xd0:
+        case 0xD0:
             return {false, 
-                    0xd0, 
+                    0xD0, 
                     "RET",
                     1,
                     20,
@@ -3875,14 +3688,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "NC",
                     "",
                    };
 
-        case 0xd1:
+        case 0xD1:
             return {false, 
-                    0xd1, 
+                    0xD1, 
                     "POP",
                     1,
                     12,
@@ -3891,14 +3703,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "DE",
                     "",
                    };
 
-        case 0xd2:
+        case 0xD2:
             return {false, 
-                    0xd2, 
+                    0xD2, 
                     "JP",
                     3,
                     16,
@@ -3907,14 +3718,28 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "NC",
                     "a16",
                    };
 
-        case 0xd4:
+        case 0xD3:
             return {false, 
-                    0xd4, 
+                    0xD3, 
+                    "ILLEGAL_D3",
+                    1,
+                    4,
+                    0,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    "",
+                    "",
+                   };
+
+        case 0xD4:
+            return {false, 
+                    0xD4, 
                     "CALL",
                     3,
                     24,
@@ -3923,14 +3748,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "NC",
                     "a16",
                    };
 
-        case 0xd5:
+        case 0xD5:
             return {false, 
-                    0xd5, 
+                    0xD5, 
                     "PUSH",
                     1,
                     16,
@@ -3939,14 +3763,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "DE",
                     "",
                    };
 
-        case 0xd6:
+        case 0xD6:
             return {false, 
-                    0xd6, 
+                    0xD6, 
                     "SUB",
                     2,
                     8,
@@ -3955,14 +3778,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
-                    "d8",
-                    "",
+                    "A",
+                    "u8",
                    };
 
-        case 0xd7:
+        case 0xD7:
             return {false, 
-                    0xd7, 
+                    0xD7, 
                     "RST",
                     1,
                     16,
@@ -3971,14 +3793,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
-                    "10H",
+                    "10h",
                     "",
                    };
 
-        case 0xd8:
+        case 0xD8:
             return {false, 
-                    0xd8, 
+                    0xD8, 
                     "RET",
                     1,
                     20,
@@ -3987,14 +3808,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "C",
                     "",
                    };
 
-        case 0xd9:
+        case 0xD9:
             return {false, 
-                    0xd9, 
+                    0xD9, 
                     "RETI",
                     1,
                     16,
@@ -4003,14 +3823,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "",
                     "",
                    };
 
-        case 0xda:
+        case 0xDA:
             return {false, 
-                    0xda, 
+                    0xDA, 
                     "JP",
                     3,
                     16,
@@ -4019,14 +3838,28 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "C",
                     "a16",
                    };
 
-        case 0xdc:
+        case 0xDB:
             return {false, 
-                    0xdc, 
+                    0xDB, 
+                    "ILLEGAL_DB",
+                    1,
+                    4,
+                    0,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    "",
+                    "",
+                   };
+
+        case 0xDC:
+            return {false, 
+                    0xDC, 
                     "CALL",
                     3,
                     24,
@@ -4035,14 +3868,28 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
                     "C",
                     "a16",
                    };
 
-        case 0xde:
+        case 0xDD:
             return {false, 
-                    0xde, 
+                    0xDD, 
+                    "ILLEGAL_DD",
+                    1,
+                    4,
+                    0,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    "",
+                    "",
+                   };
+
+        case 0xDE:
+            return {false, 
+                    0xDE, 
                     "SBC",
                     2,
                     8,
@@ -4051,14 +3898,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
                     "A",
-                    "d8",
+                    "u8",
                    };
 
-        case 0xdf:
+        case 0xDF:
             return {false, 
-                    0xdf, 
+                    0xDF, 
                     "RST",
                     1,
                     16,
@@ -4067,14 +3913,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
-                    "18H",
+                    "18h",
                     "",
                    };
 
-        case 0xe0:
+        case 0xE0:
             return {false, 
-                    0xe0, 
+                    0xE0, 
                     "LDH",
                     2,
                     12,
@@ -4083,14 +3928,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(a8)",
                     "A",
                    };
 
-        case 0xe1:
+        case 0xE1:
             return {false, 
-                    0xe1, 
+                    0xE1, 
                     "POP",
                     1,
                     12,
@@ -4099,14 +3943,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "HL",
                     "",
                    };
 
-        case 0xe2:
+        case 0xE2:
             return {false, 
-                    0xe2, 
+                    0xE2, 
                     "LD",
                     1,
                     8,
@@ -4115,14 +3958,43 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(C)",
                     "A",
                    };
 
-        case 0xe5:
+        case 0xE3:
             return {false, 
-                    0xe5, 
+                    0xE3, 
+                    "ILLEGAL_E3",
+                    1,
+                    4,
+                    0,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    "",
+                    "",
+                   };
+
+        case 0xE4:
+            return {false, 
+                    0xE4, 
+                    "ILLEGAL_E4",
+                    1,
+                    4,
+                    0,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    "",
+                    "",
+                   };
+
+        case 0xE5:
+            return {false, 
+                    0xE5, 
                     "PUSH",
                     1,
                     16,
@@ -4131,14 +4003,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "HL",
                     "",
                    };
 
-        case 0xe6:
+        case 0xE6:
             return {false, 
-                    0xe6, 
+                    0xE6, 
                     "AND",
                     2,
                     8,
@@ -4147,14 +4018,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::UNSET,
-                    "x8/alu",
-                    "d8",
-                    "",
+                    "A",
+                    "u8",
                    };
 
-        case 0xe7:
+        case 0xE7:
             return {false, 
-                    0xe7, 
+                    0xE7, 
                     "RST",
                     1,
                     16,
@@ -4163,14 +4033,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
-                    "20H",
+                    "20h",
                     "",
                    };
 
-        case 0xe8:
+        case 0xE8:
             return {false, 
-                    0xe8, 
+                    0xE8, 
                     "ADD",
                     2,
                     16,
@@ -4179,14 +4048,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x16/alu",
                     "SP",
-                    "r8",
+                    "i8",
                    };
 
-        case 0xe9:
+        case 0xE9:
             return {false, 
-                    0xe9, 
+                    0xE9, 
                     "JP",
                     1,
                     4,
@@ -4195,14 +4063,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
-                    "(HL)",
+                    "HL",
                     "",
                    };
 
-        case 0xea:
+        case 0xEA:
             return {false, 
-                    0xea, 
+                    0xEA, 
                     "LD",
                     3,
                     16,
@@ -4211,14 +4078,58 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "(a16)",
                     "A",
                    };
 
-        case 0xee:
+        case 0xEB:
             return {false, 
-                    0xee, 
+                    0xEB, 
+                    "ILLEGAL_EB",
+                    1,
+                    4,
+                    0,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    "",
+                    "",
+                   };
+
+        case 0xEC:
+            return {false, 
+                    0xEC, 
+                    "ILLEGAL_EC",
+                    1,
+                    4,
+                    0,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    "",
+                    "",
+                   };
+
+        case 0xED:
+            return {false, 
+                    0xED, 
+                    "ILLEGAL_ED",
+                    1,
+                    4,
+                    0,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    "",
+                    "",
+                   };
+
+        case 0xEE:
+            return {false, 
+                    0xEE, 
                     "XOR",
                     2,
                     8,
@@ -4227,14 +4138,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
-                    "d8",
-                    "",
+                    "A",
+                    "u8",
                    };
 
-        case 0xef:
+        case 0xEF:
             return {false, 
-                    0xef, 
+                    0xEF, 
                     "RST",
                     1,
                     16,
@@ -4243,14 +4153,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
-                    "28H",
+                    "28h",
                     "",
                    };
 
-        case 0xf0:
+        case 0xF0:
             return {false, 
-                    0xf0, 
+                    0xF0, 
                     "LDH",
                     2,
                     12,
@@ -4259,14 +4168,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "(a8)",
                    };
 
-        case 0xf1:
+        case 0xF1:
             return {false, 
-                    0xf1, 
+                    0xF1, 
                     "POP",
                     1,
                     12,
@@ -4275,14 +4183,13 @@ namespace ez {
                     FlagEffect::SUBTRACTION,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x16/lsm",
                     "AF",
                     "",
                    };
 
-        case 0xf2:
+        case 0xF2:
             return {false, 
-                    0xf2, 
+                    0xF2, 
                     "LD",
                     1,
                     8,
@@ -4291,14 +4198,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "(C)",
                    };
 
-        case 0xf3:
+        case 0xF3:
             return {false, 
-                    0xf3, 
+                    0xF3, 
                     "DI",
                     1,
                     4,
@@ -4307,14 +4213,28 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/misc",
                     "",
                     "",
                    };
 
-        case 0xf5:
+        case 0xF4:
             return {false, 
-                    0xf5, 
+                    0xF4, 
+                    "ILLEGAL_F4",
+                    1,
+                    4,
+                    0,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    "",
+                    "",
+                   };
+
+        case 0xF5:
+            return {false, 
+                    0xF5, 
                     "PUSH",
                     1,
                     16,
@@ -4323,14 +4243,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "AF",
                     "",
                    };
 
-        case 0xf6:
+        case 0xF6:
             return {false, 
-                    0xf6, 
+                    0xF6, 
                     "OR",
                     2,
                     8,
@@ -4339,14 +4258,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/alu",
-                    "d8",
-                    "",
+                    "A",
+                    "u8",
                    };
 
-        case 0xf7:
+        case 0xF7:
             return {false, 
-                    0xf7, 
+                    0xF7, 
                     "RST",
                     1,
                     16,
@@ -4355,14 +4273,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
-                    "30H",
+                    "30h",
                     "",
                    };
 
-        case 0xf8:
+        case 0xF8:
             return {false, 
-                    0xf8, 
+                    0xF8, 
                     "LD",
                     2,
                     12,
@@ -4371,14 +4288,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x16/lsm",
                     "HL",
-                    "SP+r8",
+                    "SP+",
                    };
 
-        case 0xf9:
+        case 0xF9:
             return {false, 
-                    0xf9, 
+                    0xF9, 
                     "LD",
                     1,
                     8,
@@ -4387,14 +4303,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x16/lsm",
                     "SP",
                     "HL",
                    };
 
-        case 0xfa:
+        case 0xFA:
             return {false, 
-                    0xfa, 
+                    0xFA, 
                     "LD",
                     3,
                     16,
@@ -4403,14 +4318,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/lsm",
                     "A",
                     "(a16)",
                    };
 
-        case 0xfb:
+        case 0xFB:
             return {false, 
-                    0xfb, 
+                    0xFB, 
                     "EI",
                     1,
                     4,
@@ -4419,14 +4333,43 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/misc",
                     "",
                     "",
                    };
 
-        case 0xfe:
+        case 0xFC:
             return {false, 
-                    0xfe, 
+                    0xFC, 
+                    "ILLEGAL_FC",
+                    1,
+                    4,
+                    0,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    "",
+                    "",
+                   };
+
+        case 0xFD:
+            return {false, 
+                    0xFD, 
+                    "ILLEGAL_FD",
+                    1,
+                    4,
+                    0,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    FlagEffect::NONE,
+                    "",
+                    "",
+                   };
+
+        case 0xFE:
+            return {false, 
+                    0xFE, 
                     "CP",
                     2,
                     8,
@@ -4435,14 +4378,13 @@ namespace ez {
                     FlagEffect::SET,
                     FlagEffect::HALF_CARRY,
                     FlagEffect::CARRY,
-                    "x8/alu",
-                    "d8",
-                    "",
+                    "A",
+                    "u8",
                    };
 
-        case 0xff:
+        case 0xFF:
             return {false, 
-                    0xff, 
+                    0xFF, 
                     "RST",
                     1,
                     16,
@@ -4451,8 +4393,7 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "control/br",
-                    "38H",
+                    "38h",
                     "",
                    };
 
@@ -4463,7 +4404,7 @@ namespace ez {
     }
 
 
-    OpCodeInfo getOpCodeInfoPrefixed(uint8_t code) {
+    inline OpCodeInfo getOpCodeInfoPrefixed(uint8_t code) {
 
         switch(code){
 
@@ -4478,8 +4419,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "B",
+                    "",
                     "",
                    };
 
@@ -4494,8 +4434,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "C",
+                    "",
                     "",
                    };
 
@@ -4510,8 +4449,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "D",
+                    "",
                     "",
                    };
 
@@ -4526,8 +4464,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "E",
+                    "",
                     "",
                    };
 
@@ -4542,8 +4479,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "H",
+                    "",
                     "",
                    };
 
@@ -4558,8 +4494,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "L",
+                    "",
                     "",
                    };
 
@@ -4574,8 +4509,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "(HL)",
+                    "",
                     "",
                    };
 
@@ -4590,8 +4524,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "A",
+                    "",
                     "",
                    };
 
@@ -4606,8 +4539,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "B",
+                    "",
                     "",
                    };
 
@@ -4622,14 +4554,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "C",
+                    "",
                     "",
                    };
 
-        case 0x0a:
+        case 0x0A:
             return {true, 
-                    0x0a, 
+                    0x0A, 
                     "RRC",
                     2,
                     8,
@@ -4638,14 +4569,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "D",
+                    "",
                     "",
                    };
 
-        case 0x0b:
+        case 0x0B:
             return {true, 
-                    0x0b, 
+                    0x0B, 
                     "RRC",
                     2,
                     8,
@@ -4654,14 +4584,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "E",
+                    "",
                     "",
                    };
 
-        case 0x0c:
+        case 0x0C:
             return {true, 
-                    0x0c, 
+                    0x0C, 
                     "RRC",
                     2,
                     8,
@@ -4670,14 +4599,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "H",
+                    "",
                     "",
                    };
 
-        case 0x0d:
+        case 0x0D:
             return {true, 
-                    0x0d, 
+                    0x0D, 
                     "RRC",
                     2,
                     8,
@@ -4686,14 +4614,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "L",
+                    "",
                     "",
                    };
 
-        case 0x0e:
+        case 0x0E:
             return {true, 
-                    0x0e, 
+                    0x0E, 
                     "RRC",
                     2,
                     16,
@@ -4702,14 +4629,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "(HL)",
+                    "",
                     "",
                    };
 
-        case 0x0f:
+        case 0x0F:
             return {true, 
-                    0x0f, 
+                    0x0F, 
                     "RRC",
                     2,
                     8,
@@ -4718,8 +4644,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "A",
+                    "",
                     "",
                    };
 
@@ -4734,8 +4659,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "B",
+                    "",
                     "",
                    };
 
@@ -4750,8 +4674,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "C",
+                    "",
                     "",
                    };
 
@@ -4766,8 +4689,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "D",
+                    "",
                     "",
                    };
 
@@ -4782,8 +4704,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "E",
+                    "",
                     "",
                    };
 
@@ -4798,8 +4719,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "H",
+                    "",
                     "",
                    };
 
@@ -4814,8 +4734,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "L",
+                    "",
                     "",
                    };
 
@@ -4830,8 +4749,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "(HL)",
+                    "",
                     "",
                    };
 
@@ -4846,8 +4764,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "A",
+                    "",
                     "",
                    };
 
@@ -4862,8 +4779,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "B",
+                    "",
                     "",
                    };
 
@@ -4878,14 +4794,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "C",
+                    "",
                     "",
                    };
 
-        case 0x1a:
+        case 0x1A:
             return {true, 
-                    0x1a, 
+                    0x1A, 
                     "RR",
                     2,
                     8,
@@ -4894,14 +4809,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "D",
+                    "",
                     "",
                    };
 
-        case 0x1b:
+        case 0x1B:
             return {true, 
-                    0x1b, 
+                    0x1B, 
                     "RR",
                     2,
                     8,
@@ -4910,14 +4824,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "E",
+                    "",
                     "",
                    };
 
-        case 0x1c:
+        case 0x1C:
             return {true, 
-                    0x1c, 
+                    0x1C, 
                     "RR",
                     2,
                     8,
@@ -4926,14 +4839,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "H",
+                    "",
                     "",
                    };
 
-        case 0x1d:
+        case 0x1D:
             return {true, 
-                    0x1d, 
+                    0x1D, 
                     "RR",
                     2,
                     8,
@@ -4942,14 +4854,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "L",
+                    "",
                     "",
                    };
 
-        case 0x1e:
+        case 0x1E:
             return {true, 
-                    0x1e, 
+                    0x1E, 
                     "RR",
                     2,
                     16,
@@ -4958,14 +4869,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "(HL)",
+                    "",
                     "",
                    };
 
-        case 0x1f:
+        case 0x1F:
             return {true, 
-                    0x1f, 
+                    0x1F, 
                     "RR",
                     2,
                     8,
@@ -4974,8 +4884,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "A",
+                    "",
                     "",
                    };
 
@@ -4990,8 +4899,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "B",
+                    "",
                     "",
                    };
 
@@ -5006,8 +4914,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "C",
+                    "",
                     "",
                    };
 
@@ -5022,8 +4929,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "D",
+                    "",
                     "",
                    };
 
@@ -5038,8 +4944,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "E",
+                    "",
                     "",
                    };
 
@@ -5054,8 +4959,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "H",
+                    "",
                     "",
                    };
 
@@ -5070,8 +4974,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "L",
+                    "",
                     "",
                    };
 
@@ -5086,8 +4989,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "(HL)",
+                    "",
                     "",
                    };
 
@@ -5102,8 +5004,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "A",
+                    "",
                     "",
                    };
 
@@ -5117,9 +5018,8 @@ namespace ez {
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    FlagEffect::UNSET,
-                    "x8/rsb",
-                    "B",
+                    FlagEffect::CARRY,
+                    "",
                     "",
                    };
 
@@ -5133,15 +5033,14 @@ namespace ez {
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    FlagEffect::UNSET,
-                    "x8/rsb",
-                    "C",
+                    FlagEffect::CARRY,
+                    "",
                     "",
                    };
 
-        case 0x2a:
+        case 0x2A:
             return {true, 
-                    0x2a, 
+                    0x2A, 
                     "SRA",
                     2,
                     8,
@@ -5149,15 +5048,14 @@ namespace ez {
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    FlagEffect::UNSET,
-                    "x8/rsb",
-                    "D",
+                    FlagEffect::CARRY,
+                    "",
                     "",
                    };
 
-        case 0x2b:
+        case 0x2B:
             return {true, 
-                    0x2b, 
+                    0x2B, 
                     "SRA",
                     2,
                     8,
@@ -5165,15 +5063,14 @@ namespace ez {
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    FlagEffect::UNSET,
-                    "x8/rsb",
-                    "E",
+                    FlagEffect::CARRY,
+                    "",
                     "",
                    };
 
-        case 0x2c:
+        case 0x2C:
             return {true, 
-                    0x2c, 
+                    0x2C, 
                     "SRA",
                     2,
                     8,
@@ -5181,15 +5078,14 @@ namespace ez {
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    FlagEffect::UNSET,
-                    "x8/rsb",
-                    "H",
+                    FlagEffect::CARRY,
+                    "",
                     "",
                    };
 
-        case 0x2d:
+        case 0x2D:
             return {true, 
-                    0x2d, 
+                    0x2D, 
                     "SRA",
                     2,
                     8,
@@ -5197,15 +5093,14 @@ namespace ez {
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    FlagEffect::UNSET,
-                    "x8/rsb",
-                    "L",
+                    FlagEffect::CARRY,
+                    "",
                     "",
                    };
 
-        case 0x2e:
+        case 0x2E:
             return {true, 
-                    0x2e, 
+                    0x2E, 
                     "SRA",
                     2,
                     16,
@@ -5213,15 +5108,14 @@ namespace ez {
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    FlagEffect::UNSET,
-                    "x8/rsb",
-                    "(HL)",
+                    FlagEffect::CARRY,
+                    "",
                     "",
                    };
 
-        case 0x2f:
+        case 0x2F:
             return {true, 
-                    0x2f, 
+                    0x2F, 
                     "SRA",
                     2,
                     8,
@@ -5229,9 +5123,8 @@ namespace ez {
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    FlagEffect::UNSET,
-                    "x8/rsb",
-                    "A",
+                    FlagEffect::CARRY,
+                    "",
                     "",
                    };
 
@@ -5246,8 +5139,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/rsb",
-                    "B",
+                    "",
                     "",
                    };
 
@@ -5262,8 +5154,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/rsb",
-                    "C",
+                    "",
                     "",
                    };
 
@@ -5278,8 +5169,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/rsb",
-                    "D",
+                    "",
                     "",
                    };
 
@@ -5294,8 +5184,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/rsb",
-                    "E",
+                    "",
                     "",
                    };
 
@@ -5310,8 +5199,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/rsb",
-                    "H",
+                    "",
                     "",
                    };
 
@@ -5326,8 +5214,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/rsb",
-                    "L",
+                    "",
                     "",
                    };
 
@@ -5342,8 +5229,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/rsb",
-                    "(HL)",
+                    "",
                     "",
                    };
 
@@ -5358,8 +5244,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "x8/rsb",
-                    "A",
+                    "",
                     "",
                    };
 
@@ -5374,8 +5259,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "B",
+                    "",
                     "",
                    };
 
@@ -5390,14 +5274,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "C",
+                    "",
                     "",
                    };
 
-        case 0x3a:
+        case 0x3A:
             return {true, 
-                    0x3a, 
+                    0x3A, 
                     "SRL",
                     2,
                     8,
@@ -5406,14 +5289,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "D",
+                    "",
                     "",
                    };
 
-        case 0x3b:
+        case 0x3B:
             return {true, 
-                    0x3b, 
+                    0x3B, 
                     "SRL",
                     2,
                     8,
@@ -5422,14 +5304,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "E",
+                    "",
                     "",
                    };
 
-        case 0x3c:
+        case 0x3C:
             return {true, 
-                    0x3c, 
+                    0x3C, 
                     "SRL",
                     2,
                     8,
@@ -5438,14 +5319,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "H",
+                    "",
                     "",
                    };
 
-        case 0x3d:
+        case 0x3D:
             return {true, 
-                    0x3d, 
+                    0x3D, 
                     "SRL",
                     2,
                     8,
@@ -5454,14 +5334,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "L",
+                    "",
                     "",
                    };
 
-        case 0x3e:
+        case 0x3E:
             return {true, 
-                    0x3e, 
+                    0x3E, 
                     "SRL",
                     2,
                     16,
@@ -5470,14 +5349,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "(HL)",
+                    "",
                     "",
                    };
 
-        case 0x3f:
+        case 0x3F:
             return {true, 
-                    0x3f, 
+                    0x3F, 
                     "SRL",
                     2,
                     8,
@@ -5486,8 +5364,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "x8/rsb",
-                    "A",
+                    "",
                     "",
                    };
 
@@ -5502,9 +5379,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "B",
+                    "",
+                    "",
                    };
 
         case 0x41:
@@ -5518,9 +5394,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "C",
+                    "",
+                    "",
                    };
 
         case 0x42:
@@ -5534,9 +5409,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "D",
+                    "",
+                    "",
                    };
 
         case 0x43:
@@ -5550,9 +5424,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "E",
+                    "",
+                    "",
                    };
 
         case 0x44:
@@ -5566,9 +5439,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "H",
+                    "",
+                    "",
                    };
 
         case 0x45:
@@ -5582,9 +5454,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "L",
+                    "",
+                    "",
                    };
 
         case 0x46:
@@ -5592,15 +5463,14 @@ namespace ez {
                     0x46, 
                     "BIT",
                     2,
-                    16,
+                    12,
                     0,
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
         case 0x47:
@@ -5614,9 +5484,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "A",
+                    "",
+                    "",
                    };
 
         case 0x48:
@@ -5630,9 +5499,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "B",
+                    "",
+                    "",
                    };
 
         case 0x49:
@@ -5646,14 +5514,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0x4a:
+        case 0x4A:
             return {true, 
-                    0x4a, 
+                    0x4A, 
                     "BIT",
                     2,
                     8,
@@ -5662,14 +5529,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0x4b:
+        case 0x4B:
             return {true, 
-                    0x4b, 
+                    0x4B, 
                     "BIT",
                     2,
                     8,
@@ -5678,14 +5544,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0x4c:
+        case 0x4C:
             return {true, 
-                    0x4c, 
+                    0x4C, 
                     "BIT",
                     2,
                     8,
@@ -5694,14 +5559,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0x4d:
+        case 0x4D:
             return {true, 
-                    0x4d, 
+                    0x4D, 
                     "BIT",
                     2,
                     8,
@@ -5710,30 +5574,28 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0x4e:
+        case 0x4E:
             return {true, 
-                    0x4e, 
+                    0x4E, 
                     "BIT",
                     2,
-                    16,
+                    12,
                     0,
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0x4f:
+        case 0x4F:
             return {true, 
-                    0x4f, 
+                    0x4F, 
                     "BIT",
                     2,
                     8,
@@ -5742,9 +5604,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "A",
+                    "",
+                    "",
                    };
 
         case 0x50:
@@ -5758,9 +5619,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "B",
+                    "",
+                    "",
                    };
 
         case 0x51:
@@ -5774,9 +5634,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "C",
+                    "",
+                    "",
                    };
 
         case 0x52:
@@ -5790,9 +5649,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "D",
+                    "",
+                    "",
                    };
 
         case 0x53:
@@ -5806,9 +5664,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "E",
+                    "",
+                    "",
                    };
 
         case 0x54:
@@ -5822,9 +5679,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "H",
+                    "",
+                    "",
                    };
 
         case 0x55:
@@ -5838,9 +5694,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "L",
+                    "",
+                    "",
                    };
 
         case 0x56:
@@ -5848,15 +5703,14 @@ namespace ez {
                     0x56, 
                     "BIT",
                     2,
-                    16,
+                    12,
                     0,
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
         case 0x57:
@@ -5870,9 +5724,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "A",
+                    "",
+                    "",
                    };
 
         case 0x58:
@@ -5886,9 +5739,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "B",
+                    "",
+                    "",
                    };
 
         case 0x59:
@@ -5902,14 +5754,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0x5a:
+        case 0x5A:
             return {true, 
-                    0x5a, 
+                    0x5A, 
                     "BIT",
                     2,
                     8,
@@ -5918,14 +5769,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0x5b:
+        case 0x5B:
             return {true, 
-                    0x5b, 
+                    0x5B, 
                     "BIT",
                     2,
                     8,
@@ -5934,14 +5784,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0x5c:
+        case 0x5C:
             return {true, 
-                    0x5c, 
+                    0x5C, 
                     "BIT",
                     2,
                     8,
@@ -5950,14 +5799,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0x5d:
+        case 0x5D:
             return {true, 
-                    0x5d, 
+                    0x5D, 
                     "BIT",
                     2,
                     8,
@@ -5966,30 +5814,28 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0x5e:
+        case 0x5E:
             return {true, 
-                    0x5e, 
+                    0x5E, 
                     "BIT",
                     2,
-                    16,
+                    12,
                     0,
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0x5f:
+        case 0x5F:
             return {true, 
-                    0x5f, 
+                    0x5F, 
                     "BIT",
                     2,
                     8,
@@ -5998,9 +5844,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "A",
+                    "",
+                    "",
                    };
 
         case 0x60:
@@ -6014,9 +5859,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "B",
+                    "",
+                    "",
                    };
 
         case 0x61:
@@ -6030,9 +5874,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "C",
+                    "",
+                    "",
                    };
 
         case 0x62:
@@ -6046,9 +5889,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "D",
+                    "",
+                    "",
                    };
 
         case 0x63:
@@ -6062,9 +5904,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "E",
+                    "",
+                    "",
                    };
 
         case 0x64:
@@ -6078,9 +5919,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "H",
+                    "",
+                    "",
                    };
 
         case 0x65:
@@ -6094,9 +5934,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "L",
+                    "",
+                    "",
                    };
 
         case 0x66:
@@ -6104,15 +5943,14 @@ namespace ez {
                     0x66, 
                     "BIT",
                     2,
-                    16,
+                    12,
                     0,
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
         case 0x67:
@@ -6126,9 +5964,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "A",
+                    "",
+                    "",
                    };
 
         case 0x68:
@@ -6142,9 +5979,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "B",
+                    "",
+                    "",
                    };
 
         case 0x69:
@@ -6158,14 +5994,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0x6a:
+        case 0x6A:
             return {true, 
-                    0x6a, 
+                    0x6A, 
                     "BIT",
                     2,
                     8,
@@ -6174,14 +6009,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0x6b:
+        case 0x6B:
             return {true, 
-                    0x6b, 
+                    0x6B, 
                     "BIT",
                     2,
                     8,
@@ -6190,14 +6024,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0x6c:
+        case 0x6C:
             return {true, 
-                    0x6c, 
+                    0x6C, 
                     "BIT",
                     2,
                     8,
@@ -6206,14 +6039,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0x6d:
+        case 0x6D:
             return {true, 
-                    0x6d, 
+                    0x6D, 
                     "BIT",
                     2,
                     8,
@@ -6222,30 +6054,28 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0x6e:
+        case 0x6E:
             return {true, 
-                    0x6e, 
+                    0x6E, 
                     "BIT",
                     2,
-                    16,
+                    12,
                     0,
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0x6f:
+        case 0x6F:
             return {true, 
-                    0x6f, 
+                    0x6F, 
                     "BIT",
                     2,
                     8,
@@ -6254,9 +6084,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "A",
+                    "",
+                    "",
                    };
 
         case 0x70:
@@ -6270,9 +6099,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "B",
+                    "",
+                    "",
                    };
 
         case 0x71:
@@ -6286,9 +6114,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "C",
+                    "",
+                    "",
                    };
 
         case 0x72:
@@ -6302,9 +6129,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "D",
+                    "",
+                    "",
                    };
 
         case 0x73:
@@ -6318,9 +6144,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "E",
+                    "",
+                    "",
                    };
 
         case 0x74:
@@ -6334,9 +6159,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "H",
+                    "",
+                    "",
                    };
 
         case 0x75:
@@ -6350,9 +6174,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "L",
+                    "",
+                    "",
                    };
 
         case 0x76:
@@ -6360,15 +6183,14 @@ namespace ez {
                     0x76, 
                     "BIT",
                     2,
-                    16,
+                    12,
                     0,
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
         case 0x77:
@@ -6382,9 +6204,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "A",
+                    "",
+                    "",
                    };
 
         case 0x78:
@@ -6398,9 +6219,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "B",
+                    "",
+                    "",
                    };
 
         case 0x79:
@@ -6414,14 +6234,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0x7a:
+        case 0x7A:
             return {true, 
-                    0x7a, 
+                    0x7A, 
                     "BIT",
                     2,
                     8,
@@ -6430,14 +6249,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0x7b:
+        case 0x7B:
             return {true, 
-                    0x7b, 
+                    0x7B, 
                     "BIT",
                     2,
                     8,
@@ -6446,14 +6264,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0x7c:
+        case 0x7C:
             return {true, 
-                    0x7c, 
+                    0x7C, 
                     "BIT",
                     2,
                     8,
@@ -6462,14 +6279,13 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0x7d:
+        case 0x7D:
             return {true, 
-                    0x7d, 
+                    0x7D, 
                     "BIT",
                     2,
                     8,
@@ -6478,30 +6294,28 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0x7e:
+        case 0x7E:
             return {true, 
-                    0x7e, 
+                    0x7E, 
                     "BIT",
                     2,
-                    16,
+                    12,
                     0,
                     FlagEffect::ZERO,
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0x7f:
+        case 0x7F:
             return {true, 
-                    0x7f, 
+                    0x7F, 
                     "BIT",
                     2,
                     8,
@@ -6510,9 +6324,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "A",
+                    "",
+                    "",
                    };
 
         case 0x80:
@@ -6526,9 +6339,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "B",
+                    "",
+                    "",
                    };
 
         case 0x81:
@@ -6542,9 +6354,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "C",
+                    "",
+                    "",
                    };
 
         case 0x82:
@@ -6558,9 +6369,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "D",
+                    "",
+                    "",
                    };
 
         case 0x83:
@@ -6574,9 +6384,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "E",
+                    "",
+                    "",
                    };
 
         case 0x84:
@@ -6590,9 +6399,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "H",
+                    "",
+                    "",
                    };
 
         case 0x85:
@@ -6606,9 +6414,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "L",
+                    "",
+                    "",
                    };
 
         case 0x86:
@@ -6622,9 +6429,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
         case 0x87:
@@ -6638,9 +6444,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "A",
+                    "",
+                    "",
                    };
 
         case 0x88:
@@ -6654,9 +6459,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "B",
+                    "",
+                    "",
                    };
 
         case 0x89:
@@ -6670,14 +6474,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0x8a:
+        case 0x8A:
             return {true, 
-                    0x8a, 
+                    0x8A, 
                     "RES",
                     2,
                     8,
@@ -6686,14 +6489,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0x8b:
+        case 0x8B:
             return {true, 
-                    0x8b, 
+                    0x8B, 
                     "RES",
                     2,
                     8,
@@ -6702,14 +6504,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0x8c:
+        case 0x8C:
             return {true, 
-                    0x8c, 
+                    0x8C, 
                     "RES",
                     2,
                     8,
@@ -6718,14 +6519,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0x8d:
+        case 0x8D:
             return {true, 
-                    0x8d, 
+                    0x8D, 
                     "RES",
                     2,
                     8,
@@ -6734,14 +6534,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0x8e:
+        case 0x8E:
             return {true, 
-                    0x8e, 
+                    0x8E, 
                     "RES",
                     2,
                     16,
@@ -6750,14 +6549,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0x8f:
+        case 0x8F:
             return {true, 
-                    0x8f, 
+                    0x8F, 
                     "RES",
                     2,
                     8,
@@ -6766,9 +6564,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "A",
+                    "",
+                    "",
                    };
 
         case 0x90:
@@ -6782,9 +6579,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "B",
+                    "",
+                    "",
                    };
 
         case 0x91:
@@ -6798,9 +6594,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "C",
+                    "",
+                    "",
                    };
 
         case 0x92:
@@ -6814,9 +6609,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "D",
+                    "",
+                    "",
                    };
 
         case 0x93:
@@ -6830,9 +6624,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "E",
+                    "",
+                    "",
                    };
 
         case 0x94:
@@ -6846,9 +6639,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "H",
+                    "",
+                    "",
                    };
 
         case 0x95:
@@ -6862,9 +6654,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "L",
+                    "",
+                    "",
                    };
 
         case 0x96:
@@ -6878,9 +6669,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
         case 0x97:
@@ -6894,9 +6684,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "A",
+                    "",
+                    "",
                    };
 
         case 0x98:
@@ -6910,9 +6699,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "B",
+                    "",
+                    "",
                    };
 
         case 0x99:
@@ -6926,14 +6714,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0x9a:
+        case 0x9A:
             return {true, 
-                    0x9a, 
+                    0x9A, 
                     "RES",
                     2,
                     8,
@@ -6942,14 +6729,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0x9b:
+        case 0x9B:
             return {true, 
-                    0x9b, 
+                    0x9B, 
                     "RES",
                     2,
                     8,
@@ -6958,14 +6744,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0x9c:
+        case 0x9C:
             return {true, 
-                    0x9c, 
+                    0x9C, 
                     "RES",
                     2,
                     8,
@@ -6974,14 +6759,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0x9d:
+        case 0x9D:
             return {true, 
-                    0x9d, 
+                    0x9D, 
                     "RES",
                     2,
                     8,
@@ -6990,14 +6774,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0x9e:
+        case 0x9E:
             return {true, 
-                    0x9e, 
+                    0x9E, 
                     "RES",
                     2,
                     16,
@@ -7006,14 +6789,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0x9f:
+        case 0x9F:
             return {true, 
-                    0x9f, 
+                    0x9F, 
                     "RES",
                     2,
                     8,
@@ -7022,14 +6804,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "A",
+                    "",
+                    "",
                    };
 
-        case 0xa0:
+        case 0xA0:
             return {true, 
-                    0xa0, 
+                    0xA0, 
                     "RES",
                     2,
                     8,
@@ -7038,14 +6819,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "B",
+                    "",
+                    "",
                    };
 
-        case 0xa1:
+        case 0xA1:
             return {true, 
-                    0xa1, 
+                    0xA1, 
                     "RES",
                     2,
                     8,
@@ -7054,14 +6834,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0xa2:
+        case 0xA2:
             return {true, 
-                    0xa2, 
+                    0xA2, 
                     "RES",
                     2,
                     8,
@@ -7070,14 +6849,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0xa3:
+        case 0xA3:
             return {true, 
-                    0xa3, 
+                    0xA3, 
                     "RES",
                     2,
                     8,
@@ -7086,14 +6864,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0xa4:
+        case 0xA4:
             return {true, 
-                    0xa4, 
+                    0xA4, 
                     "RES",
                     2,
                     8,
@@ -7102,14 +6879,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0xa5:
+        case 0xA5:
             return {true, 
-                    0xa5, 
+                    0xA5, 
                     "RES",
                     2,
                     8,
@@ -7118,14 +6894,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0xa6:
+        case 0xA6:
             return {true, 
-                    0xa6, 
+                    0xA6, 
                     "RES",
                     2,
                     16,
@@ -7134,14 +6909,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0xa7:
+        case 0xA7:
             return {true, 
-                    0xa7, 
+                    0xA7, 
                     "RES",
                     2,
                     8,
@@ -7150,14 +6924,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "A",
+                    "",
+                    "",
                    };
 
-        case 0xa8:
+        case 0xA8:
             return {true, 
-                    0xa8, 
+                    0xA8, 
                     "RES",
                     2,
                     8,
@@ -7166,14 +6939,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "B",
+                    "",
+                    "",
                    };
 
-        case 0xa9:
+        case 0xA9:
             return {true, 
-                    0xa9, 
+                    0xA9, 
                     "RES",
                     2,
                     8,
@@ -7182,14 +6954,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0xaa:
+        case 0xAA:
             return {true, 
-                    0xaa, 
+                    0xAA, 
                     "RES",
                     2,
                     8,
@@ -7198,14 +6969,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0xab:
+        case 0xAB:
             return {true, 
-                    0xab, 
+                    0xAB, 
                     "RES",
                     2,
                     8,
@@ -7214,14 +6984,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0xac:
+        case 0xAC:
             return {true, 
-                    0xac, 
+                    0xAC, 
                     "RES",
                     2,
                     8,
@@ -7230,14 +6999,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0xad:
+        case 0xAD:
             return {true, 
-                    0xad, 
+                    0xAD, 
                     "RES",
                     2,
                     8,
@@ -7246,14 +7014,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0xae:
+        case 0xAE:
             return {true, 
-                    0xae, 
+                    0xAE, 
                     "RES",
                     2,
                     16,
@@ -7262,14 +7029,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0xaf:
+        case 0xAF:
             return {true, 
-                    0xaf, 
+                    0xAF, 
                     "RES",
                     2,
                     8,
@@ -7278,14 +7044,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "A",
+                    "",
+                    "",
                    };
 
-        case 0xb0:
+        case 0xB0:
             return {true, 
-                    0xb0, 
+                    0xB0, 
                     "RES",
                     2,
                     8,
@@ -7294,14 +7059,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "B",
+                    "",
+                    "",
                    };
 
-        case 0xb1:
+        case 0xB1:
             return {true, 
-                    0xb1, 
+                    0xB1, 
                     "RES",
                     2,
                     8,
@@ -7310,14 +7074,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0xb2:
+        case 0xB2:
             return {true, 
-                    0xb2, 
+                    0xB2, 
                     "RES",
                     2,
                     8,
@@ -7326,14 +7089,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0xb3:
+        case 0xB3:
             return {true, 
-                    0xb3, 
+                    0xB3, 
                     "RES",
                     2,
                     8,
@@ -7342,14 +7104,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0xb4:
+        case 0xB4:
             return {true, 
-                    0xb4, 
+                    0xB4, 
                     "RES",
                     2,
                     8,
@@ -7358,14 +7119,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0xb5:
+        case 0xB5:
             return {true, 
-                    0xb5, 
+                    0xB5, 
                     "RES",
                     2,
                     8,
@@ -7374,14 +7134,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0xb6:
+        case 0xB6:
             return {true, 
-                    0xb6, 
+                    0xB6, 
                     "RES",
                     2,
                     16,
@@ -7390,14 +7149,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0xb7:
+        case 0xB7:
             return {true, 
-                    0xb7, 
+                    0xB7, 
                     "RES",
                     2,
                     8,
@@ -7406,14 +7164,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "A",
+                    "",
+                    "",
                    };
 
-        case 0xb8:
+        case 0xB8:
             return {true, 
-                    0xb8, 
+                    0xB8, 
                     "RES",
                     2,
                     8,
@@ -7422,14 +7179,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "B",
+                    "",
+                    "",
                    };
 
-        case 0xb9:
+        case 0xB9:
             return {true, 
-                    0xb9, 
+                    0xB9, 
                     "RES",
                     2,
                     8,
@@ -7438,14 +7194,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0xba:
+        case 0xBA:
             return {true, 
-                    0xba, 
+                    0xBA, 
                     "RES",
                     2,
                     8,
@@ -7454,14 +7209,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0xbb:
+        case 0xBB:
             return {true, 
-                    0xbb, 
+                    0xBB, 
                     "RES",
                     2,
                     8,
@@ -7470,14 +7224,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0xbc:
+        case 0xBC:
             return {true, 
-                    0xbc, 
+                    0xBC, 
                     "RES",
                     2,
                     8,
@@ -7486,14 +7239,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0xbd:
+        case 0xBD:
             return {true, 
-                    0xbd, 
+                    0xBD, 
                     "RES",
                     2,
                     8,
@@ -7502,14 +7254,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0xbe:
+        case 0xBE:
             return {true, 
-                    0xbe, 
+                    0xBE, 
                     "RES",
                     2,
                     16,
@@ -7518,14 +7269,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0xbf:
+        case 0xBF:
             return {true, 
-                    0xbf, 
+                    0xBF, 
                     "RES",
                     2,
                     8,
@@ -7534,14 +7284,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "A",
+                    "",
+                    "",
                    };
 
-        case 0xc0:
+        case 0xC0:
             return {true, 
-                    0xc0, 
+                    0xC0, 
                     "SET",
                     2,
                     8,
@@ -7550,14 +7299,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "B",
+                    "",
+                    "",
                    };
 
-        case 0xc1:
+        case 0xC1:
             return {true, 
-                    0xc1, 
+                    0xC1, 
                     "SET",
                     2,
                     8,
@@ -7566,14 +7314,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0xc2:
+        case 0xC2:
             return {true, 
-                    0xc2, 
+                    0xC2, 
                     "SET",
                     2,
                     8,
@@ -7582,14 +7329,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0xc3:
+        case 0xC3:
             return {true, 
-                    0xc3, 
+                    0xC3, 
                     "SET",
                     2,
                     8,
@@ -7598,14 +7344,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0xc4:
+        case 0xC4:
             return {true, 
-                    0xc4, 
+                    0xC4, 
                     "SET",
                     2,
                     8,
@@ -7614,14 +7359,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0xc5:
+        case 0xC5:
             return {true, 
-                    0xc5, 
+                    0xC5, 
                     "SET",
                     2,
                     8,
@@ -7630,14 +7374,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0xc6:
+        case 0xC6:
             return {true, 
-                    0xc6, 
+                    0xC6, 
                     "SET",
                     2,
                     16,
@@ -7646,14 +7389,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0xc7:
+        case 0xC7:
             return {true, 
-                    0xc7, 
+                    0xC7, 
                     "SET",
                     2,
                     8,
@@ -7662,14 +7404,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "0",
-                    "A",
+                    "",
+                    "",
                    };
 
-        case 0xc8:
+        case 0xC8:
             return {true, 
-                    0xc8, 
+                    0xC8, 
                     "SET",
                     2,
                     8,
@@ -7678,14 +7419,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "B",
+                    "",
+                    "",
                    };
 
-        case 0xc9:
+        case 0xC9:
             return {true, 
-                    0xc9, 
+                    0xC9, 
                     "SET",
                     2,
                     8,
@@ -7694,14 +7434,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0xca:
+        case 0xCA:
             return {true, 
-                    0xca, 
+                    0xCA, 
                     "SET",
                     2,
                     8,
@@ -7710,14 +7449,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0xcb:
+        case 0xCB:
             return {true, 
-                    0xcb, 
+                    0xCB, 
                     "SET",
                     2,
                     8,
@@ -7726,14 +7464,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0xcc:
+        case 0xCC:
             return {true, 
-                    0xcc, 
+                    0xCC, 
                     "SET",
                     2,
                     8,
@@ -7742,14 +7479,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0xcd:
+        case 0xCD:
             return {true, 
-                    0xcd, 
+                    0xCD, 
                     "SET",
                     2,
                     8,
@@ -7758,14 +7494,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0xce:
+        case 0xCE:
             return {true, 
-                    0xce, 
+                    0xCE, 
                     "SET",
                     2,
                     16,
@@ -7774,14 +7509,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0xcf:
+        case 0xCF:
             return {true, 
-                    0xcf, 
+                    0xCF, 
                     "SET",
                     2,
                     8,
@@ -7790,14 +7524,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "1",
-                    "A",
+                    "",
+                    "",
                    };
 
-        case 0xd0:
+        case 0xD0:
             return {true, 
-                    0xd0, 
+                    0xD0, 
                     "SET",
                     2,
                     8,
@@ -7806,14 +7539,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "B",
+                    "",
+                    "",
                    };
 
-        case 0xd1:
+        case 0xD1:
             return {true, 
-                    0xd1, 
+                    0xD1, 
                     "SET",
                     2,
                     8,
@@ -7822,14 +7554,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0xd2:
+        case 0xD2:
             return {true, 
-                    0xd2, 
+                    0xD2, 
                     "SET",
                     2,
                     8,
@@ -7838,14 +7569,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0xd3:
+        case 0xD3:
             return {true, 
-                    0xd3, 
+                    0xD3, 
                     "SET",
                     2,
                     8,
@@ -7854,14 +7584,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0xd4:
+        case 0xD4:
             return {true, 
-                    0xd4, 
+                    0xD4, 
                     "SET",
                     2,
                     8,
@@ -7870,14 +7599,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0xd5:
+        case 0xD5:
             return {true, 
-                    0xd5, 
+                    0xD5, 
                     "SET",
                     2,
                     8,
@@ -7886,14 +7614,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0xd6:
+        case 0xD6:
             return {true, 
-                    0xd6, 
+                    0xD6, 
                     "SET",
                     2,
                     16,
@@ -7902,14 +7629,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0xd7:
+        case 0xD7:
             return {true, 
-                    0xd7, 
+                    0xD7, 
                     "SET",
                     2,
                     8,
@@ -7918,14 +7644,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "2",
-                    "A",
+                    "",
+                    "",
                    };
 
-        case 0xd8:
+        case 0xD8:
             return {true, 
-                    0xd8, 
+                    0xD8, 
                     "SET",
                     2,
                     8,
@@ -7934,14 +7659,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "B",
+                    "",
+                    "",
                    };
 
-        case 0xd9:
+        case 0xD9:
             return {true, 
-                    0xd9, 
+                    0xD9, 
                     "SET",
                     2,
                     8,
@@ -7950,14 +7674,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0xda:
+        case 0xDA:
             return {true, 
-                    0xda, 
+                    0xDA, 
                     "SET",
                     2,
                     8,
@@ -7966,14 +7689,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0xdb:
+        case 0xDB:
             return {true, 
-                    0xdb, 
+                    0xDB, 
                     "SET",
                     2,
                     8,
@@ -7982,14 +7704,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0xdc:
+        case 0xDC:
             return {true, 
-                    0xdc, 
+                    0xDC, 
                     "SET",
                     2,
                     8,
@@ -7998,14 +7719,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0xdd:
+        case 0xDD:
             return {true, 
-                    0xdd, 
+                    0xDD, 
                     "SET",
                     2,
                     8,
@@ -8014,14 +7734,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0xde:
+        case 0xDE:
             return {true, 
-                    0xde, 
+                    0xDE, 
                     "SET",
                     2,
                     16,
@@ -8030,14 +7749,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0xdf:
+        case 0xDF:
             return {true, 
-                    0xdf, 
+                    0xDF, 
                     "SET",
                     2,
                     8,
@@ -8046,14 +7764,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "3",
-                    "A",
+                    "",
+                    "",
                    };
 
-        case 0xe0:
+        case 0xE0:
             return {true, 
-                    0xe0, 
+                    0xE0, 
                     "SET",
                     2,
                     8,
@@ -8062,14 +7779,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "B",
+                    "",
+                    "",
                    };
 
-        case 0xe1:
+        case 0xE1:
             return {true, 
-                    0xe1, 
+                    0xE1, 
                     "SET",
                     2,
                     8,
@@ -8078,14 +7794,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0xe2:
+        case 0xE2:
             return {true, 
-                    0xe2, 
+                    0xE2, 
                     "SET",
                     2,
                     8,
@@ -8094,14 +7809,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0xe3:
+        case 0xE3:
             return {true, 
-                    0xe3, 
+                    0xE3, 
                     "SET",
                     2,
                     8,
@@ -8110,14 +7824,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0xe4:
+        case 0xE4:
             return {true, 
-                    0xe4, 
+                    0xE4, 
                     "SET",
                     2,
                     8,
@@ -8126,14 +7839,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0xe5:
+        case 0xE5:
             return {true, 
-                    0xe5, 
+                    0xE5, 
                     "SET",
                     2,
                     8,
@@ -8142,14 +7854,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0xe6:
+        case 0xE6:
             return {true, 
-                    0xe6, 
+                    0xE6, 
                     "SET",
                     2,
                     16,
@@ -8158,14 +7869,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0xe7:
+        case 0xE7:
             return {true, 
-                    0xe7, 
+                    0xE7, 
                     "SET",
                     2,
                     8,
@@ -8174,14 +7884,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "4",
-                    "A",
+                    "",
+                    "",
                    };
 
-        case 0xe8:
+        case 0xE8:
             return {true, 
-                    0xe8, 
+                    0xE8, 
                     "SET",
                     2,
                     8,
@@ -8190,14 +7899,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "B",
+                    "",
+                    "",
                    };
 
-        case 0xe9:
+        case 0xE9:
             return {true, 
-                    0xe9, 
+                    0xE9, 
                     "SET",
                     2,
                     8,
@@ -8206,14 +7914,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0xea:
+        case 0xEA:
             return {true, 
-                    0xea, 
+                    0xEA, 
                     "SET",
                     2,
                     8,
@@ -8222,14 +7929,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0xeb:
+        case 0xEB:
             return {true, 
-                    0xeb, 
+                    0xEB, 
                     "SET",
                     2,
                     8,
@@ -8238,14 +7944,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0xec:
+        case 0xEC:
             return {true, 
-                    0xec, 
+                    0xEC, 
                     "SET",
                     2,
                     8,
@@ -8254,14 +7959,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0xed:
+        case 0xED:
             return {true, 
-                    0xed, 
+                    0xED, 
                     "SET",
                     2,
                     8,
@@ -8270,14 +7974,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0xee:
+        case 0xEE:
             return {true, 
-                    0xee, 
+                    0xEE, 
                     "SET",
                     2,
                     16,
@@ -8286,14 +7989,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0xef:
+        case 0xEF:
             return {true, 
-                    0xef, 
+                    0xEF, 
                     "SET",
                     2,
                     8,
@@ -8302,14 +8004,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "5",
-                    "A",
+                    "",
+                    "",
                    };
 
-        case 0xf0:
+        case 0xF0:
             return {true, 
-                    0xf0, 
+                    0xF0, 
                     "SET",
                     2,
                     8,
@@ -8318,14 +8019,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "B",
+                    "",
+                    "",
                    };
 
-        case 0xf1:
+        case 0xF1:
             return {true, 
-                    0xf1, 
+                    0xF1, 
                     "SET",
                     2,
                     8,
@@ -8334,14 +8034,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0xf2:
+        case 0xF2:
             return {true, 
-                    0xf2, 
+                    0xF2, 
                     "SET",
                     2,
                     8,
@@ -8350,14 +8049,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0xf3:
+        case 0xF3:
             return {true, 
-                    0xf3, 
+                    0xF3, 
                     "SET",
                     2,
                     8,
@@ -8366,14 +8064,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0xf4:
+        case 0xF4:
             return {true, 
-                    0xf4, 
+                    0xF4, 
                     "SET",
                     2,
                     8,
@@ -8382,14 +8079,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0xf5:
+        case 0xF5:
             return {true, 
-                    0xf5, 
+                    0xF5, 
                     "SET",
                     2,
                     8,
@@ -8398,14 +8094,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0xf6:
+        case 0xF6:
             return {true, 
-                    0xf6, 
+                    0xF6, 
                     "SET",
                     2,
                     16,
@@ -8414,14 +8109,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0xf7:
+        case 0xF7:
             return {true, 
-                    0xf7, 
+                    0xF7, 
                     "SET",
                     2,
                     8,
@@ -8430,14 +8124,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "6",
-                    "A",
+                    "",
+                    "",
                    };
 
-        case 0xf8:
+        case 0xF8:
             return {true, 
-                    0xf8, 
+                    0xF8, 
                     "SET",
                     2,
                     8,
@@ -8446,14 +8139,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "B",
+                    "",
+                    "",
                    };
 
-        case 0xf9:
+        case 0xF9:
             return {true, 
-                    0xf9, 
+                    0xF9, 
                     "SET",
                     2,
                     8,
@@ -8462,14 +8154,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "C",
+                    "",
+                    "",
                    };
 
-        case 0xfa:
+        case 0xFA:
             return {true, 
-                    0xfa, 
+                    0xFA, 
                     "SET",
                     2,
                     8,
@@ -8478,14 +8169,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "D",
+                    "",
+                    "",
                    };
 
-        case 0xfb:
+        case 0xFB:
             return {true, 
-                    0xfb, 
+                    0xFB, 
                     "SET",
                     2,
                     8,
@@ -8494,14 +8184,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "E",
+                    "",
+                    "",
                    };
 
-        case 0xfc:
+        case 0xFC:
             return {true, 
-                    0xfc, 
+                    0xFC, 
                     "SET",
                     2,
                     8,
@@ -8510,14 +8199,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "H",
+                    "",
+                    "",
                    };
 
-        case 0xfd:
+        case 0xFD:
             return {true, 
-                    0xfd, 
+                    0xFD, 
                     "SET",
                     2,
                     8,
@@ -8526,14 +8214,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "L",
+                    "",
+                    "",
                    };
 
-        case 0xfe:
+        case 0xFE:
             return {true, 
-                    0xfe, 
+                    0xFE, 
                     "SET",
                     2,
                     16,
@@ -8542,14 +8229,13 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "(HL)",
+                    "",
+                    "",
                    };
 
-        case 0xff:
+        case 0xFF:
             return {true, 
-                    0xff, 
+                    0xFF, 
                     "SET",
                     2,
                     8,
@@ -8558,9 +8244,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "x8/rsb",
-                    "7",
-                    "A",
+                    "",
+                    "",
                    };
 
         default:
@@ -8580,9 +8265,9 @@ struct std::formatter<ez::OpCodeInfo> {
         return context.begin();
     }
     auto format(const ez::OpCodeInfo& oc, std::format_context& context) const {  
-        return std::format_to(context.out(), "{} {} {} {} (A: {:#2x} L: {})", oc.m_mnemonic, oc.m_operandName1, 
-                                                oc.m_operandName2, oc.m_groupName, oc.m_addr,
-                                                oc.m_lengthBytes);
+        return std::format_to(context.out(), "{} {} {} (A: {:#2x} L: {})", oc.m_mnemonic, oc.m_operandName1, 
+                                                oc.m_operandName2, oc.m_addr,
+                                                oc.m_size);
     }
 };
 

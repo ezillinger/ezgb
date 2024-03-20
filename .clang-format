@@ -4,8 +4,14 @@ BasedOnStyle: LLVM
 IndentWidth: 4
 ---
 Language: Cpp
-ColumnLimit: 200
+ColumnLimit: 150
 # Force pointers to the type for C++.
 DerivePointerAlignment: false
 PointerAlignment: Left
+AllowShortCaseLabelsOnASingleLine: 'true'
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignCaseColons: false
 ---
