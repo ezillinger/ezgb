@@ -17,7 +17,7 @@
 
 namespace ez {
 
-#define EZ_FAIL() assert(false)
+#define EZ_FAIL(PP_MESSAGE) assert(false)
 #define EZ_ASSERT(statement) assert(statement)
 
 #ifndef NDEBUG

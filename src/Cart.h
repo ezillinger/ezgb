@@ -6,7 +6,7 @@ namespace ez {
     public:
         Cart(const fs::path& path);
 
-        uint32_t read32(uint16_t byteOffset);
+        const uint8_t* data(uint16_t byteOffset) const;
 
     private:
         uint16_t m_sizeBytes = 0;

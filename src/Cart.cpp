@@ -13,8 +13,8 @@ namespace ez {
         fread(m_data.data(), 1, m_sizeBytes, fp);
     }
 
-    uint32_t Cart::read32(uint16_t byteOffset) {
+    const uint8_t* Cart::data(uint16_t byteOffset) const {
         EZ_ENSURE(byteOffset < m_sizeBytes);
-        return *reinterpret_cast<uint32_t*>(m_data.data() + byteOffset);
+        return m_data.data() + byteOffset;
     }
 }

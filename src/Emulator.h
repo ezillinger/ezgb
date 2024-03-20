@@ -1,120 +1,86 @@
 #pragma once
-#include "base.h"
 #include "Cart.h"
 #include "OpCodes.h"
+#include "base.h"
 
-namespace ez
-{
-	struct Instruction {
-		std::string m_mnemonic;
-		uint8_t m_size = 0;
-		uint8_t m_cycles = 0;
+namespace ez {
+struct Instruction {
+    std::string m_mnemonic;
+    uint8_t m_size = 0;
+    uint8_t m_cycles = 0;
 
-		std::optional<uint8_t> m_data8;
-		std::optional<uint8_t> m_data16;
-	};
+    std::optional<uint8_t> m_data8;
+    std::optional<uint8_t> m_data16;
+};
 
-	enum class MemoryBank {
-		ROM_0,
-		ROM_NN,
-		VRAM,
-		WRAM_0,
-		WRAM_1,
-		MIRROR,
-		SPRITES,
-		FUCK_OFF,
-		IO,
-		HRAM,
-		IE,
-		INVALID
-	};
+enum class RegAccess { B, C, D, E, H, L, HL_ADDR, A };
 
-	struct AddrInfo {
-		MemoryBank m_bank = MemoryBank::INVALID;
-		uint16_t m_baseAddr = 0;
-	};
+enum class MemoryBank { ROM_0, ROM_NN, VRAM, WRAM_0, WRAM_1, MIRROR, SPRITES, FUCK_OFF, IO, HRAM, IE, INVALID };
 
-	struct InstructionResult {
-		uint16_t m_newPC = 0;
-		int m_cycles = 0;
-	};
+struct AddrInfo {
+    MemoryBank m_bank = MemoryBank::INVALID;
+    uint16_t m_baseAddr = 0;
+};
 
-	enum class Registers {
-		A = 0,
-		F,
-		B,
-		C,
-		D,
-		E,
-		H,
-		L,
-		AF,
-		BC,
-		DE,
-		HL,
-		NUM_REGISTERS
-	};
+struct InstructionResult {
+    uint16_t m_newPC = 0;
+    int m_cycles = 0;
+};
 
-	enum class Flag {
-		ZERO = 7,
-		SUBTRACT = 6,
-		HALF_CARRY = 5,
-		CARRY = 4
-	};
+struct Reg {
+    uint16_t pc = 0;
+    uint16_t sp = 0;
+	union { struct { uint8_t a; uint8_t f; }; uint16_t af = 0; };
+	union { struct { uint8_t b; uint8_t c; }; uint16_t bc = 0; };
+	union { struct { uint8_t d; uint8_t e; }; uint16_t de = 0; };
+	union { struct { uint8_t h; uint8_t l; }; uint16_t hl = 0; };
+};
 
-	class Emulator
-	{
-	public:
-		Emulator(Cart& cart);
-		bool tick();
+enum class Registers { A = 0, F, B, C, D, E, H, L, AF, BC, DE, HL, NUM_REGISTERS };
 
-	private:
-		AddrInfo getAddressInfo(uint16_t address) const;
+enum class Flag { ZERO = 7, SUBTRACT = 6, HALF_CARRY = 5, CARRY = 4 };
 
-		uint8_t read8(uint16_t address) const ;
-		uint16_t read16(uint16_t address) const;
-		uint32_t read32(uint16_t address) const;
+class Emulator {
+  public:
+    Emulator(Cart& cart);
+    bool tick();
 
-		void write8(uint16_t address, uint8_t value);
-		void write16(uint16_t address, uint16_t value);
+  private:
+    AddrInfo getAddressInfo(uint16_t address) const;
 
-		static constexpr uint8_t getRegisterSizeBytes(Registers reg);
+    uint8_t* getMemPtrRW(uint16_t address);
+    uint8_t& getMem8RW(uint16_t address) { return *getMemPtrRW(address); }
 
-		InstructionResult handleInstruction(uint32_t instruction);
-		InstructionResult handleInstructionCB(uint32_t instruction);
+    const uint8_t* getMemPtr(uint16_t address) const;
+    uint8_t getMem8(uint16_t address) const { return *getMemPtr(address); }
 
-		void handleInstructionXOR8(OpCode instruction);
-		void handleInstructionBIT(OpCode instruction);
+    static constexpr uint8_t getRegisterSizeBytes(Registers reg);
 
-		bool getFlag(Flag flag) const;
-		void setFlag(Flag flag);
-		void clearFlag(Flag flag);
+    InstructionResult handleInstruction(uint32_t instruction);
+    InstructionResult handleInstructionCB(uint32_t instruction);
 
-		uint8_t readReg8(Registers reg) const;
-		void writeReg8(Registers reg, uint8_t val);
+    void handleInstructionXOR8(OpCode instruction);
+    void handleInstructionBIT(OpCode instruction);
 
-		uint16_t readReg16(Registers reg) const;
-		void writeReg16(Registers reg, uint16_t val);
+    bool getFlag(Flag flag) const;
+    void setFlag(Flag flag);
+    void setFlag(Flag flag, bool value);
+    void clearFlag(Flag flag);
 
-		uint16_t m_regPC = 0;
-		uint16_t m_regSP = 0;
+    uint8_t& accessReg(RegAccess ra);
 
-		uint16_t m_regAF = 0;
-		uint16_t m_regBC = 0;
-		uint16_t m_regDE = 0;
-		uint16_t m_regHL = 0;
+    Reg m_reg{};
 
-		uint16_t m_cyclesToWait = 0;
+    uint16_t m_cyclesToWait = 0;
 
-		bool m_stop = false;
-		bool m_prefix = false; // was last instruction CB prefix
+    bool m_stop = false;
+    bool m_prefix = false; // was last instruction CB prefix
 
-		static constexpr size_t RAM_BYTES = 8 * 1024;
+    static constexpr size_t RAM_BYTES = 8 * 1024;
 
-		std::vector<uint8_t> m_ram = std::vector<uint8_t>(RAM_BYTES, 0u);
-		std::vector<uint8_t> m_vram = std::vector<uint8_t>(RAM_BYTES, 0u);
+    std::vector<uint8_t> m_ram = std::vector<uint8_t>(RAM_BYTES, 0u);
+    std::vector<uint8_t> m_vram = std::vector<uint8_t>(RAM_BYTES, 0u);
 
-		Cart& m_cart;
-
-	};
-}
+    Cart& m_cart;
+};
+} // namespace ez

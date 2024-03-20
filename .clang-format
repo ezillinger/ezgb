@@ -14,4 +14,5 @@ AlignConsecutiveShortCaseStatements:
   AcrossEmptyLines: false
   AcrossComments: false
   AlignCaseColons: false
+IndentCaseLabels: 'true'
 ---
