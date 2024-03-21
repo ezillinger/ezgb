@@ -4,16 +4,10 @@
 #include "base.h"
 
 namespace ez {
-struct Instruction {
-    std::string m_mnemonic;
-    uint8_t m_size = 0;
-    uint8_t m_cycles = 0;
 
-    std::optional<uint8_t> m_data8;
-    std::optional<uint8_t> m_data16;
-};
-
-enum class RegAccess { B, C, D, E, H, L, HL_ADDR, A };
+enum class R8 { B, C, D, E, H, L, HL_ADDR, A };
+enum class R16 { BC, DE, HL, SP };
+enum class R16Mem { BC, DE, HLI, HLD };
 
 enum class MemoryBank { ROM_0, ROM_NN, VRAM, WRAM_0, WRAM_1, MIRROR, SPRITES, FUCK_OFF, IO, HRAM, IE, INVALID };
 
@@ -36,7 +30,25 @@ struct Reg {
 	union { struct { uint8_t h; uint8_t l; }; uint16_t hl = 0; };
 };
 
-enum class Registers { A = 0, F, B, C, D, E, H, L, AF, BC, DE, HL, NUM_REGISTERS };
+struct IO {
+    std::array<uint8_t, 128> m_data;
+};
+
+enum class Registers {
+    A = 0,
+    F,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    AF,
+    BC,
+    DE,
+    HL,
+    NUM_REGISTERS
+};
 
 enum class Flag { ZERO = 7, SUBTRACT = 6, HALF_CARRY = 5, CARRY = 4 };
 
@@ -59,22 +71,32 @@ class Emulator {
     InstructionResult handleInstruction(uint32_t instruction);
     InstructionResult handleInstructionCB(uint32_t instruction);
 
-    void handleInstructionXOR8(OpCode instruction);
-    void handleInstructionBIT(OpCode instruction);
+    InstructionResult handleInstructionBlock0(uint32_t pcdata);
+    InstructionResult handleInstructionBlock1(uint32_t pcdata);
+    InstructionResult handleInstructionBlock2(uint32_t pcdata);
+    InstructionResult handleInstructionBlock3(uint32_t pcdata);
 
     bool getFlag(Flag flag) const;
     void setFlag(Flag flag);
     void setFlag(Flag flag, bool value);
     void clearFlag(Flag flag);
 
-    uint8_t& accessReg(RegAccess ra);
+
+    uint8_t& getR8RW(R8 ra);
+    uint8_t getR8(R8 ra);
+    uint16_t& getR16RW(R16 ra);
+    uint16_t& getR16MemRW(R16Mem ra);
 
     Reg m_reg{};
+    IO m_io{};
 
     uint16_t m_cyclesToWait = 0;
 
+
     bool m_stop = false;
     bool m_prefix = false; // was last instruction CB prefix
+    bool m_interruptsEnabled = false;
+    int m_pendingInterruptsEnableCount = 0; // enable interrupts when reaches 0
 
     static constexpr size_t RAM_BYTES = 8 * 1024;
 
