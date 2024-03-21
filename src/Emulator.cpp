@@ -109,6 +109,8 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
     const auto info = getOpCodeInfoUnprefixed(+oc);
     log_info("{}", info);
 
+    const auto u16 = static_cast<uint16_t>((pcData >> 8) & 0x0000FFFF);
+
     bool branched = false;
     auto jumpAddr = std::optional<uint16_t>{};
 
@@ -119,7 +121,8 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             m_pendingInterruptsEnableCount = 2;
             break;
         case OpCode::LD__C__A: getMem8RW(0xFF00 + m_reg.c) = m_reg.a; break;
-        default:               EZ_FAIL();
+        case OpCode::LD_A__a16_: m_reg.a = getMem8(u16); break;
+        default: EZ_FAIL();
     }
     const auto cycles = branched ? info.m_cycles : info.m_cyclesIfBranch;
     const auto newPC = jumpAddr ? *jumpAddr : checked_cast<uint16_t>(m_reg.pc + info.m_size);
