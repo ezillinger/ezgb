@@ -32,6 +32,9 @@ struct Reg {
 
 struct IO {
     std::array<uint8_t, 128> m_data;
+    bool is_bootrom_mapped() const { log_warn("Bootrom mapping not implemented!");
+        return true;
+    };
 };
 
 enum class Registers {
@@ -99,7 +102,9 @@ class Emulator {
     int m_pendingInterruptsEnableCount = 0; // enable interrupts when reaches 0
 
     static constexpr size_t RAM_BYTES = 8 * 1024;
+    static constexpr size_t BOOTROM_BYTES = 256;
 
+    std::vector<uint8_t> m_bootrom = std::vector<uint8_t>(BOOTROM_BYTES, 0u);
     std::vector<uint8_t> m_ram = std::vector<uint8_t>(RAM_BYTES, 0u);
     std::vector<uint8_t> m_vram = std::vector<uint8_t>(RAM_BYTES, 0u);
 

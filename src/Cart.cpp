@@ -11,6 +11,7 @@ namespace ez {
         m_data = std::vector<uint8_t>(size_t(m_sizeBytes) + 3, 0u);
         auto fp = fopen(path.generic_string().c_str(), "rb");
         fread(m_data.data(), 1, m_sizeBytes, fp);
+        fclose(fp);
     }
 
     const uint8_t* Cart::data(uint16_t byteOffset) const {

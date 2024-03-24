@@ -2,7 +2,13 @@
 
 namespace ez {
 
-Emulator::Emulator(Cart& cart) : m_cart(cart) {}
+Emulator::Emulator(Cart& cart) : m_cart(cart) {
+    const auto bootloaderPath = "./roms/bootix_dmg.bin";
+    auto fp = fopen(bootloaderPath, "rb");
+    EZ_ASSERT(fp);
+    EZ_ASSERT(BOOTROM_BYTES == fread(m_bootrom.data(), 1, BOOTROM_BYTES, fp));
+    fclose(fp);
+}
 
 uint16_t& Emulator::getR16MemRW(R16Mem r16) {
     switch (r16) {
@@ -332,18 +338,16 @@ InstructionResult Emulator::handleInstruction(uint32_t pcData) {
     */
 }
 
-bool Emulator::getFlag(Flag flag) const { return ((0x1 << static_cast<uint8_t>(flag)) & lowByte(m_reg.af)) != 0x0; }
-
-void Emulator::setFlag(Flag flag) {
-    const uint8_t newVal = lowByte(m_reg.af) | (0x1 << (static_cast<uint8_t>(flag)));
-    setLowByte(m_reg.af, newVal);
+bool Emulator::getFlag(Flag flag) const { 
+    return ((0x1 << +flag) & m_reg.f) != 0x0; 
 }
+
+void Emulator::setFlag(Flag flag) { m_reg.f |= (0x1 << +flag); }
 
 void Emulator::setFlag(Flag flag, bool value) { return value ? setFlag(flag) : clearFlag(flag); }
 
 void Emulator::clearFlag(Flag flag) {
-    const auto newVal = lowByte(m_reg.af) & (~(0x1 << static_cast<uint8_t>(flag)));
-    setLowByte(m_reg.af, newVal);
+    m_reg.f &= ~(0x1 << +flag);
 }
 
 bool Emulator::tick() {
@@ -372,7 +376,6 @@ bool Emulator::tick() {
 }
 
 AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
-
     if (addr < 0x3FFF) {
         return {MemoryBank::ROM_0, 0};
     } else if (addr >= 0xC000 && addr <= 0xCFFF) {
@@ -402,7 +405,11 @@ uint8_t* Emulator::getMemPtrRW(uint16_t addr) {
 const uint8_t* Emulator::getMemPtr(uint16_t addr) const {
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM_0:  return m_cart.data(addr);
+        case MemoryBank::ROM_0:  
+            if(addr < BOOTROM_BYTES && m_io.is_bootrom_mapped()){
+                return m_bootrom.data() + addr;
+            }
+            return m_cart.data(addr);
         case MemoryBank::WRAM_0: return m_ram.data() + addr - addrInfo.m_baseAddr;
         case MemoryBank::VRAM:   return m_vram.data() + addr - addrInfo.m_baseAddr;
         case MemoryBank::IO:     return m_io.m_data.data() + addr - addrInfo.m_baseAddr;

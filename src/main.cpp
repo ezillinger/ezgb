@@ -5,7 +5,7 @@ int main() {
 
     //const auto romPath = "C:\\git\\CoronaBoy\\roms\\DMG_ROM.bin";
     log_info("CurrentDir: {}", fs::current_path().c_str());
-    const auto romPath = "./roms/bootix_dmg.bin";
+    const auto romPath = "./roms/tetris.gb";
     auto cart = Cart{ romPath };
 
     Emulator emu{cart};
