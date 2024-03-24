@@ -65,9 +65,11 @@ class Emulator {
 
     uint8_t* getMemPtrRW(uint16_t address);
     uint8_t& getMem8RW(uint16_t address) { return *getMemPtrRW(address); }
+    uint16_t& getMem16RW(uint16_t address) { return *reinterpret_cast<uint16_t*>(getMemPtrRW(address)); }
 
     const uint8_t* getMemPtr(uint16_t address) const;
     uint8_t getMem8(uint16_t address) const { return *getMemPtr(address); }
+    uint16_t getMem16(uint16_t address) const { return *reinterpret_cast<const uint16_t*>(getMemPtr(address)); }
 
     static constexpr uint8_t getRegisterSizeBytes(Registers reg);
 
@@ -88,24 +90,26 @@ class Emulator {
     uint8_t& getR8RW(R8 ra);
     uint8_t getR8(R8 ra);
     uint16_t& getR16RW(R16 ra);
-    uint16_t& getR16MemRW(R16Mem ra);
+    uint16_t getR16Mem(R16Mem ra) const;
 
     Reg m_reg{};
     IO m_io{};
 
     uint16_t m_cyclesToWait = 0;
 
-
     bool m_stop = false;
     bool m_prefix = false; // was last instruction CB prefix
     bool m_interruptsEnabled = false;
     int m_pendingInterruptsEnableCount = 0; // enable interrupts when reaches 0
+    int m_pendingInterruptsDisableCount = 0; // ^ disable
 
+    static constexpr size_t HRAM_BYTES = 128;
     static constexpr size_t RAM_BYTES = 8 * 1024;
     static constexpr size_t BOOTROM_BYTES = 256;
 
     std::vector<uint8_t> m_bootrom = std::vector<uint8_t>(BOOTROM_BYTES, 0u);
     std::vector<uint8_t> m_ram = std::vector<uint8_t>(RAM_BYTES, 0u);
+    std::vector<uint8_t> m_hram = std::vector<uint8_t>(HRAM_BYTES, 0u);
     std::vector<uint8_t> m_vram = std::vector<uint8_t>(RAM_BYTES, 0u);
 
     Cart& m_cart;

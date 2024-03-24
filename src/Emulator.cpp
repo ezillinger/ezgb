@@ -10,7 +10,7 @@ Emulator::Emulator(Cart& cart) : m_cart(cart) {
     fclose(fp);
 }
 
-uint16_t& Emulator::getR16MemRW(R16Mem r16) {
+uint16_t Emulator::getR16Mem(R16Mem r16) const {
     switch (r16) {
         case R16Mem::BC:  return m_reg.bc;
         case R16Mem::DE:  return m_reg.de;
@@ -120,15 +120,32 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
     bool branched = false;
     auto jumpAddr = std::optional<uint16_t>{};
 
+    const auto maybeDoCall = [&](bool condition, bool setBranched) {
+        if (condition) {
+            // todo, verify timing - different values on different sources
+            --m_reg.sp;
+            getMem16RW(m_reg.sp) = (m_reg.pc + info.m_size);
+            jumpAddr = u16;
+            if (setBranched) {
+                branched = true;
+            }
+        }
+    };
+
     switch (oc) {
         case OpCode::PREFIX: m_prefix = true; break;
-        case OpCode::EI:
-            // enable interrupts after instruction after this one finishes
-            m_pendingInterruptsEnableCount = 2;
-            break;
-        case OpCode::LD__C__A: getMem8RW(0xFF00 + m_reg.c) = m_reg.a; break;
-        case OpCode::LD_A__a16_: m_reg.a = getMem8(u16); break;
-        default: EZ_FAIL();
+        // enable/disable interrupts after instruction after this one finishes
+        case OpCode::EI:          m_pendingInterruptsEnableCount = 2; break;
+        case OpCode::DI:          m_pendingInterruptsDisableCount = 2; break;
+
+        case OpCode::LD__C__A:    getMem8RW(0xFF00 + m_reg.c) = m_reg.a; break;
+        case OpCode::LD_A__a16_:  m_reg.a = getMem8(u16); break;
+        case OpCode::CALL_a16:    maybeDoCall(true, false); break;
+        case OpCode::CALL_C_a16:  maybeDoCall(getFlag(Flag::CARRY), true); break;
+        case OpCode::CALL_NC_a16: maybeDoCall(!getFlag(Flag::CARRY), true); break;
+        case OpCode::CALL_Z_a16:  maybeDoCall(getFlag(Flag::ZERO), true); break;
+        case OpCode::CALL_NZ_a16: maybeDoCall(!getFlag(Flag::ZERO), true); break;
+        default:                  EZ_FAIL();
     }
     const auto cycles = branched ? info.m_cycles : info.m_cyclesIfBranch;
     const auto newPC = jumpAddr ? *jumpAddr : checked_cast<uint16_t>(m_reg.pc + info.m_size);
@@ -199,11 +216,10 @@ InstructionResult Emulator::handleInstructionBlock1(uint32_t pcData) {
 
     log_info("{}", info);
 
-    if(srcR8 == R8::HL_ADDR && dstR8 == R8::HL_ADDR){
+    if (srcR8 == R8::HL_ADDR && dstR8 == R8::HL_ADDR) {
         // HALT
         EZ_FAIL();
-    }
-    else{
+    } else {
         getR8RW(dstR8) = getR8(srcR8);
     }
     return InstructionResult{
@@ -247,14 +263,19 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
     if (is_ld_r16_u16) {
         getR16RW(r16) = u16;
     } else if (is_ld_r16mem_a) {
-        getR16MemRW(r16mem) = (0xFF + m_reg.a);
+        getMem8RW(getR16Mem(r16mem)) = m_reg.a;
         if (r16mem == R16Mem::HLD) {
             --m_reg.hl;
         } else if (r16mem == R16Mem::HLI) {
             ++m_reg.hl;
         }
     } else if (is_ld_a_r16mem) {
-        EZ_FAIL();
+        m_reg.a = getMem8(getR16Mem(r16mem));
+        if (r16mem == R16Mem::HLD) {
+            --m_reg.hl;
+        } else if (r16mem == R16Mem::HLI) {
+            ++m_reg.hl;
+        }
     } else if (is_ld_u16mem_sp) {
         EZ_FAIL();
     } else if (is_inc_r16) {
@@ -338,17 +359,13 @@ InstructionResult Emulator::handleInstruction(uint32_t pcData) {
     */
 }
 
-bool Emulator::getFlag(Flag flag) const { 
-    return ((0x1 << +flag) & m_reg.f) != 0x0; 
-}
+bool Emulator::getFlag(Flag flag) const { return ((0x1 << +flag) & m_reg.f) != 0x0; }
 
 void Emulator::setFlag(Flag flag) { m_reg.f |= (0x1 << +flag); }
 
 void Emulator::setFlag(Flag flag, bool value) { return value ? setFlag(flag) : clearFlag(flag); }
 
-void Emulator::clearFlag(Flag flag) {
-    m_reg.f &= ~(0x1 << +flag);
-}
+void Emulator::clearFlag(Flag flag) { m_reg.f &= ~(0x1 << +flag); }
 
 bool Emulator::tick() {
 
@@ -365,6 +382,12 @@ bool Emulator::tick() {
             --m_pendingInterruptsEnableCount;
             if (m_pendingInterruptsEnableCount == 0) {
                 m_interruptsEnabled = true;
+            }
+        }
+        if (m_pendingInterruptsDisableCount > 0) {
+            --m_pendingInterruptsDisableCount;
+            if (m_pendingInterruptsDisableCount == 0) {
+                m_interruptsEnabled = false;
             }
         }
         m_reg.pc = result.m_newPC;
@@ -398,6 +421,7 @@ uint8_t* Emulator::getMemPtrRW(uint16_t addr) {
         case MemoryBank::WRAM_0: return m_ram.data() + addr - addrInfo.m_baseAddr;
         case MemoryBank::VRAM:   return m_vram.data() + addr - addrInfo.m_baseAddr;
         case MemoryBank::IO:     return m_io.m_data.data() + addr - addrInfo.m_baseAddr;
+        case MemoryBank::HRAM:   return m_hram.data() + addr - addrInfo.m_baseAddr;
         default:                 EZ_FAIL(); break;
     }
 }
@@ -405,14 +429,15 @@ uint8_t* Emulator::getMemPtrRW(uint16_t addr) {
 const uint8_t* Emulator::getMemPtr(uint16_t addr) const {
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM_0:  
-            if(addr < BOOTROM_BYTES && m_io.is_bootrom_mapped()){
+        case MemoryBank::ROM_0:
+            if (addr < BOOTROM_BYTES && m_io.is_bootrom_mapped()) {
                 return m_bootrom.data() + addr;
             }
             return m_cart.data(addr);
         case MemoryBank::WRAM_0: return m_ram.data() + addr - addrInfo.m_baseAddr;
         case MemoryBank::VRAM:   return m_vram.data() + addr - addrInfo.m_baseAddr;
         case MemoryBank::IO:     return m_io.m_data.data() + addr - addrInfo.m_baseAddr;
+        case MemoryBank::HRAM:   return m_hram.data() + addr - addrInfo.m_baseAddr;
         default:                 EZ_FAIL(); break;
     }
 }
