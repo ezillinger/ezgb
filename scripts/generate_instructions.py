@@ -10,34 +10,34 @@ with open(json_path, "r") as f:
 assert(jsonDict)
 
 # hack second version of opcodes.json to match first one
-for k,v in jsonDict["unprefixed"].items():
-    v["addr"] = k
-    if len(v["operands"]) > 0:
-        op1 = v["operands"][0]
-        name = op1["name"]
-        if "increment" in op1:
-            name += "+"
-        elif "decrement" in op1:
-            name += "-"
-        if "$" in name:
-            name = name.removeprefix("$") + "h"
-        op1name = name if op1["immediate"] == True else f"({name})"
-        v["operand1"]  = op1name
-    if len(v["operands"]) > 1:
-        op2 = v["operands"][1]
-        name :str = op2["name"]
-        if "increment" in op2:
-            name += "+"
-        elif "decrement" in op2:
-            name += "-"
-        if "$" in name:
-            name = name.removeprefix("$") + "h"
-        op2name = name if op2["immediate"] == True else f"({name})"
-        v["operand2"]  = op2name
-    
+def apply_hacks(dict_name):
+    for k,v in jsonDict[dict_name].items():
+        v["addr"] = k
+        if len(v["operands"]) > 0:
+            op1 = v["operands"][0]
+            name = op1["name"]
+            if "increment" in op1:
+                name += "+"
+            elif "decrement" in op1:
+                name += "-"
+            if "$" in name:
+                name = name.removeprefix("$") + "h"
+            op1name = name if op1["immediate"] == True else f"({name})"
+            v["operand1"]  = op1name
+        if len(v["operands"]) > 1:
+            op2 = v["operands"][1]
+            name :str = op2["name"]
+            if "increment" in op2:
+                name += "+"
+            elif "decrement" in op2:
+                name += "-"
+            if "$" in name:
+                name = name.removeprefix("$") + "h"
+            op2name = name if op2["immediate"] == True else f"({name})"
+            v["operand2"]  = op2name
 
-for k,v in jsonDict["cbprefixed"].items():
-    v["addr"] = k
+apply_hacks("unprefixed")
+apply_hacks("cbprefixed")
 
 codeHeader = \
 """#pragma once
@@ -206,7 +206,7 @@ def generate_enums() -> str:
     code += enumFooter
 
     code += enumHeader.format("OpCodeCB")
-    for k, oc in jsonDict["unprefixed"].items():
+    for k, oc in jsonDict["cbprefixed"].items():
         code += make_row(oc)
     code += enumFooter
     return code

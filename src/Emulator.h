@@ -8,6 +8,7 @@ namespace ez {
 enum class R8 { B, C, D, E, H, L, HL_ADDR, A };
 enum class R16 { BC, DE, HL, SP };
 enum class R16Mem { BC, DE, HLI, HLD };
+enum class R16Stack { BC, DE, HL, AF };
 
 enum class MemoryBank { ROM_0, ROM_NN, VRAM, WRAM_0, WRAM_1, MIRROR, SPRITES, FUCK_OFF, IO, HRAM, IE, INVALID };
 
@@ -53,7 +54,7 @@ enum class Registers {
     NUM_REGISTERS
 };
 
-enum class Flag { ZERO = 7, SUBTRACT = 6, HALF_CARRY = 5, CARRY = 4 };
+enum class Flag { ZERO = 7, NEGATIVE = 6, HALF_CARRY = 5, CARRY = 4 };
 
 class Emulator {
   public:
@@ -91,6 +92,9 @@ class Emulator {
     uint8_t getR8(R8 ra);
     uint16_t& getR16RW(R16 ra);
     uint16_t getR16Mem(R16Mem ra) const;
+
+    uint16_t getR16Stack(R16Stack ra) const;
+    uint16_t& getR16StackRW(R16Stack ra);
 
     Reg m_reg{};
     IO m_io{};

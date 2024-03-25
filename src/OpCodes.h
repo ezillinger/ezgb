@@ -294,262 +294,262 @@ namespace ez {
 
 
     enum class OpCodeCB : uint8_t {
-        NOP = 0x00, // NOP  
-        LD_BC_u16 = 0x01, // LD BC u16
-        LD__BC__A = 0x02, // LD (BC) A
-        INC_BC = 0x03, // INC BC 
-        INC_B = 0x04, // INC B 
-        DEC_B = 0x05, // DEC B 
-        LD_B_u8 = 0x06, // LD B u8
-        RLCA = 0x07, // RLCA  
-        LD__a16__SP = 0x08, // LD (a16) SP
-        ADD_HL_BC = 0x09, // ADD HL BC
-        LD_A__BC_ = 0x0A, // LD A (BC)
-        DEC_BC = 0x0B, // DEC BC 
-        INC_C = 0x0C, // INC C 
-        DEC_C = 0x0D, // DEC C 
-        LD_C_u8 = 0x0E, // LD C u8
-        RRCA = 0x0F, // RRCA  
-        STOP_u8 = 0x10, // STOP u8 
-        LD_DE_u16 = 0x11, // LD DE u16
-        LD__DE__A = 0x12, // LD (DE) A
-        INC_DE = 0x13, // INC DE 
-        INC_D = 0x14, // INC D 
-        DEC_D = 0x15, // DEC D 
-        LD_D_u8 = 0x16, // LD D u8
-        RLA = 0x17, // RLA  
-        JR_i8 = 0x18, // JR i8 
-        ADD_HL_DE = 0x19, // ADD HL DE
-        LD_A__DE_ = 0x1A, // LD A (DE)
-        DEC_DE = 0x1B, // DEC DE 
-        INC_E = 0x1C, // INC E 
-        DEC_E = 0x1D, // DEC E 
-        LD_E_u8 = 0x1E, // LD E u8
-        RRA = 0x1F, // RRA  
-        JR_NZ_i8 = 0x20, // JR NZ i8
-        LD_HL_u16 = 0x21, // LD HL u16
-        LD__HLplus__A = 0x22, // LD (HL+) A
-        INC_HL = 0x23, // INC HL 
-        INC_H = 0x24, // INC H 
-        DEC_H = 0x25, // DEC H 
-        LD_H_u8 = 0x26, // LD H u8
-        DAA = 0x27, // DAA  
-        JR_Z_i8 = 0x28, // JR Z i8
-        ADD_HL_HL = 0x29, // ADD HL HL
-        LD_A__HLplus_ = 0x2A, // LD A (HL+)
-        DEC_HL = 0x2B, // DEC HL 
-        INC_L = 0x2C, // INC L 
-        DEC_L = 0x2D, // DEC L 
-        LD_L_u8 = 0x2E, // LD L u8
-        CPL = 0x2F, // CPL  
-        JR_NC_i8 = 0x30, // JR NC i8
-        LD_SP_u16 = 0x31, // LD SP u16
-        LD__HLminus__A = 0x32, // LD (HL-) A
-        INC_SP = 0x33, // INC SP 
-        INC__HL_ = 0x34, // INC (HL) 
-        DEC__HL_ = 0x35, // DEC (HL) 
-        LD__HL__u8 = 0x36, // LD (HL) u8
-        SCF = 0x37, // SCF  
-        JR_C_i8 = 0x38, // JR C i8
-        ADD_HL_SP = 0x39, // ADD HL SP
-        LD_A__HLminus_ = 0x3A, // LD A (HL-)
-        DEC_SP = 0x3B, // DEC SP 
-        INC_A = 0x3C, // INC A 
-        DEC_A = 0x3D, // DEC A 
-        LD_A_u8 = 0x3E, // LD A u8
-        CCF = 0x3F, // CCF  
-        LD_B_B = 0x40, // LD B B
-        LD_B_C = 0x41, // LD B C
-        LD_B_D = 0x42, // LD B D
-        LD_B_E = 0x43, // LD B E
-        LD_B_H = 0x44, // LD B H
-        LD_B_L = 0x45, // LD B L
-        LD_B__HL_ = 0x46, // LD B (HL)
-        LD_B_A = 0x47, // LD B A
-        LD_C_B = 0x48, // LD C B
-        LD_C_C = 0x49, // LD C C
-        LD_C_D = 0x4A, // LD C D
-        LD_C_E = 0x4B, // LD C E
-        LD_C_H = 0x4C, // LD C H
-        LD_C_L = 0x4D, // LD C L
-        LD_C__HL_ = 0x4E, // LD C (HL)
-        LD_C_A = 0x4F, // LD C A
-        LD_D_B = 0x50, // LD D B
-        LD_D_C = 0x51, // LD D C
-        LD_D_D = 0x52, // LD D D
-        LD_D_E = 0x53, // LD D E
-        LD_D_H = 0x54, // LD D H
-        LD_D_L = 0x55, // LD D L
-        LD_D__HL_ = 0x56, // LD D (HL)
-        LD_D_A = 0x57, // LD D A
-        LD_E_B = 0x58, // LD E B
-        LD_E_C = 0x59, // LD E C
-        LD_E_D = 0x5A, // LD E D
-        LD_E_E = 0x5B, // LD E E
-        LD_E_H = 0x5C, // LD E H
-        LD_E_L = 0x5D, // LD E L
-        LD_E__HL_ = 0x5E, // LD E (HL)
-        LD_E_A = 0x5F, // LD E A
-        LD_H_B = 0x60, // LD H B
-        LD_H_C = 0x61, // LD H C
-        LD_H_D = 0x62, // LD H D
-        LD_H_E = 0x63, // LD H E
-        LD_H_H = 0x64, // LD H H
-        LD_H_L = 0x65, // LD H L
-        LD_H__HL_ = 0x66, // LD H (HL)
-        LD_H_A = 0x67, // LD H A
-        LD_L_B = 0x68, // LD L B
-        LD_L_C = 0x69, // LD L C
-        LD_L_D = 0x6A, // LD L D
-        LD_L_E = 0x6B, // LD L E
-        LD_L_H = 0x6C, // LD L H
-        LD_L_L = 0x6D, // LD L L
-        LD_L__HL_ = 0x6E, // LD L (HL)
-        LD_L_A = 0x6F, // LD L A
-        LD__HL__B = 0x70, // LD (HL) B
-        LD__HL__C = 0x71, // LD (HL) C
-        LD__HL__D = 0x72, // LD (HL) D
-        LD__HL__E = 0x73, // LD (HL) E
-        LD__HL__H = 0x74, // LD (HL) H
-        LD__HL__L = 0x75, // LD (HL) L
-        HALT = 0x76, // HALT  
-        LD__HL__A = 0x77, // LD (HL) A
-        LD_A_B = 0x78, // LD A B
-        LD_A_C = 0x79, // LD A C
-        LD_A_D = 0x7A, // LD A D
-        LD_A_E = 0x7B, // LD A E
-        LD_A_H = 0x7C, // LD A H
-        LD_A_L = 0x7D, // LD A L
-        LD_A__HL_ = 0x7E, // LD A (HL)
-        LD_A_A = 0x7F, // LD A A
-        ADD_A_B = 0x80, // ADD A B
-        ADD_A_C = 0x81, // ADD A C
-        ADD_A_D = 0x82, // ADD A D
-        ADD_A_E = 0x83, // ADD A E
-        ADD_A_H = 0x84, // ADD A H
-        ADD_A_L = 0x85, // ADD A L
-        ADD_A__HL_ = 0x86, // ADD A (HL)
-        ADD_A_A = 0x87, // ADD A A
-        ADC_A_B = 0x88, // ADC A B
-        ADC_A_C = 0x89, // ADC A C
-        ADC_A_D = 0x8A, // ADC A D
-        ADC_A_E = 0x8B, // ADC A E
-        ADC_A_H = 0x8C, // ADC A H
-        ADC_A_L = 0x8D, // ADC A L
-        ADC_A__HL_ = 0x8E, // ADC A (HL)
-        ADC_A_A = 0x8F, // ADC A A
-        SUB_A_B = 0x90, // SUB A B
-        SUB_A_C = 0x91, // SUB A C
-        SUB_A_D = 0x92, // SUB A D
-        SUB_A_E = 0x93, // SUB A E
-        SUB_A_H = 0x94, // SUB A H
-        SUB_A_L = 0x95, // SUB A L
-        SUB_A__HL_ = 0x96, // SUB A (HL)
-        SUB_A_A = 0x97, // SUB A A
-        SBC_A_B = 0x98, // SBC A B
-        SBC_A_C = 0x99, // SBC A C
-        SBC_A_D = 0x9A, // SBC A D
-        SBC_A_E = 0x9B, // SBC A E
-        SBC_A_H = 0x9C, // SBC A H
-        SBC_A_L = 0x9D, // SBC A L
-        SBC_A__HL_ = 0x9E, // SBC A (HL)
-        SBC_A_A = 0x9F, // SBC A A
-        AND_A_B = 0xA0, // AND A B
-        AND_A_C = 0xA1, // AND A C
-        AND_A_D = 0xA2, // AND A D
-        AND_A_E = 0xA3, // AND A E
-        AND_A_H = 0xA4, // AND A H
-        AND_A_L = 0xA5, // AND A L
-        AND_A__HL_ = 0xA6, // AND A (HL)
-        AND_A_A = 0xA7, // AND A A
-        XOR_A_B = 0xA8, // XOR A B
-        XOR_A_C = 0xA9, // XOR A C
-        XOR_A_D = 0xAA, // XOR A D
-        XOR_A_E = 0xAB, // XOR A E
-        XOR_A_H = 0xAC, // XOR A H
-        XOR_A_L = 0xAD, // XOR A L
-        XOR_A__HL_ = 0xAE, // XOR A (HL)
-        XOR_A_A = 0xAF, // XOR A A
-        OR_A_B = 0xB0, // OR A B
-        OR_A_C = 0xB1, // OR A C
-        OR_A_D = 0xB2, // OR A D
-        OR_A_E = 0xB3, // OR A E
-        OR_A_H = 0xB4, // OR A H
-        OR_A_L = 0xB5, // OR A L
-        OR_A__HL_ = 0xB6, // OR A (HL)
-        OR_A_A = 0xB7, // OR A A
-        CP_A_B = 0xB8, // CP A B
-        CP_A_C = 0xB9, // CP A C
-        CP_A_D = 0xBA, // CP A D
-        CP_A_E = 0xBB, // CP A E
-        CP_A_H = 0xBC, // CP A H
-        CP_A_L = 0xBD, // CP A L
-        CP_A__HL_ = 0xBE, // CP A (HL)
-        CP_A_A = 0xBF, // CP A A
-        RET_NZ = 0xC0, // RET NZ 
-        POP_BC = 0xC1, // POP BC 
-        JP_NZ_a16 = 0xC2, // JP NZ a16
-        JP_a16 = 0xC3, // JP a16 
-        CALL_NZ_a16 = 0xC4, // CALL NZ a16
-        PUSH_BC = 0xC5, // PUSH BC 
-        ADD_A_u8 = 0xC6, // ADD A u8
-        RST_00h = 0xC7, // RST 00h 
-        RET_Z = 0xC8, // RET Z 
-        RET = 0xC9, // RET  
-        JP_Z_a16 = 0xCA, // JP Z a16
-        PREFIX = 0xCB, // PREFIX  
-        CALL_Z_a16 = 0xCC, // CALL Z a16
-        CALL_a16 = 0xCD, // CALL a16 
-        ADC_A_u8 = 0xCE, // ADC A u8
-        RST_08h = 0xCF, // RST 08h 
-        RET_NC = 0xD0, // RET NC 
-        POP_DE = 0xD1, // POP DE 
-        JP_NC_a16 = 0xD2, // JP NC a16
-        ILLEGAL_D3 = 0xD3, // ILLEGAL_D3  
-        CALL_NC_a16 = 0xD4, // CALL NC a16
-        PUSH_DE = 0xD5, // PUSH DE 
-        SUB_A_u8 = 0xD6, // SUB A u8
-        RST_10h = 0xD7, // RST 10h 
-        RET_C = 0xD8, // RET C 
-        RETI = 0xD9, // RETI  
-        JP_C_a16 = 0xDA, // JP C a16
-        ILLEGAL_DB = 0xDB, // ILLEGAL_DB  
-        CALL_C_a16 = 0xDC, // CALL C a16
-        ILLEGAL_DD = 0xDD, // ILLEGAL_DD  
-        SBC_A_u8 = 0xDE, // SBC A u8
-        RST_18h = 0xDF, // RST 18h 
-        LDH__a8__A = 0xE0, // LDH (a8) A
-        POP_HL = 0xE1, // POP HL 
-        LD__C__A = 0xE2, // LD (C) A
-        ILLEGAL_E3 = 0xE3, // ILLEGAL_E3  
-        ILLEGAL_E4 = 0xE4, // ILLEGAL_E4  
-        PUSH_HL = 0xE5, // PUSH HL 
-        AND_A_u8 = 0xE6, // AND A u8
-        RST_20h = 0xE7, // RST 20h 
-        ADD_SP_i8 = 0xE8, // ADD SP i8
-        JP_HL = 0xE9, // JP HL 
-        LD__a16__A = 0xEA, // LD (a16) A
-        ILLEGAL_EB = 0xEB, // ILLEGAL_EB  
-        ILLEGAL_EC = 0xEC, // ILLEGAL_EC  
-        ILLEGAL_ED = 0xED, // ILLEGAL_ED  
-        XOR_A_u8 = 0xEE, // XOR A u8
-        RST_28h = 0xEF, // RST 28h 
-        LDH_A__a8_ = 0xF0, // LDH A (a8)
-        POP_AF = 0xF1, // POP AF 
-        LD_A__C_ = 0xF2, // LD A (C)
-        DI = 0xF3, // DI  
-        ILLEGAL_F4 = 0xF4, // ILLEGAL_F4  
-        PUSH_AF = 0xF5, // PUSH AF 
-        OR_A_u8 = 0xF6, // OR A u8
-        RST_30h = 0xF7, // RST 30h 
-        LD_HL_SPplus = 0xF8, // LD HL SP+
-        LD_SP_HL = 0xF9, // LD SP HL
-        LD_A__a16_ = 0xFA, // LD A (a16)
-        EI = 0xFB, // EI  
-        ILLEGAL_FC = 0xFC, // ILLEGAL_FC  
-        ILLEGAL_FD = 0xFD, // ILLEGAL_FD  
-        CP_A_u8 = 0xFE, // CP A u8
-        RST_38h = 0xFF, // RST 38h 
+        RLC_B = 0x00, // RLC B 
+        RLC_C = 0x01, // RLC C 
+        RLC_D = 0x02, // RLC D 
+        RLC_E = 0x03, // RLC E 
+        RLC_H = 0x04, // RLC H 
+        RLC_L = 0x05, // RLC L 
+        RLC__HL_ = 0x06, // RLC (HL) 
+        RLC_A = 0x07, // RLC A 
+        RRC_B = 0x08, // RRC B 
+        RRC_C = 0x09, // RRC C 
+        RRC_D = 0x0A, // RRC D 
+        RRC_E = 0x0B, // RRC E 
+        RRC_H = 0x0C, // RRC H 
+        RRC_L = 0x0D, // RRC L 
+        RRC__HL_ = 0x0E, // RRC (HL) 
+        RRC_A = 0x0F, // RRC A 
+        RL_B = 0x10, // RL B 
+        RL_C = 0x11, // RL C 
+        RL_D = 0x12, // RL D 
+        RL_E = 0x13, // RL E 
+        RL_H = 0x14, // RL H 
+        RL_L = 0x15, // RL L 
+        RL__HL_ = 0x16, // RL (HL) 
+        RL_A = 0x17, // RL A 
+        RR_B = 0x18, // RR B 
+        RR_C = 0x19, // RR C 
+        RR_D = 0x1A, // RR D 
+        RR_E = 0x1B, // RR E 
+        RR_H = 0x1C, // RR H 
+        RR_L = 0x1D, // RR L 
+        RR__HL_ = 0x1E, // RR (HL) 
+        RR_A = 0x1F, // RR A 
+        SLA_B = 0x20, // SLA B 
+        SLA_C = 0x21, // SLA C 
+        SLA_D = 0x22, // SLA D 
+        SLA_E = 0x23, // SLA E 
+        SLA_H = 0x24, // SLA H 
+        SLA_L = 0x25, // SLA L 
+        SLA__HL_ = 0x26, // SLA (HL) 
+        SLA_A = 0x27, // SLA A 
+        SRA_B = 0x28, // SRA B 
+        SRA_C = 0x29, // SRA C 
+        SRA_D = 0x2A, // SRA D 
+        SRA_E = 0x2B, // SRA E 
+        SRA_H = 0x2C, // SRA H 
+        SRA_L = 0x2D, // SRA L 
+        SRA__HL_ = 0x2E, // SRA (HL) 
+        SRA_A = 0x2F, // SRA A 
+        SWAP_B = 0x30, // SWAP B 
+        SWAP_C = 0x31, // SWAP C 
+        SWAP_D = 0x32, // SWAP D 
+        SWAP_E = 0x33, // SWAP E 
+        SWAP_H = 0x34, // SWAP H 
+        SWAP_L = 0x35, // SWAP L 
+        SWAP__HL_ = 0x36, // SWAP (HL) 
+        SWAP_A = 0x37, // SWAP A 
+        SRL_B = 0x38, // SRL B 
+        SRL_C = 0x39, // SRL C 
+        SRL_D = 0x3A, // SRL D 
+        SRL_E = 0x3B, // SRL E 
+        SRL_H = 0x3C, // SRL H 
+        SRL_L = 0x3D, // SRL L 
+        SRL__HL_ = 0x3E, // SRL (HL) 
+        SRL_A = 0x3F, // SRL A 
+        BIT_0_B = 0x40, // BIT 0 B
+        BIT_0_C = 0x41, // BIT 0 C
+        BIT_0_D = 0x42, // BIT 0 D
+        BIT_0_E = 0x43, // BIT 0 E
+        BIT_0_H = 0x44, // BIT 0 H
+        BIT_0_L = 0x45, // BIT 0 L
+        BIT_0__HL_ = 0x46, // BIT 0 (HL)
+        BIT_0_A = 0x47, // BIT 0 A
+        BIT_1_B = 0x48, // BIT 1 B
+        BIT_1_C = 0x49, // BIT 1 C
+        BIT_1_D = 0x4A, // BIT 1 D
+        BIT_1_E = 0x4B, // BIT 1 E
+        BIT_1_H = 0x4C, // BIT 1 H
+        BIT_1_L = 0x4D, // BIT 1 L
+        BIT_1__HL_ = 0x4E, // BIT 1 (HL)
+        BIT_1_A = 0x4F, // BIT 1 A
+        BIT_2_B = 0x50, // BIT 2 B
+        BIT_2_C = 0x51, // BIT 2 C
+        BIT_2_D = 0x52, // BIT 2 D
+        BIT_2_E = 0x53, // BIT 2 E
+        BIT_2_H = 0x54, // BIT 2 H
+        BIT_2_L = 0x55, // BIT 2 L
+        BIT_2__HL_ = 0x56, // BIT 2 (HL)
+        BIT_2_A = 0x57, // BIT 2 A
+        BIT_3_B = 0x58, // BIT 3 B
+        BIT_3_C = 0x59, // BIT 3 C
+        BIT_3_D = 0x5A, // BIT 3 D
+        BIT_3_E = 0x5B, // BIT 3 E
+        BIT_3_H = 0x5C, // BIT 3 H
+        BIT_3_L = 0x5D, // BIT 3 L
+        BIT_3__HL_ = 0x5E, // BIT 3 (HL)
+        BIT_3_A = 0x5F, // BIT 3 A
+        BIT_4_B = 0x60, // BIT 4 B
+        BIT_4_C = 0x61, // BIT 4 C
+        BIT_4_D = 0x62, // BIT 4 D
+        BIT_4_E = 0x63, // BIT 4 E
+        BIT_4_H = 0x64, // BIT 4 H
+        BIT_4_L = 0x65, // BIT 4 L
+        BIT_4__HL_ = 0x66, // BIT 4 (HL)
+        BIT_4_A = 0x67, // BIT 4 A
+        BIT_5_B = 0x68, // BIT 5 B
+        BIT_5_C = 0x69, // BIT 5 C
+        BIT_5_D = 0x6A, // BIT 5 D
+        BIT_5_E = 0x6B, // BIT 5 E
+        BIT_5_H = 0x6C, // BIT 5 H
+        BIT_5_L = 0x6D, // BIT 5 L
+        BIT_5__HL_ = 0x6E, // BIT 5 (HL)
+        BIT_5_A = 0x6F, // BIT 5 A
+        BIT_6_B = 0x70, // BIT 6 B
+        BIT_6_C = 0x71, // BIT 6 C
+        BIT_6_D = 0x72, // BIT 6 D
+        BIT_6_E = 0x73, // BIT 6 E
+        BIT_6_H = 0x74, // BIT 6 H
+        BIT_6_L = 0x75, // BIT 6 L
+        BIT_6__HL_ = 0x76, // BIT 6 (HL)
+        BIT_6_A = 0x77, // BIT 6 A
+        BIT_7_B = 0x78, // BIT 7 B
+        BIT_7_C = 0x79, // BIT 7 C
+        BIT_7_D = 0x7A, // BIT 7 D
+        BIT_7_E = 0x7B, // BIT 7 E
+        BIT_7_H = 0x7C, // BIT 7 H
+        BIT_7_L = 0x7D, // BIT 7 L
+        BIT_7__HL_ = 0x7E, // BIT 7 (HL)
+        BIT_7_A = 0x7F, // BIT 7 A
+        RES_0_B = 0x80, // RES 0 B
+        RES_0_C = 0x81, // RES 0 C
+        RES_0_D = 0x82, // RES 0 D
+        RES_0_E = 0x83, // RES 0 E
+        RES_0_H = 0x84, // RES 0 H
+        RES_0_L = 0x85, // RES 0 L
+        RES_0__HL_ = 0x86, // RES 0 (HL)
+        RES_0_A = 0x87, // RES 0 A
+        RES_1_B = 0x88, // RES 1 B
+        RES_1_C = 0x89, // RES 1 C
+        RES_1_D = 0x8A, // RES 1 D
+        RES_1_E = 0x8B, // RES 1 E
+        RES_1_H = 0x8C, // RES 1 H
+        RES_1_L = 0x8D, // RES 1 L
+        RES_1__HL_ = 0x8E, // RES 1 (HL)
+        RES_1_A = 0x8F, // RES 1 A
+        RES_2_B = 0x90, // RES 2 B
+        RES_2_C = 0x91, // RES 2 C
+        RES_2_D = 0x92, // RES 2 D
+        RES_2_E = 0x93, // RES 2 E
+        RES_2_H = 0x94, // RES 2 H
+        RES_2_L = 0x95, // RES 2 L
+        RES_2__HL_ = 0x96, // RES 2 (HL)
+        RES_2_A = 0x97, // RES 2 A
+        RES_3_B = 0x98, // RES 3 B
+        RES_3_C = 0x99, // RES 3 C
+        RES_3_D = 0x9A, // RES 3 D
+        RES_3_E = 0x9B, // RES 3 E
+        RES_3_H = 0x9C, // RES 3 H
+        RES_3_L = 0x9D, // RES 3 L
+        RES_3__HL_ = 0x9E, // RES 3 (HL)
+        RES_3_A = 0x9F, // RES 3 A
+        RES_4_B = 0xA0, // RES 4 B
+        RES_4_C = 0xA1, // RES 4 C
+        RES_4_D = 0xA2, // RES 4 D
+        RES_4_E = 0xA3, // RES 4 E
+        RES_4_H = 0xA4, // RES 4 H
+        RES_4_L = 0xA5, // RES 4 L
+        RES_4__HL_ = 0xA6, // RES 4 (HL)
+        RES_4_A = 0xA7, // RES 4 A
+        RES_5_B = 0xA8, // RES 5 B
+        RES_5_C = 0xA9, // RES 5 C
+        RES_5_D = 0xAA, // RES 5 D
+        RES_5_E = 0xAB, // RES 5 E
+        RES_5_H = 0xAC, // RES 5 H
+        RES_5_L = 0xAD, // RES 5 L
+        RES_5__HL_ = 0xAE, // RES 5 (HL)
+        RES_5_A = 0xAF, // RES 5 A
+        RES_6_B = 0xB0, // RES 6 B
+        RES_6_C = 0xB1, // RES 6 C
+        RES_6_D = 0xB2, // RES 6 D
+        RES_6_E = 0xB3, // RES 6 E
+        RES_6_H = 0xB4, // RES 6 H
+        RES_6_L = 0xB5, // RES 6 L
+        RES_6__HL_ = 0xB6, // RES 6 (HL)
+        RES_6_A = 0xB7, // RES 6 A
+        RES_7_B = 0xB8, // RES 7 B
+        RES_7_C = 0xB9, // RES 7 C
+        RES_7_D = 0xBA, // RES 7 D
+        RES_7_E = 0xBB, // RES 7 E
+        RES_7_H = 0xBC, // RES 7 H
+        RES_7_L = 0xBD, // RES 7 L
+        RES_7__HL_ = 0xBE, // RES 7 (HL)
+        RES_7_A = 0xBF, // RES 7 A
+        SET_0_B = 0xC0, // SET 0 B
+        SET_0_C = 0xC1, // SET 0 C
+        SET_0_D = 0xC2, // SET 0 D
+        SET_0_E = 0xC3, // SET 0 E
+        SET_0_H = 0xC4, // SET 0 H
+        SET_0_L = 0xC5, // SET 0 L
+        SET_0__HL_ = 0xC6, // SET 0 (HL)
+        SET_0_A = 0xC7, // SET 0 A
+        SET_1_B = 0xC8, // SET 1 B
+        SET_1_C = 0xC9, // SET 1 C
+        SET_1_D = 0xCA, // SET 1 D
+        SET_1_E = 0xCB, // SET 1 E
+        SET_1_H = 0xCC, // SET 1 H
+        SET_1_L = 0xCD, // SET 1 L
+        SET_1__HL_ = 0xCE, // SET 1 (HL)
+        SET_1_A = 0xCF, // SET 1 A
+        SET_2_B = 0xD0, // SET 2 B
+        SET_2_C = 0xD1, // SET 2 C
+        SET_2_D = 0xD2, // SET 2 D
+        SET_2_E = 0xD3, // SET 2 E
+        SET_2_H = 0xD4, // SET 2 H
+        SET_2_L = 0xD5, // SET 2 L
+        SET_2__HL_ = 0xD6, // SET 2 (HL)
+        SET_2_A = 0xD7, // SET 2 A
+        SET_3_B = 0xD8, // SET 3 B
+        SET_3_C = 0xD9, // SET 3 C
+        SET_3_D = 0xDA, // SET 3 D
+        SET_3_E = 0xDB, // SET 3 E
+        SET_3_H = 0xDC, // SET 3 H
+        SET_3_L = 0xDD, // SET 3 L
+        SET_3__HL_ = 0xDE, // SET 3 (HL)
+        SET_3_A = 0xDF, // SET 3 A
+        SET_4_B = 0xE0, // SET 4 B
+        SET_4_C = 0xE1, // SET 4 C
+        SET_4_D = 0xE2, // SET 4 D
+        SET_4_E = 0xE3, // SET 4 E
+        SET_4_H = 0xE4, // SET 4 H
+        SET_4_L = 0xE5, // SET 4 L
+        SET_4__HL_ = 0xE6, // SET 4 (HL)
+        SET_4_A = 0xE7, // SET 4 A
+        SET_5_B = 0xE8, // SET 5 B
+        SET_5_C = 0xE9, // SET 5 C
+        SET_5_D = 0xEA, // SET 5 D
+        SET_5_E = 0xEB, // SET 5 E
+        SET_5_H = 0xEC, // SET 5 H
+        SET_5_L = 0xED, // SET 5 L
+        SET_5__HL_ = 0xEE, // SET 5 (HL)
+        SET_5_A = 0xEF, // SET 5 A
+        SET_6_B = 0xF0, // SET 6 B
+        SET_6_C = 0xF1, // SET 6 C
+        SET_6_D = 0xF2, // SET 6 D
+        SET_6_E = 0xF3, // SET 6 E
+        SET_6_H = 0xF4, // SET 6 H
+        SET_6_L = 0xF5, // SET 6 L
+        SET_6__HL_ = 0xF6, // SET 6 (HL)
+        SET_6_A = 0xF7, // SET 6 A
+        SET_7_B = 0xF8, // SET 7 B
+        SET_7_C = 0xF9, // SET 7 C
+        SET_7_D = 0xFA, // SET 7 D
+        SET_7_E = 0xFB, // SET 7 E
+        SET_7_H = 0xFC, // SET 7 H
+        SET_7_L = 0xFD, // SET 7 L
+        SET_7__HL_ = 0xFE, // SET 7 (HL)
+        SET_7_A = 0xFF, // SET 7 A
     };
 
 
@@ -4419,7 +4419,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "B",
                     "",
                    };
 
@@ -4434,7 +4434,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "C",
                     "",
                    };
 
@@ -4449,7 +4449,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "D",
                     "",
                    };
 
@@ -4464,7 +4464,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "E",
                     "",
                    };
 
@@ -4479,7 +4479,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "H",
                     "",
                    };
 
@@ -4494,7 +4494,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "L",
                     "",
                    };
 
@@ -4509,7 +4509,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "(HL)",
                     "",
                    };
 
@@ -4524,7 +4524,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "A",
                     "",
                    };
 
@@ -4539,7 +4539,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "B",
                     "",
                    };
 
@@ -4554,7 +4554,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "C",
                     "",
                    };
 
@@ -4569,7 +4569,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "D",
                     "",
                    };
 
@@ -4584,7 +4584,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "E",
                     "",
                    };
 
@@ -4599,7 +4599,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "H",
                     "",
                    };
 
@@ -4614,7 +4614,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "L",
                     "",
                    };
 
@@ -4629,7 +4629,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "(HL)",
                     "",
                    };
 
@@ -4644,7 +4644,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "A",
                     "",
                    };
 
@@ -4659,7 +4659,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "B",
                     "",
                    };
 
@@ -4674,7 +4674,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "C",
                     "",
                    };
 
@@ -4689,7 +4689,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "D",
                     "",
                    };
 
@@ -4704,7 +4704,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "E",
                     "",
                    };
 
@@ -4719,7 +4719,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "H",
                     "",
                    };
 
@@ -4734,7 +4734,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "L",
                     "",
                    };
 
@@ -4749,7 +4749,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "(HL)",
                     "",
                    };
 
@@ -4764,7 +4764,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "A",
                     "",
                    };
 
@@ -4779,7 +4779,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "B",
                     "",
                    };
 
@@ -4794,7 +4794,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "C",
                     "",
                    };
 
@@ -4809,7 +4809,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "D",
                     "",
                    };
 
@@ -4824,7 +4824,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "E",
                     "",
                    };
 
@@ -4839,7 +4839,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "H",
                     "",
                    };
 
@@ -4854,7 +4854,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "L",
                     "",
                    };
 
@@ -4869,7 +4869,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "(HL)",
                     "",
                    };
 
@@ -4884,7 +4884,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "A",
                     "",
                    };
 
@@ -4899,7 +4899,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "B",
                     "",
                    };
 
@@ -4914,7 +4914,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "C",
                     "",
                    };
 
@@ -4929,7 +4929,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "D",
                     "",
                    };
 
@@ -4944,7 +4944,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "E",
                     "",
                    };
 
@@ -4959,7 +4959,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "H",
                     "",
                    };
 
@@ -4974,7 +4974,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "L",
                     "",
                    };
 
@@ -4989,7 +4989,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "(HL)",
                     "",
                    };
 
@@ -5004,7 +5004,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "A",
                     "",
                    };
 
@@ -5019,7 +5019,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "B",
                     "",
                    };
 
@@ -5034,7 +5034,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "C",
                     "",
                    };
 
@@ -5049,7 +5049,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "D",
                     "",
                    };
 
@@ -5064,7 +5064,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "E",
                     "",
                    };
 
@@ -5079,7 +5079,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "H",
                     "",
                    };
 
@@ -5094,7 +5094,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "L",
                     "",
                    };
 
@@ -5109,7 +5109,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "(HL)",
                     "",
                    };
 
@@ -5124,7 +5124,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "A",
                     "",
                    };
 
@@ -5139,7 +5139,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "",
+                    "B",
                     "",
                    };
 
@@ -5154,7 +5154,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "",
+                    "C",
                     "",
                    };
 
@@ -5169,7 +5169,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "",
+                    "D",
                     "",
                    };
 
@@ -5184,7 +5184,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "",
+                    "E",
                     "",
                    };
 
@@ -5199,7 +5199,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "",
+                    "H",
                     "",
                    };
 
@@ -5214,7 +5214,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "",
+                    "L",
                     "",
                    };
 
@@ -5229,7 +5229,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "",
+                    "(HL)",
                     "",
                    };
 
@@ -5244,7 +5244,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
-                    "",
+                    "A",
                     "",
                    };
 
@@ -5259,7 +5259,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "B",
                     "",
                    };
 
@@ -5274,7 +5274,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "C",
                     "",
                    };
 
@@ -5289,7 +5289,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "D",
                     "",
                    };
 
@@ -5304,7 +5304,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "E",
                     "",
                    };
 
@@ -5319,7 +5319,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "H",
                     "",
                    };
 
@@ -5334,7 +5334,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "L",
                     "",
                    };
 
@@ -5349,7 +5349,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "(HL)",
                     "",
                    };
 
@@ -5364,7 +5364,7 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::UNSET,
                     FlagEffect::CARRY,
-                    "",
+                    "A",
                     "",
                    };
 
@@ -5379,8 +5379,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "B",
                    };
 
         case 0x41:
@@ -5394,8 +5394,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "C",
                    };
 
         case 0x42:
@@ -5409,8 +5409,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "D",
                    };
 
         case 0x43:
@@ -5424,8 +5424,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "E",
                    };
 
         case 0x44:
@@ -5439,8 +5439,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "H",
                    };
 
         case 0x45:
@@ -5454,8 +5454,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "L",
                    };
 
         case 0x46:
@@ -5469,8 +5469,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "(HL)",
                    };
 
         case 0x47:
@@ -5484,8 +5484,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "A",
                    };
 
         case 0x48:
@@ -5499,8 +5499,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "B",
                    };
 
         case 0x49:
@@ -5514,8 +5514,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "C",
                    };
 
         case 0x4A:
@@ -5529,8 +5529,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "D",
                    };
 
         case 0x4B:
@@ -5544,8 +5544,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "E",
                    };
 
         case 0x4C:
@@ -5559,8 +5559,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "H",
                    };
 
         case 0x4D:
@@ -5574,8 +5574,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "L",
                    };
 
         case 0x4E:
@@ -5589,8 +5589,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "(HL)",
                    };
 
         case 0x4F:
@@ -5604,8 +5604,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "A",
                    };
 
         case 0x50:
@@ -5619,8 +5619,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "B",
                    };
 
         case 0x51:
@@ -5634,8 +5634,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "C",
                    };
 
         case 0x52:
@@ -5649,8 +5649,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "D",
                    };
 
         case 0x53:
@@ -5664,8 +5664,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "E",
                    };
 
         case 0x54:
@@ -5679,8 +5679,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "H",
                    };
 
         case 0x55:
@@ -5694,8 +5694,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "L",
                    };
 
         case 0x56:
@@ -5709,8 +5709,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "(HL)",
                    };
 
         case 0x57:
@@ -5724,8 +5724,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "A",
                    };
 
         case 0x58:
@@ -5739,8 +5739,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "B",
                    };
 
         case 0x59:
@@ -5754,8 +5754,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "C",
                    };
 
         case 0x5A:
@@ -5769,8 +5769,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "D",
                    };
 
         case 0x5B:
@@ -5784,8 +5784,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "E",
                    };
 
         case 0x5C:
@@ -5799,8 +5799,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "H",
                    };
 
         case 0x5D:
@@ -5814,8 +5814,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "L",
                    };
 
         case 0x5E:
@@ -5829,8 +5829,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "(HL)",
                    };
 
         case 0x5F:
@@ -5844,8 +5844,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "A",
                    };
 
         case 0x60:
@@ -5859,8 +5859,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "B",
                    };
 
         case 0x61:
@@ -5874,8 +5874,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "C",
                    };
 
         case 0x62:
@@ -5889,8 +5889,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "D",
                    };
 
         case 0x63:
@@ -5904,8 +5904,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "E",
                    };
 
         case 0x64:
@@ -5919,8 +5919,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "H",
                    };
 
         case 0x65:
@@ -5934,8 +5934,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "L",
                    };
 
         case 0x66:
@@ -5949,8 +5949,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "(HL)",
                    };
 
         case 0x67:
@@ -5964,8 +5964,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "A",
                    };
 
         case 0x68:
@@ -5979,8 +5979,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "B",
                    };
 
         case 0x69:
@@ -5994,8 +5994,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "C",
                    };
 
         case 0x6A:
@@ -6009,8 +6009,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "D",
                    };
 
         case 0x6B:
@@ -6024,8 +6024,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "E",
                    };
 
         case 0x6C:
@@ -6039,8 +6039,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "H",
                    };
 
         case 0x6D:
@@ -6054,8 +6054,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "L",
                    };
 
         case 0x6E:
@@ -6069,8 +6069,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "(HL)",
                    };
 
         case 0x6F:
@@ -6084,8 +6084,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "A",
                    };
 
         case 0x70:
@@ -6099,8 +6099,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "B",
                    };
 
         case 0x71:
@@ -6114,8 +6114,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "C",
                    };
 
         case 0x72:
@@ -6129,8 +6129,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "D",
                    };
 
         case 0x73:
@@ -6144,8 +6144,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "E",
                    };
 
         case 0x74:
@@ -6159,8 +6159,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "H",
                    };
 
         case 0x75:
@@ -6174,8 +6174,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "L",
                    };
 
         case 0x76:
@@ -6189,8 +6189,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "(HL)",
                    };
 
         case 0x77:
@@ -6204,8 +6204,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "A",
                    };
 
         case 0x78:
@@ -6219,8 +6219,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "B",
                    };
 
         case 0x79:
@@ -6234,8 +6234,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "C",
                    };
 
         case 0x7A:
@@ -6249,8 +6249,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "D",
                    };
 
         case 0x7B:
@@ -6264,8 +6264,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "E",
                    };
 
         case 0x7C:
@@ -6279,8 +6279,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "H",
                    };
 
         case 0x7D:
@@ -6294,8 +6294,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "L",
                    };
 
         case 0x7E:
@@ -6309,8 +6309,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "(HL)",
                    };
 
         case 0x7F:
@@ -6324,8 +6324,8 @@ namespace ez {
                     FlagEffect::UNSET,
                     FlagEffect::SET,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "A",
                    };
 
         case 0x80:
@@ -6339,8 +6339,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "B",
                    };
 
         case 0x81:
@@ -6354,8 +6354,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "C",
                    };
 
         case 0x82:
@@ -6369,8 +6369,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "D",
                    };
 
         case 0x83:
@@ -6384,8 +6384,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "E",
                    };
 
         case 0x84:
@@ -6399,8 +6399,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "H",
                    };
 
         case 0x85:
@@ -6414,8 +6414,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "L",
                    };
 
         case 0x86:
@@ -6429,8 +6429,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "(HL)",
                    };
 
         case 0x87:
@@ -6444,8 +6444,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "A",
                    };
 
         case 0x88:
@@ -6459,8 +6459,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "B",
                    };
 
         case 0x89:
@@ -6474,8 +6474,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "C",
                    };
 
         case 0x8A:
@@ -6489,8 +6489,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "D",
                    };
 
         case 0x8B:
@@ -6504,8 +6504,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "E",
                    };
 
         case 0x8C:
@@ -6519,8 +6519,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "H",
                    };
 
         case 0x8D:
@@ -6534,8 +6534,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "L",
                    };
 
         case 0x8E:
@@ -6549,8 +6549,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "(HL)",
                    };
 
         case 0x8F:
@@ -6564,8 +6564,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "A",
                    };
 
         case 0x90:
@@ -6579,8 +6579,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "B",
                    };
 
         case 0x91:
@@ -6594,8 +6594,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "C",
                    };
 
         case 0x92:
@@ -6609,8 +6609,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "D",
                    };
 
         case 0x93:
@@ -6624,8 +6624,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "E",
                    };
 
         case 0x94:
@@ -6639,8 +6639,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "H",
                    };
 
         case 0x95:
@@ -6654,8 +6654,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "L",
                    };
 
         case 0x96:
@@ -6669,8 +6669,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "(HL)",
                    };
 
         case 0x97:
@@ -6684,8 +6684,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "A",
                    };
 
         case 0x98:
@@ -6699,8 +6699,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "B",
                    };
 
         case 0x99:
@@ -6714,8 +6714,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "C",
                    };
 
         case 0x9A:
@@ -6729,8 +6729,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "D",
                    };
 
         case 0x9B:
@@ -6744,8 +6744,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "E",
                    };
 
         case 0x9C:
@@ -6759,8 +6759,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "H",
                    };
 
         case 0x9D:
@@ -6774,8 +6774,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "L",
                    };
 
         case 0x9E:
@@ -6789,8 +6789,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "(HL)",
                    };
 
         case 0x9F:
@@ -6804,8 +6804,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "A",
                    };
 
         case 0xA0:
@@ -6819,8 +6819,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "B",
                    };
 
         case 0xA1:
@@ -6834,8 +6834,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "C",
                    };
 
         case 0xA2:
@@ -6849,8 +6849,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "D",
                    };
 
         case 0xA3:
@@ -6864,8 +6864,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "E",
                    };
 
         case 0xA4:
@@ -6879,8 +6879,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "H",
                    };
 
         case 0xA5:
@@ -6894,8 +6894,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "L",
                    };
 
         case 0xA6:
@@ -6909,8 +6909,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "(HL)",
                    };
 
         case 0xA7:
@@ -6924,8 +6924,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "A",
                    };
 
         case 0xA8:
@@ -6939,8 +6939,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "B",
                    };
 
         case 0xA9:
@@ -6954,8 +6954,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "C",
                    };
 
         case 0xAA:
@@ -6969,8 +6969,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "D",
                    };
 
         case 0xAB:
@@ -6984,8 +6984,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "E",
                    };
 
         case 0xAC:
@@ -6999,8 +6999,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "H",
                    };
 
         case 0xAD:
@@ -7014,8 +7014,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "L",
                    };
 
         case 0xAE:
@@ -7029,8 +7029,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "(HL)",
                    };
 
         case 0xAF:
@@ -7044,8 +7044,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "A",
                    };
 
         case 0xB0:
@@ -7059,8 +7059,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "B",
                    };
 
         case 0xB1:
@@ -7074,8 +7074,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "C",
                    };
 
         case 0xB2:
@@ -7089,8 +7089,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "D",
                    };
 
         case 0xB3:
@@ -7104,8 +7104,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "E",
                    };
 
         case 0xB4:
@@ -7119,8 +7119,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "H",
                    };
 
         case 0xB5:
@@ -7134,8 +7134,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "L",
                    };
 
         case 0xB6:
@@ -7149,8 +7149,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "(HL)",
                    };
 
         case 0xB7:
@@ -7164,8 +7164,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "A",
                    };
 
         case 0xB8:
@@ -7179,8 +7179,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "B",
                    };
 
         case 0xB9:
@@ -7194,8 +7194,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "C",
                    };
 
         case 0xBA:
@@ -7209,8 +7209,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "D",
                    };
 
         case 0xBB:
@@ -7224,8 +7224,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "E",
                    };
 
         case 0xBC:
@@ -7239,8 +7239,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "H",
                    };
 
         case 0xBD:
@@ -7254,8 +7254,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "L",
                    };
 
         case 0xBE:
@@ -7269,8 +7269,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "(HL)",
                    };
 
         case 0xBF:
@@ -7284,8 +7284,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "A",
                    };
 
         case 0xC0:
@@ -7299,8 +7299,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "B",
                    };
 
         case 0xC1:
@@ -7314,8 +7314,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "C",
                    };
 
         case 0xC2:
@@ -7329,8 +7329,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "D",
                    };
 
         case 0xC3:
@@ -7344,8 +7344,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "E",
                    };
 
         case 0xC4:
@@ -7359,8 +7359,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "H",
                    };
 
         case 0xC5:
@@ -7374,8 +7374,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "L",
                    };
 
         case 0xC6:
@@ -7389,8 +7389,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "(HL)",
                    };
 
         case 0xC7:
@@ -7404,8 +7404,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "0",
+                    "A",
                    };
 
         case 0xC8:
@@ -7419,8 +7419,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "B",
                    };
 
         case 0xC9:
@@ -7434,8 +7434,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "C",
                    };
 
         case 0xCA:
@@ -7449,8 +7449,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "D",
                    };
 
         case 0xCB:
@@ -7464,8 +7464,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "E",
                    };
 
         case 0xCC:
@@ -7479,8 +7479,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "H",
                    };
 
         case 0xCD:
@@ -7494,8 +7494,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "L",
                    };
 
         case 0xCE:
@@ -7509,8 +7509,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "(HL)",
                    };
 
         case 0xCF:
@@ -7524,8 +7524,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "1",
+                    "A",
                    };
 
         case 0xD0:
@@ -7539,8 +7539,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "B",
                    };
 
         case 0xD1:
@@ -7554,8 +7554,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "C",
                    };
 
         case 0xD2:
@@ -7569,8 +7569,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "D",
                    };
 
         case 0xD3:
@@ -7584,8 +7584,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "E",
                    };
 
         case 0xD4:
@@ -7599,8 +7599,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "H",
                    };
 
         case 0xD5:
@@ -7614,8 +7614,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "L",
                    };
 
         case 0xD6:
@@ -7629,8 +7629,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "(HL)",
                    };
 
         case 0xD7:
@@ -7644,8 +7644,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "2",
+                    "A",
                    };
 
         case 0xD8:
@@ -7659,8 +7659,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "B",
                    };
 
         case 0xD9:
@@ -7674,8 +7674,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "C",
                    };
 
         case 0xDA:
@@ -7689,8 +7689,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "D",
                    };
 
         case 0xDB:
@@ -7704,8 +7704,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "E",
                    };
 
         case 0xDC:
@@ -7719,8 +7719,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "H",
                    };
 
         case 0xDD:
@@ -7734,8 +7734,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "L",
                    };
 
         case 0xDE:
@@ -7749,8 +7749,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "(HL)",
                    };
 
         case 0xDF:
@@ -7764,8 +7764,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "3",
+                    "A",
                    };
 
         case 0xE0:
@@ -7779,8 +7779,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "B",
                    };
 
         case 0xE1:
@@ -7794,8 +7794,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "C",
                    };
 
         case 0xE2:
@@ -7809,8 +7809,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "D",
                    };
 
         case 0xE3:
@@ -7824,8 +7824,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "E",
                    };
 
         case 0xE4:
@@ -7839,8 +7839,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "H",
                    };
 
         case 0xE5:
@@ -7854,8 +7854,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "L",
                    };
 
         case 0xE6:
@@ -7869,8 +7869,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "(HL)",
                    };
 
         case 0xE7:
@@ -7884,8 +7884,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "4",
+                    "A",
                    };
 
         case 0xE8:
@@ -7899,8 +7899,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "B",
                    };
 
         case 0xE9:
@@ -7914,8 +7914,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "C",
                    };
 
         case 0xEA:
@@ -7929,8 +7929,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "D",
                    };
 
         case 0xEB:
@@ -7944,8 +7944,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "E",
                    };
 
         case 0xEC:
@@ -7959,8 +7959,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "H",
                    };
 
         case 0xED:
@@ -7974,8 +7974,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "L",
                    };
 
         case 0xEE:
@@ -7989,8 +7989,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "(HL)",
                    };
 
         case 0xEF:
@@ -8004,8 +8004,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "5",
+                    "A",
                    };
 
         case 0xF0:
@@ -8019,8 +8019,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "B",
                    };
 
         case 0xF1:
@@ -8034,8 +8034,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "C",
                    };
 
         case 0xF2:
@@ -8049,8 +8049,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "D",
                    };
 
         case 0xF3:
@@ -8064,8 +8064,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "E",
                    };
 
         case 0xF4:
@@ -8079,8 +8079,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "H",
                    };
 
         case 0xF5:
@@ -8094,8 +8094,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "L",
                    };
 
         case 0xF6:
@@ -8109,8 +8109,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "(HL)",
                    };
 
         case 0xF7:
@@ -8124,8 +8124,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "6",
+                    "A",
                    };
 
         case 0xF8:
@@ -8139,8 +8139,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "B",
                    };
 
         case 0xF9:
@@ -8154,8 +8154,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "C",
                    };
 
         case 0xFA:
@@ -8169,8 +8169,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "D",
                    };
 
         case 0xFB:
@@ -8184,8 +8184,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "E",
                    };
 
         case 0xFC:
@@ -8199,8 +8199,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "H",
                    };
 
         case 0xFD:
@@ -8214,8 +8214,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "L",
                    };
 
         case 0xFE:
@@ -8229,8 +8229,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "(HL)",
                    };
 
         case 0xFF:
@@ -8244,8 +8244,8 @@ namespace ez {
                     FlagEffect::NONE,
                     FlagEffect::NONE,
                     FlagEffect::NONE,
-                    "",
-                    "",
+                    "7",
+                    "A",
                    };
 
         default:

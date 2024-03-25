@@ -30,6 +30,26 @@ uint16_t& Emulator::getR16RW(R16 r16) {
     }
 }
 
+uint16_t Emulator::getR16Stack(R16Stack r16) const {
+    switch (r16) {
+        case R16Stack::BC: return m_reg.bc;
+        case R16Stack::DE: return m_reg.de;
+        case R16Stack::HL: return m_reg.hl;
+        case R16Stack::AF: return m_reg.af;
+        default:           EZ_FAIL();
+    }
+}
+
+uint16_t& Emulator::getR16StackRW(R16Stack r16) {
+    switch (r16) {
+        case R16Stack::BC: return m_reg.bc;
+        case R16Stack::DE: return m_reg.de;
+        case R16Stack::HL: return m_reg.hl;
+        case R16Stack::AF: return m_reg.af;
+        default:           EZ_FAIL();
+    }
+}
+
 uint8_t Emulator::getR8(R8 r8) {
     switch (r8) {
         case R8::B:       return m_reg.b;
@@ -63,13 +83,12 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
     const auto opByte = static_cast<uint8_t>(pcData & 0x000000FF);
 
     const auto top2Bits = (opByte & 0b11000000) >> 6;
+    const auto top5Bits = (opByte & 0b11111000) >> 3;
     const auto bitIndex = (opByte & 0b00111000) >> 3;
-    const auto regIndex = (opByte & 0b00000111);
 
-    const auto opCode = OpCode{opByte};
     const auto info = getOpCodeInfoPrefixed(opByte);
 
-    auto r8 = R8{regIndex};
+    auto r8 = R8{opByte & 0b00000111};
 
     bool branched = false;
     auto jumpAddr = std::optional<uint16_t>{};
@@ -82,7 +101,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
             const bool isSet = getR8RW(r8) & (0b1 << bitIndex);
             setFlag(Flag::ZERO, !isSet);
             setFlag(Flag::HALF_CARRY);
-            clearFlag(Flag::SUBTRACT);
+            clearFlag(Flag::NEGATIVE);
             break;
         }
         case 0b10: // RES
@@ -91,11 +110,42 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
         case 0b11: // SET
             EZ_FAIL();
             break;
-        case 0b00: // everything else
-            switch (opCode) {
+        case 0b00: {
+            switch (top5Bits) {
+                case 0b00000: // rlc r8
+                    EZ_FAIL();
+                    break;
+                case 0b00001: // rrc r8
+                    EZ_FAIL();
+                    break;
+                case 0b00010: { // rl r8
+                    auto& r8val = getR8RW(r8);
+                    const auto set_carry = bool(0b1000'0000 & r8val);
+                    const auto last_bit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+                    r8val = (r8val << 1) | last_bit;
+                    setFlag(Flag::CARRY, set_carry);
+                    setFlag(Flag::ZERO, r8val == 0);
+                    clearFlag(Flag::HALF_CARRY);
+                    clearFlag(Flag::NEGATIVE);
+                } break;
+                case 0b00011: // rr r8
+                    EZ_FAIL();
+                    break;
+                case 0b00100: // sla r8
+                    EZ_FAIL();
+                    break;
+                case 0b00101: // sra r8
+                    EZ_FAIL();
+                    break;
+                case 0b00110: // swap r8
+                    EZ_FAIL();
+                    break;
+                case 0b00111: // srl r8
+                    EZ_FAIL();
+                    break;
                 default: EZ_FAIL(); break;
-            };
-            break;
+            }
+        } break;
         default: log_error("Something terrible happened"); EZ_FAIL();
     }
 
@@ -116,6 +166,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
     log_info("{}", info);
 
     const auto u16 = static_cast<uint16_t>((pcData >> 8) & 0x0000FFFF);
+    const auto r16stack = checked_cast<R16Stack>((+oc & 0b00110000) >> 4);
 
     bool branched = false;
     auto jumpAddr = std::optional<uint16_t>{};
@@ -132,20 +183,29 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
         }
     };
 
-    switch (oc) {
-        case OpCode::PREFIX: m_prefix = true; break;
-        // enable/disable interrupts after instruction after this one finishes
-        case OpCode::EI:          m_pendingInterruptsEnableCount = 2; break;
-        case OpCode::DI:          m_pendingInterruptsDisableCount = 2; break;
+    const auto last4bits = +oc & 0b1111;
+    if (last4bits == 0b0001) { // push r16stack
+        m_reg.sp -= sizeof(uint16_t);
+        getMem16RW(m_reg.sp) = getR16Stack(r16stack);
+    } else if (last4bits == 0b0101) { // pop r16stack
+        getR16StackRW(r16stack) = getMem16(m_reg.sp);
+        m_reg.sp += sizeof(uint16_t);
+    } else {
+        switch (oc) {
+            case OpCode::PREFIX: m_prefix = true; break;
+            // enable/disable interrupts after instruction after this one finishes
+            case OpCode::EI: m_pendingInterruptsEnableCount = 2; break;
+            case OpCode::DI: m_pendingInterruptsDisableCount = 2; break;
 
-        case OpCode::LD__C__A:    getMem8RW(0xFF00 + m_reg.c) = m_reg.a; break;
-        case OpCode::LD_A__a16_:  m_reg.a = getMem8(u16); break;
-        case OpCode::CALL_a16:    maybeDoCall(true, false); break;
-        case OpCode::CALL_C_a16:  maybeDoCall(getFlag(Flag::CARRY), true); break;
-        case OpCode::CALL_NC_a16: maybeDoCall(!getFlag(Flag::CARRY), true); break;
-        case OpCode::CALL_Z_a16:  maybeDoCall(getFlag(Flag::ZERO), true); break;
-        case OpCode::CALL_NZ_a16: maybeDoCall(!getFlag(Flag::ZERO), true); break;
-        default:                  EZ_FAIL();
+            case OpCode::LD__C__A:    getMem8RW(0xFF00 + m_reg.c) = m_reg.a; break;
+            case OpCode::LD_A__a16_:  m_reg.a = getMem8(u16); break;
+            case OpCode::CALL_a16:    maybeDoCall(true, false); break;
+            case OpCode::CALL_C_a16:  maybeDoCall(getFlag(Flag::CARRY), true); break;
+            case OpCode::CALL_NC_a16: maybeDoCall(!getFlag(Flag::CARRY), true); break;
+            case OpCode::CALL_Z_a16:  maybeDoCall(getFlag(Flag::ZERO), true); break;
+            case OpCode::CALL_NZ_a16: maybeDoCall(!getFlag(Flag::ZERO), true); break;
+            default:                  EZ_FAIL();
+        }
     }
     const auto cycles = branched ? info.m_cycles : info.m_cyclesIfBranch;
     const auto newPC = jumpAddr ? *jumpAddr : checked_cast<uint16_t>(m_reg.pc + info.m_size);
@@ -292,20 +352,29 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
         ++r8val;
         setFlag(Flag::ZERO, wraparound);
         setFlag(Flag::HALF_CARRY, wraparound);
-        clearFlag(Flag::SUBTRACT);
+        clearFlag(Flag::NEGATIVE);
     } else if (is_dec_r8) {
         auto& r8val = getR8RW(r8);
         const auto wraparound = r8val == 0x00;
         ++r8val;
         setFlag(Flag::ZERO, r8val == 0);
         setFlag(Flag::HALF_CARRY, wraparound);
-        setFlag(Flag::SUBTRACT);
+        setFlag(Flag::NEGATIVE);
     } else if (is_ld_r8_u8) {
         getR8RW(r8) = u8;
     } else {
         switch (oc) {
             case OpCode::NOP: break;
-            default:          EZ_FAIL(); break;
+            case OpCode::RLA: {
+                const auto set_carry = bool(0b1000'0000 & m_reg.a);
+                const auto last_bit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+                m_reg.a = (m_reg.a << 1) | last_bit;
+                setFlag(Flag::CARRY, set_carry);
+                clearFlag(Flag::HALF_CARRY);
+                clearFlag(Flag::NEGATIVE);
+                clearFlag(Flag::ZERO);
+            } break;
+            default: EZ_FAIL(); break;
         }
     }
     return InstructionResult{
@@ -330,33 +399,6 @@ InstructionResult Emulator::handleInstruction(uint32_t pcData) {
         case 0b11: return handleInstructionBlock3(pcData); break;
         default:   EZ_FAIL(); break;
     }
-    /*
-
-    const auto u16 = static_cast<uint16_t>((pcData >> 8) & 0x0000FFFF);
-    const auto u8 = static_cast<uint8_t>((pcData >> 8) & 0x000000FF);
-    const auto i8 = static_cast<int8_t>(u8); // signed offset
-
-
-    bool branched = false;
-    auto jumpAddr = std::optional<uint16_t>{};
-
-    log_info("{}", info);
-
-    switch (oc) {
-        case OpCode::LD__HL__u8:     handleInstructionLD_x_u8(oc);
-        case OpCode::LD__C__A:       getMem8RW(0xFF00 + m_reg.c) = m_reg.a; break;
-        case OpCode::LD_HL_u16:      m_reg.hl = u16; break;
-        case OpCode::LD_SP_u16:      m_reg.sp = u16; break;
-        case OpCode::JR_NZ_i8:
-            if (!getFlag(Flag::ZERO)) {
-                jumpAddr = m_reg.pc + info.m_size + i8;
-                branched = true;
-            } else {
-                branched = false;
-            }
-            break;
-    }
-    */
 }
 
 bool Emulator::getFlag(Flag flag) const { return ((0x1 << +flag) & m_reg.f) != 0x0; }
