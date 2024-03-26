@@ -1,16 +1,32 @@
 #pragma once
 #include "Cart.h"
 #include "OpCodes.h"
-#include "base.h"
+#include "Base.h"
 
 namespace ez {
+
+class Tester;
 
 enum class R8 { B, C, D, E, H, L, HL_ADDR, A };
 enum class R16 { BC, DE, HL, SP };
 enum class R16Mem { BC, DE, HLI, HLD };
 enum class R16Stack { BC, DE, HL, AF };
+enum class Cond { NZ, Z, NC, C };
 
-enum class MemoryBank { ROM_0, ROM_NN, VRAM, WRAM_0, WRAM_1, MIRROR, SPRITES, FUCK_OFF, IO, HRAM, IE, INVALID };
+enum class MemoryBank {
+    ROM_0,
+    ROM_NN,
+    VRAM,
+    WRAM_0,
+    WRAM_1,
+    MIRROR,
+    SPRITES,
+    FUCK_OFF,
+    IO,
+    HRAM,
+    IE,
+    INVALID
+};
 
 struct AddrInfo {
     MemoryBank m_bank = MemoryBank::INVALID;
@@ -25,39 +41,52 @@ struct InstructionResult {
 struct Reg {
     uint16_t pc = 0;
     uint16_t sp = 0;
-	union { struct { uint8_t a; uint8_t f; }; uint16_t af = 0; };
-	union { struct { uint8_t b; uint8_t c; }; uint16_t bc = 0; };
-	union { struct { uint8_t d; uint8_t e; }; uint16_t de = 0; };
-	union { struct { uint8_t h; uint8_t l; }; uint16_t hl = 0; };
+    union {
+        struct {
+            uint8_t f;
+            uint8_t a;
+        };
+        uint16_t af = 0;
+    };
+    union {
+        struct {
+            uint8_t c;
+            uint8_t b;
+        };
+        uint16_t bc = 0;
+    };
+    union {
+        struct {
+            uint8_t e;
+            uint8_t d;
+        };
+        uint16_t de = 0;
+    };
+    union {
+        struct {
+            uint8_t l;
+            uint8_t h;
+        };
+        uint16_t hl = 0;
+    };
 };
 
 struct IO {
     std::array<uint8_t, 128> m_data;
-    bool is_bootrom_mapped() const { log_warn("Bootrom mapping not implemented!");
+    bool is_bootrom_mapped() const {
+        static auto sw = Stopwatch{};
+		if(sw.lapped(5s)){
+        	log_warn("Bootrom mapping not implemented!");
+		}
         return true;
     };
-};
-
-enum class Registers {
-    A = 0,
-    F,
-    B,
-    C,
-    D,
-    E,
-    H,
-    L,
-    AF,
-    BC,
-    DE,
-    HL,
-    NUM_REGISTERS
 };
 
 enum class Flag { ZERO = 7, NEGATIVE = 6, HALF_CARRY = 5, CARRY = 4 };
 
 class Emulator {
   public:
+    friend class Tester;
     Emulator(Cart& cart);
     bool tick();
 
@@ -66,13 +95,15 @@ class Emulator {
 
     uint8_t* getMemPtrRW(uint16_t address);
     uint8_t& getMem8RW(uint16_t address) { return *getMemPtrRW(address); }
-    uint16_t& getMem16RW(uint16_t address) { return *reinterpret_cast<uint16_t*>(getMemPtrRW(address)); }
+    uint16_t& getMem16RW(uint16_t address) {
+        return *reinterpret_cast<uint16_t*>(getMemPtrRW(address));
+    }
 
     const uint8_t* getMemPtr(uint16_t address) const;
     uint8_t getMem8(uint16_t address) const { return *getMemPtr(address); }
-    uint16_t getMem16(uint16_t address) const { return *reinterpret_cast<const uint16_t*>(getMemPtr(address)); }
-
-    static constexpr uint8_t getRegisterSizeBytes(Registers reg);
+    uint16_t getMem16(uint16_t address) const {
+        return *reinterpret_cast<const uint16_t*>(getMemPtr(address));
+    }
 
     InstructionResult handleInstruction(uint32_t instruction);
     InstructionResult handleInstructionCB(uint32_t instruction);
@@ -87,7 +118,6 @@ class Emulator {
     void setFlag(Flag flag, bool value);
     void clearFlag(Flag flag);
 
-
     uint8_t& getR8RW(R8 ra);
     uint8_t getR8(R8 ra);
     uint16_t& getR16RW(R16 ra);
@@ -95,6 +125,8 @@ class Emulator {
 
     uint16_t getR16Stack(R16Stack ra) const;
     uint16_t& getR16StackRW(R16Stack ra);
+
+    bool getCond(Cond c) const;
 
     Reg m_reg{};
     IO m_io{};
@@ -104,7 +136,7 @@ class Emulator {
     bool m_stop = false;
     bool m_prefix = false; // was last instruction CB prefix
     bool m_interruptsEnabled = false;
-    int m_pendingInterruptsEnableCount = 0; // enable interrupts when reaches 0
+    int m_pendingInterruptsEnableCount = 0;  // enable interrupts when reaches 0
     int m_pendingInterruptsDisableCount = 0; // ^ disable
 
     static constexpr size_t HRAM_BYTES = 128;

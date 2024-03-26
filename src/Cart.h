@@ -1,10 +1,11 @@
 #pragma once
-#include "base.h"
+#include "Base.h"
 
 namespace ez {
     class Cart {
     public:
         Cart(const fs::path& path);
+        Cart(const uint8_t* data, size_t len);
 
         const uint8_t* data(uint16_t byteOffset) const;
 

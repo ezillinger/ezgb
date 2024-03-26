@@ -2,9 +2,9 @@
 # We'll use defaults from the LLVM style, but with 4 columns indentation.
 BasedOnStyle: LLVM
 IndentWidth: 4
+ColumnLimit: 100
 ---
 Language: Cpp
-ColumnLimit: 150
 # Force pointers to the type for C++.
 DerivePointerAlignment: false
 PointerAlignment: Left
@@ -15,4 +15,5 @@ AlignConsecutiveShortCaseStatements:
   AcrossComments: false
   AlignCaseColons: false
 IndentCaseLabels: 'true'
+IndentPPDirectives: 'BeforeHash'
 ---

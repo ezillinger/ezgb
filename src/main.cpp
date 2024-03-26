@@ -1,7 +1,11 @@
 #include "Emulator.h"
+#include "Test.h"
 
 int main() {
     using namespace ez;
+
+    auto t = Tester{};
+    t.test_all();
 
     //const auto romPath = "C:\\git\\CoronaBoy\\roms\\DMG_ROM.bin";
     log_info("CurrentDir: {}", fs::current_path().c_str());
