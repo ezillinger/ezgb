@@ -4,14 +4,14 @@ import json
 this_script_path = path.dirname(path.realpath(__file__))
 json_path = path.realpath(path.join(this_script_path, "../data/opcodes_2.json"))
 
-jsonDict = None 
+json_dict = None 
 with open(json_path, "r") as f:
-    jsonDict = json.loads(f.read())
-assert(jsonDict)
+    json_dict = json.loads(f.read())
+assert(json_dict)
 
 # hack second version of opcodes.json to match first one
 def apply_hacks(dict_name):
-    for k,v in jsonDict[dict_name].items():
+    for k,v in json_dict[dict_name].items():
         v["addr"] = k
         if len(v["operands"]) > 0:
             op1 = v["operands"][0]
@@ -38,6 +38,10 @@ def apply_hacks(dict_name):
 
 apply_hacks("unprefixed")
 apply_hacks("cbprefixed")
+
+# we treat prefix as its own instruction
+for k,v in json_dict["cbprefixed"].items():
+    v["bytes"] = v["bytes"] - 1
 
 codeHeader = \
 """#pragma once
@@ -154,20 +158,19 @@ def generate_switches():
     funcFooter = \
 """
         default:
-            log_error("Unknown OpCode: {}", code);
-            EZ_FAIL();
+            EZ_FAIL("Unknown OpCode: {}", code);
         }
     }
 
 """
 
     code = funcHeaderTemplate.format("getOpCodeInfoUnprefixed")
-    for k, oc in jsonDict["unprefixed"].items():
+    for k, oc in json_dict["unprefixed"].items():
         code += generate_switch_case(False, oc)
     code += funcFooter
 
     code += funcHeaderTemplate.format("getOpCodeInfoPrefixed")
-    for k, oc in jsonDict["cbprefixed"].items():
+    for k, oc in json_dict["cbprefixed"].items():
         code += generate_switch_case(True, oc)
     code += funcFooter
 
@@ -201,12 +204,12 @@ def generate_enums() -> str:
         return f"        {name} = {oc["addr"]}, // {oc["mnemonic"]} {oc.get("operand1", "")} {oc.get("operand2", "")}\n"
 
     code = enumHeader.format("OpCode")
-    for k, oc in jsonDict["unprefixed"].items():
+    for k, oc in json_dict["unprefixed"].items():
         code += make_row(oc)
     code += enumFooter
 
     code += enumHeader.format("OpCodeCB")
-    for k, oc in jsonDict["cbprefixed"].items():
+    for k, oc in json_dict["cbprefixed"].items():
         code += make_row(oc)
     code += enumFooter
     return code

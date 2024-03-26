@@ -3,8 +3,8 @@
 namespace ez {
 
 Emulator::Emulator(Cart& cart) : m_cart(cart) {
-    //const auto bootloaderPath = "./roms/bootix_dmg.bin";
-    const auto bootloaderPath = "./roms/dmg_boot.bin";
+    const auto bootloaderPath = "./roms/bootix_dmg.bin";
+    //const auto bootloaderPath = "./roms/dmg_boot.bin";
     auto fp = fopen(bootloaderPath, "rb");
     EZ_ASSERT(fp);
     EZ_ASSERT(BOOTROM_BYTES == fread(m_bootrom.data(), 1, BOOTROM_BYTES, fp));
@@ -179,7 +179,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
     const auto oc = OpCode{checked_cast<uint8_t>(pcData & 0xFF)};
     EZ_ASSERT(((+oc & 0b11000000) >> 6) == 3);
 
-    const auto info = getOpCodeInfoUnprefixed(+oc);
+    auto info = getOpCodeInfoUnprefixed(+oc);
     log_info("{}", info);
 
     const auto u16 = static_cast<uint16_t>((pcData >> 8) & 0x0000FFFF);
