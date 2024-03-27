@@ -139,6 +139,8 @@ class Emulator {
     int m_pendingInterruptsEnableCount = 0;  // enable interrupts when reaches 0
     int m_pendingInterruptsDisableCount = 0; // ^ disable
 
+    void log_registers() const;
+
     static constexpr size_t HRAM_BYTES = 128;
     static constexpr size_t RAM_BYTES = 8 * 1024;
     static constexpr size_t BOOTROM_BYTES = 256;

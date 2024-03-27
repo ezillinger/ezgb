@@ -3,8 +3,8 @@
 namespace ez {
 
 Emulator::Emulator(Cart& cart) : m_cart(cart) {
-    const auto bootloaderPath = "./roms/bootix_dmg.bin";
-    //const auto bootloaderPath = "./roms/dmg_boot.bin";
+    //const auto bootloaderPath = "./roms/bootix_dmg.bin";
+    const auto bootloaderPath = "./roms/dmg_boot.bin";
     auto fp = fopen(bootloaderPath, "rb");
     EZ_ASSERT(fp);
     EZ_ASSERT(BOOTROM_BYTES == fread(m_bootrom.data(), 1, BOOTROM_BYTES, fp));
@@ -21,15 +21,13 @@ uint16_t Emulator::getR16Mem(R16Mem r16) const {
     }
 }
 
-
 bool Emulator::getCond(Cond c) const {
-    switch (c)
-    {
-        case Cond::Z: return getFlag(Flag::ZERO);
+    switch (c) {
+        case Cond::Z:  return getFlag(Flag::ZERO);
         case Cond::NZ: return !getFlag(Flag::ZERO);
-        case Cond::C: return getFlag(Flag::CARRY);
+        case Cond::C:  return getFlag(Flag::CARRY);
         case Cond::NC: return !getFlag(Flag::CARRY);
-        default: EZ_FAIL("not implemented");
+        default:       EZ_FAIL("not implemented");
     }
 }
 
@@ -161,7 +159,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
         } break;
         default: EZ_FAIL("should never get here");
     }
-    if(branched){
+    if (branched) {
         assert(jumpAddr);
         log_info("Took branch to {:#06x}", *jumpAddr);
     }
@@ -226,7 +224,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             default:                  EZ_FAIL("not implemented");
         }
     }
-    if(branched){
+    if (branched) {
         assert(jumpAddr);
         log_info("Took branch to {:#06x}", *jumpAddr);
     }
@@ -391,9 +389,9 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
         setFlag(Flag::NEGATIVE);
     } else if (is_ld_r8_u8) {
         getR8RW(r8) = u8;
-    } else if (is_jr_cond_a8 || oc == OpCode::JR_i8){
+    } else if (is_jr_cond_a8 || oc == OpCode::JR_i8) {
         const auto cond = checked_cast<Cond>(((+oc & 0b11000) >> 3));
-        if(oc == OpCode::JR_i8 || getCond(cond)){
+        if (oc == OpCode::JR_i8 || getCond(cond)) {
             branched = oc != OpCode::JR_i8;
             jumpAddr = checked_cast<uint16_t>(m_reg.pc + info.m_size + i8);
         }
@@ -413,7 +411,7 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
         }
     }
 
-    if(branched){
+    if (branched) {
         assert(jumpAddr);
         log_info("Took branch to {:#06x}", *jumpAddr);
     }
@@ -441,7 +439,7 @@ InstructionResult Emulator::handleInstruction(uint32_t pcData) {
         default:   EZ_FAIL("should never get here"); break;
     }
     ++instructionsHandled;
-    if(instructionsHandled % 10 == 0){
+    if (instructionsHandled % 10 == 0) {
         log_info("HANDLED {}", instructionsHandled);
     }
 }
@@ -459,6 +457,7 @@ bool Emulator::tick() {
     if (m_cyclesToWait == 0) {
         const auto pcData = *reinterpret_cast<const uint32_t*>(getMemPtr(m_reg.pc));
         auto result = InstructionResult{};
+        log_registers();
         if (m_prefix) {
             m_prefix = false;
             result = handleInstructionCB(pcData);
@@ -527,6 +526,17 @@ const uint8_t* Emulator::getMemPtr(uint16_t addr) const {
         case MemoryBank::HRAM:   return m_hram.data() + addr - addrInfo.m_baseAddr;
         default:                 EZ_FAIL("not implemented"); break;
     }
+}
+
+void Emulator::log_registers() const {
+    log_info("A {:#04x} B {:#04x} C {:#04x} D {:#04x} E {:#04x} F {:#04x} H {:#04x} L {:#04x}", m_reg.a,
+             m_reg.b, m_reg.c, m_reg.d, m_reg.e, m_reg.f, m_reg.h, m_reg.l);
+
+    log_info("AF {:#06x} BC {:#06x} DE {:#06x} HL {:#06x} PC {:#06x} SP {:#06x} ", m_reg.af,
+             m_reg.bc, m_reg.de, m_reg.hl, m_reg.pc, m_reg.sp);
+
+    log_info("Flags: Z {} N {} H {} C {}", getFlag(Flag::ZERO), getFlag(Flag::NEGATIVE),
+             getFlag(Flag::HALF_CARRY), getFlag(Flag::CARRY));
 }
 
 } // namespace ez
