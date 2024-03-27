@@ -3,7 +3,7 @@
 namespace ez {
 
 Emulator::Emulator(Cart& cart) : m_cart(cart) {
-    //const auto bootloaderPath = "./roms/bootix_dmg.bin";
+    // const auto bootloaderPath = "./roms/bootix_dmg.bin";
     const auto bootloaderPath = "./roms/dmg_boot.bin";
     auto fp = fopen(bootloaderPath, "rb");
     EZ_ASSERT(fp);
@@ -190,7 +190,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
     const auto maybeDoCall = [&](bool condition, bool setBranched) {
         if (condition) {
             // todo, verify timing - different values on different sources
-            --m_reg.sp;
+            m_reg.sp -= 2;
             getMem16RW(m_reg.sp) = (m_reg.pc + info.m_size);
             jumpAddr = u16;
             if (setBranched) {
@@ -199,11 +199,21 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
         }
     };
 
+    const auto maybeDoRet = [&](bool condition, bool setBranched) {
+        if (condition) {
+            jumpAddr = getMem16(m_reg.sp);
+            m_reg.sp += 2;
+            if (setBranched) {
+                branched = true;
+            }
+        }
+    };
+
     const auto last4bits = +oc & 0b1111;
-    if (last4bits == 0b0001) { // push r16stack
+    if (last4bits == 0b0101) { // push r16stack
         m_reg.sp -= sizeof(uint16_t);
         getMem16RW(m_reg.sp) = getR16Stack(r16stack);
-    } else if (last4bits == 0b0101) { // pop r16stack
+    } else if (last4bits == 0b0001) { // pop r16stack
         getR16StackRW(r16stack) = getMem16(m_reg.sp);
         m_reg.sp += sizeof(uint16_t);
     } else {
@@ -215,13 +225,28 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
 
             case OpCode::LD__C__A:    getMem8RW(0xFF00 + m_reg.c) = m_reg.a; break;
             case OpCode::LD_A__a16_:  m_reg.a = getMem8(u16); break;
+            case OpCode::LDH__a8__A:  getMem8RW(0xFF00 + u8) = m_reg.a; break;
+            case OpCode::LD__a16__A:  getMem8RW(u16) = m_reg.a; break;
             case OpCode::CALL_a16:    maybeDoCall(true, false); break;
             case OpCode::CALL_C_a16:  maybeDoCall(getFlag(Flag::CARRY), true); break;
             case OpCode::CALL_NC_a16: maybeDoCall(!getFlag(Flag::CARRY), true); break;
             case OpCode::CALL_Z_a16:  maybeDoCall(getFlag(Flag::ZERO), true); break;
             case OpCode::CALL_NZ_a16: maybeDoCall(!getFlag(Flag::ZERO), true); break;
-            case OpCode::LDH__a8__A:  getMem8RW(0xFF00 + u8) = m_reg.a; break;
-            default:                  EZ_FAIL("not implemented");
+            case OpCode::RET:         maybeDoRet(true, false); break;
+            case OpCode::RET_C:       maybeDoRet(getFlag(Flag::CARRY), true); break;
+            case OpCode::RET_NC:      maybeDoRet(!getFlag(Flag::CARRY), true); break;
+            case OpCode::RET_Z:       maybeDoRet(getFlag(Flag::ZERO), true); break;
+            case OpCode::RET_NZ:      maybeDoRet(!getFlag(Flag::ZERO), true); break;
+            case OpCode::CP_A_u8:     {
+                const uint8_t result = m_reg.a - u8;
+                setFlag(Flag::ZERO, result == 0);
+                setFlag(Flag::CARRY, m_reg.a < u8);
+                setFlag(Flag::HALF_CARRY, (m_reg.a & 0xF) < (u8 & 0xF));
+                setFlag(Flag::NEGATIVE);
+
+            } break;
+            case OpCode::LDH_A__a8_: m_reg.a = getMem8(u8 + 0xFF00); break;
+            default:                 EZ_FAIL("not implemented");
         }
     }
     if (branched) {
@@ -327,7 +352,6 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
     const bool is_ld_r16_u16 = last_4_bits == 0b0001;
     const bool is_ld_r16mem_a = last_4_bits == 0b0010;
     const bool is_ld_a_r16mem = last_4_bits == 0b1010;
-    const bool is_ld_u16mem_sp = last_4_bits == 0b1000;
 
     const bool is_inc_r16 = last_4_bits == 0b0011;
     const bool is_dec_r16 = last_4_bits == 0b1011;
@@ -363,8 +387,6 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
         } else if (r16mem == R16Mem::HLI) {
             ++m_reg.hl;
         }
-    } else if (is_ld_u16mem_sp) {
-        EZ_FAIL("not implemented");
     } else if (is_inc_r16) {
         auto& r16val = getR16RW(r16);
         ++r16val;
@@ -407,7 +429,8 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
                 clearFlag(Flag::NEGATIVE);
                 clearFlag(Flag::ZERO);
             } break;
-            default: EZ_FAIL("not implemented"); break;
+            case OpCode::LD__a16__SP: getMem16RW(u16) = m_reg.sp; break;
+            default:                  EZ_FAIL("not implemented"); break;
         }
     }
 
@@ -529,8 +552,8 @@ const uint8_t* Emulator::getMemPtr(uint16_t addr) const {
 }
 
 void Emulator::log_registers() const {
-    log_info("A {:#04x} B {:#04x} C {:#04x} D {:#04x} E {:#04x} F {:#04x} H {:#04x} L {:#04x}", m_reg.a,
-             m_reg.b, m_reg.c, m_reg.d, m_reg.e, m_reg.f, m_reg.h, m_reg.l);
+    log_info("A {:#04x} B {:#04x} C {:#04x} D {:#04x} E {:#04x} F {:#04x} H {:#04x} L {:#04x}",
+             m_reg.a, m_reg.b, m_reg.c, m_reg.d, m_reg.e, m_reg.f, m_reg.h, m_reg.l);
 
     log_info("AF {:#06x} BC {:#06x} DE {:#06x} HL {:#06x} PC {:#06x} SP {:#06x} ", m_reg.af,
              m_reg.bc, m_reg.de, m_reg.hl, m_reg.pc, m_reg.sp);
