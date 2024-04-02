@@ -34,8 +34,8 @@ namespace ez {
         EZ_ASSERT(io.getMemPtr(0xFF30) == io.m_reg.m_wavePattern);
         EZ_ASSERT(io.getMemPtr(0xFF3F) == last_addr(io.m_reg.m_wavePattern));
 
-        EZ_ASSERT(io.getMemPtr(0xFF40) == io.m_reg.m_lcd);
-        EZ_ASSERT(io.getMemPtr(0xFF4B) == last_addr(io.m_reg.m_lcd));
+        EZ_ASSERT(io.getMemPtr(0xFF40) == reinterpret_cast<uint8_t*>(&io.m_reg.m_lcd));
+        // todo, test individual LCD register layout
 
         EZ_ASSERT(io.getMemPtr(0xFF4F) == &io.m_reg.m_vramBankSelect);
         EZ_ASSERT(io.getMemPtr(0xFF50) == reinterpret_cast<uint8_t*>(&io.m_reg.m_bootromDisabled));

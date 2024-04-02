@@ -1,5 +1,6 @@
 #pragma once
 #include "Base.h"
+#include "PPU.h"
 
 namespace ez {
 class Tester;
@@ -8,12 +9,11 @@ class IO {
 
   public:
     friend class Tester;
+
     static constexpr uint16_t IO_BASE_ADDR = 0xFF00;
     static constexpr size_t IO_BYTES = 128;
 
-    bool is_bootrom_mapped() const { 
-        return m_reg.m_bootromDisabled; 
-    };
+    bool is_bootrom_mapped() const { return !m_reg.m_bootromDisabled; };
 
     uint8_t* getMemPtrRW(uint16_t address);
     const uint8_t* getMemPtr(uint16_t address) const;
@@ -21,18 +21,19 @@ class IO {
     uint8_t& getMem8RW(uint16_t address) { return *getMemPtrRW(address); }
     uint8_t getMem8(uint16_t address) const;
 
-private:
+    LCDRegisters& getLCDRegisters() { return m_reg.m_lcd; }
 
+  private:
     struct alignas(uint8_t) {
-        uint8_t m_joypad {};
-        uint8_t m_serial[2] {};
+        uint8_t m_joypad{};
+        uint8_t m_serial[2]{};
         uint8_t detail_padding0{};
         uint8_t m_timerDivider[4]{};
         uint8_t detail_padding1[8]{};
         uint8_t m_audio[23]{};
         uint8_t detail_padding2[9]{};
         uint8_t m_wavePattern[16]{};
-        uint8_t m_lcd[12]{};
+        LCDRegisters m_lcd{};
         uint8_t detail_padding3[3]{};
         uint8_t m_vramBankSelect{}; // CGB only
         bool m_bootromDisabled = false;

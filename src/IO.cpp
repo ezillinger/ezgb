@@ -3,6 +3,8 @@
 namespace ez {
 
 uint8_t* IO::getMemPtrRW(uint16_t address) {
+
+    // todo, check which registers are allowed to be written by CPU
     const auto offset = address - IO_BASE_ADDR;
     EZ_ENSURE(size_t(offset) < IO_BYTES);
     return reinterpret_cast<uint8_t*>(&m_reg) + offset;

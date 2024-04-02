@@ -3,6 +3,7 @@
 #include "Cart.h"
 #include "OpCodes.h"
 #include "IO.h"
+#include "PPU.h"
 
 namespace ez {
 
@@ -122,8 +123,14 @@ class Emulator {
 
     Reg m_reg{};
     IO m_io{};
+    PPU m_ppu { m_io.getLCDRegisters() };
 
     uint16_t m_cyclesToWait = 0;
+
+    static constexpr auto MASTER_CLOCK_PERIOD = 239ns;
+
+    bool m_runAsFastAsPossible = true;
+    Stopwatch m_tickStopwatch{};
 
     bool m_stop = false;
     bool m_prefix = false; // was last instruction CB prefix
@@ -135,13 +142,11 @@ class Emulator {
 
     static constexpr size_t HRAM_BYTES = 128;
     static constexpr size_t RAM_BYTES = 8 * 1024;
-    static constexpr size_t VRAM_BYTES = 8 * 1024;
     static constexpr size_t BOOTROM_BYTES = 256;
 
     std::vector<uint8_t> m_bootrom = std::vector<uint8_t>(BOOTROM_BYTES, 0u);
     std::vector<uint8_t> m_ram = std::vector<uint8_t>(RAM_BYTES, 0u);
     std::vector<uint8_t> m_hram = std::vector<uint8_t>(HRAM_BYTES, 0u);
-    std::vector<uint8_t> m_vram = std::vector<uint8_t>(VRAM_BYTES, 0u);
 
     Cart& m_cart;
 };

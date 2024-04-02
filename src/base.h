@@ -79,7 +79,7 @@ concept is_enum = std::is_enum_v<T>;
 // unary + operator converts enum to underlying type
 template <typename T>
     requires is_enum<T>
-std::underlying_type<T>::type operator+(T e) {
+constexpr std::underlying_type<T>::type operator+(T e) {
     return static_cast<std::underlying_type<T>::type>(e);
 }
 
@@ -88,6 +88,7 @@ class Stopwatch {
     template <typename TDuration = chrono::milliseconds> TDuration elapsed() {
         return chrono::duration_cast<TDuration>(chrono::steady_clock::now() - m_start);
     }
+
     void reset() { m_start = chrono::steady_clock::now(); }
 
     template <typename TDuration> bool lapped(TDuration t) {

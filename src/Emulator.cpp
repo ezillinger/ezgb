@@ -9,6 +9,7 @@ Emulator::Emulator(Cart& cart) : m_cart(cart) {
     EZ_ASSERT(fp);
     EZ_ASSERT(BOOTROM_BYTES == fread(m_bootrom.data(), 1, BOOTROM_BYTES, fp));
     fclose(fp);
+    m_tickStopwatch.reset();
 }
 
 uint16_t Emulator::getR16Mem(R16Mem r16) const {
@@ -477,6 +478,10 @@ void Emulator::clearFlag(Flag flag) { m_reg.f &= ~(0x1 << +flag); }
 
 bool Emulator::tick() {
 
+    if(!m_runAsFastAsPossible && !m_tickStopwatch.lapped(MASTER_CLOCK_PERIOD)){
+        return m_stop;
+    }
+
     if (m_cyclesToWait == 0) {
         const auto pcData = *reinterpret_cast<const uint32_t*>(getMemPtr(m_reg.pc));
         auto result = InstructionResult{};
@@ -504,6 +509,8 @@ bool Emulator::tick() {
     }
     --m_cyclesToWait;
 
+    m_ppu.tick();
+
     return m_stop;
 }
 
@@ -528,7 +535,7 @@ uint8_t* Emulator::getMemPtrRW(uint16_t addr) {
     switch (addrInfo.m_bank) {
         case MemoryBank::ROM_0:  EZ_FAIL("Can't write to ROM!");
         case MemoryBank::WRAM_0: return m_ram.data() + addr - addrInfo.m_baseAddr;
-        case MemoryBank::VRAM:   return m_vram.data() + addr - addrInfo.m_baseAddr;
+        case MemoryBank::VRAM:   return m_ppu.getMemPtrRW(addr);
         case MemoryBank::IO:     return m_io.getMemPtrRW(addr);
         case MemoryBank::HRAM:   return m_hram.data() + addr - addrInfo.m_baseAddr;
         default:                 EZ_FAIL("not implemented"); break;
@@ -544,7 +551,7 @@ const uint8_t* Emulator::getMemPtr(uint16_t addr) const {
             }
             return m_cart.data(addr);
         case MemoryBank::WRAM_0: return m_ram.data() + addr - addrInfo.m_baseAddr;
-        case MemoryBank::VRAM:   return m_vram.data() + addr - addrInfo.m_baseAddr;
+        case MemoryBank::VRAM:   return m_ppu.getMemPtr(addr);
         case MemoryBank::IO:     return m_io.getMemPtr(addr);
         case MemoryBank::HRAM:   return m_hram.data() + addr - addrInfo.m_baseAddr;
         default:                 EZ_FAIL("not implemented"); break;
