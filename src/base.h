@@ -9,11 +9,11 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <signal.h>
 #include <source_location>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <signal.h>
 
 namespace ez {
 
@@ -83,27 +83,15 @@ std::underlying_type<T>::type operator+(T e) {
     return static_cast<std::underlying_type<T>::type>(e);
 }
 
-inline constexpr uint8_t highByte(uint16_t val) { return static_cast<uint8_t>(val >> 8); }
-inline constexpr uint8_t lowByte(uint16_t val) { return static_cast<uint8_t>(val & 0x00FF); }
-inline constexpr void setHighByte(uint16_t& val, uint8_t to) {
-    val = ((val & 0x00FF) | (static_cast<uint16_t>(to) << 8));
-}
-inline constexpr void setLowByte(uint16_t& val, uint8_t to) {
-    val = ((val & 0xFF00) | static_cast<uint16_t>(to));
-}
-
 class Stopwatch {
-    public:
-
-    template<typename TDuration = chrono::milliseconds>
-    TDuration elapsed() {
+  public:
+    template <typename TDuration = chrono::milliseconds> TDuration elapsed() {
         return chrono::duration_cast<TDuration>(chrono::steady_clock::now() - m_start);
     }
     void reset() { m_start = chrono::steady_clock::now(); }
 
-    template<typename TDuration>
-    bool lapped(TDuration t){
-        if(elapsed<TDuration>() > t){
+    template <typename TDuration> bool lapped(TDuration t) {
+        if (elapsed<TDuration>() > t) {
             reset();
             return true;
         }

@@ -529,7 +529,7 @@ uint8_t* Emulator::getMemPtrRW(uint16_t addr) {
         case MemoryBank::ROM_0:  EZ_FAIL("Can't write to ROM!");
         case MemoryBank::WRAM_0: return m_ram.data() + addr - addrInfo.m_baseAddr;
         case MemoryBank::VRAM:   return m_vram.data() + addr - addrInfo.m_baseAddr;
-        case MemoryBank::IO:     return m_io.m_data.data() + addr - addrInfo.m_baseAddr;
+        case MemoryBank::IO:     return m_io.getMemPtrRW(addr);
         case MemoryBank::HRAM:   return m_hram.data() + addr - addrInfo.m_baseAddr;
         default:                 EZ_FAIL("not implemented"); break;
     }
@@ -545,7 +545,7 @@ const uint8_t* Emulator::getMemPtr(uint16_t addr) const {
             return m_cart.data(addr);
         case MemoryBank::WRAM_0: return m_ram.data() + addr - addrInfo.m_baseAddr;
         case MemoryBank::VRAM:   return m_vram.data() + addr - addrInfo.m_baseAddr;
-        case MemoryBank::IO:     return m_io.m_data.data() + addr - addrInfo.m_baseAddr;
+        case MemoryBank::IO:     return m_io.getMemPtr(addr);
         case MemoryBank::HRAM:   return m_hram.data() + addr - addrInfo.m_baseAddr;
         default:                 EZ_FAIL("not implemented"); break;
     }

@@ -1,4 +1,5 @@
 #include "Test.h"
+#include "Base.h"
 
 namespace ez {
 
@@ -13,6 +14,43 @@ namespace ez {
         return emu;
     }
 
+    bool Tester::test_io_reg() { 
+        auto emu = make_emulator();
+        auto& io = emu.m_io;
+
+        const auto last_addr = [](auto& arr) -> uint8_t* { return &arr[std::size(arr) - 1]; };
+
+        EZ_ASSERT(io.getMemPtr(0xFF00) == &io.m_reg.m_joypad);
+
+        EZ_ASSERT(io.getMemPtr(0xFF01) == io.m_reg.m_serial);
+        EZ_ASSERT(io.getMemPtr(0xFF02) == last_addr(io.m_reg.m_serial));
+
+        EZ_ASSERT(io.getMemPtr(0xFF04) == io.m_reg.m_timerDivider);
+        EZ_ASSERT(io.getMemPtr(0xFF07) == last_addr(io.m_reg.m_timerDivider));
+
+        EZ_ASSERT(io.getMemPtr(0xFF10) == io.m_reg.m_audio);
+        EZ_ASSERT(io.getMemPtr(0xFF26) == last_addr(io.m_reg.m_audio));
+
+        EZ_ASSERT(io.getMemPtr(0xFF30) == io.m_reg.m_wavePattern);
+        EZ_ASSERT(io.getMemPtr(0xFF3F) == last_addr(io.m_reg.m_wavePattern));
+
+        EZ_ASSERT(io.getMemPtr(0xFF40) == io.m_reg.m_lcd);
+        EZ_ASSERT(io.getMemPtr(0xFF4B) == last_addr(io.m_reg.m_lcd));
+
+        EZ_ASSERT(io.getMemPtr(0xFF4F) == &io.m_reg.m_vramBankSelect);
+        EZ_ASSERT(io.getMemPtr(0xFF50) == reinterpret_cast<uint8_t*>(&io.m_reg.m_bootromDisabled));
+
+        EZ_ASSERT(io.getMemPtr(0xFF51) == io.m_reg.m_vramDMA);
+        EZ_ASSERT(io.getMemPtr(0xFF55) == last_addr(io.m_reg.m_vramDMA));
+
+        EZ_ASSERT(io.getMemPtr(0xFF68) == io.m_reg.m_bgObjPalettes);
+        EZ_ASSERT(io.getMemPtr(0xFF6B) == last_addr(io.m_reg.m_bgObjPalettes));
+
+        EZ_ASSERT(io.getMemPtr(0xFF70) == &io.m_reg.m_wramBankSelect);
+
+        return true;
+    }
+
     bool Tester::test_all() {
         log_info("Running test suite");
         auto success = true;
@@ -21,7 +59,7 @@ namespace ez {
         success &= test_regs();
         success &= test_inc_dec();
         success &= test_push_pop();
-
+        success &= test_io_reg();
 
         if(success){
             log_info("All tests passed!");
