@@ -110,6 +110,7 @@ class Emulator {
     void setFlag(Flag flag);
     void setFlag(Flag flag, bool value);
     void clearFlag(Flag flag);
+    void clearFlags();
 
     uint8_t& getR8RW(R8 ra);
     uint8_t getR8(R8 ra);
@@ -138,7 +139,11 @@ class Emulator {
     int m_pendingInterruptsEnableCount = 0;  // enable interrupts when reaches 0
     int m_pendingInterruptsDisableCount = 0; // ^ disable
 
-    void log_registers() const;
+    bool m_logEnable = false;
+    std::optional<uint16_t> m_logEnableWhenPC = {};
+
+    void maybe_log_registers() const;
+    void maybe_log_opcode(const OpCodeInfo & oc) const;
 
     static constexpr size_t HRAM_BYTES = 128;
     static constexpr size_t RAM_BYTES = 8 * 1024;

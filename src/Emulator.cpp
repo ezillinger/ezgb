@@ -5,6 +5,7 @@ namespace ez {
 Emulator::Emulator(Cart& cart) : m_cart(cart) {
     // const auto bootloaderPath = "./roms/bootix_dmg.bin";
     const auto bootloaderPath = "./roms/dmg_boot.bin";
+    log_info("Loading bootrom: {}", bootloaderPath);
     auto fp = fopen(bootloaderPath, "rb");
     EZ_ASSERT(fp);
     EZ_ASSERT(BOOTROM_BYTES == fread(m_bootrom.data(), 1, BOOTROM_BYTES, fp));
@@ -105,7 +106,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
     bool branched = false;
     auto jumpAddr = std::optional<uint16_t>{};
 
-    log_info("{}", info);
+    maybe_log_opcode(info);
 
     switch (top2Bits) {
         case 0b01: // BIT r8 bitIndex
@@ -150,8 +151,14 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
                     EZ_FAIL("not implemented");
                     break;
                 case 0b00110: // swap r8
-                    EZ_FAIL("not implemented");
+                {
+                    const auto r8v_copy = getR8(r8);
+                    auto& r8v = getR8RW(r8);
+                    r8v = r8v << 4 | (r8v_copy >> 4);
+                    clearFlags();
+                    setFlag(Flag::ZERO, r8v == 0);
                     break;
+                }
                 case 0b00111: // srl r8
                     EZ_FAIL("not implemented");
                     break;
@@ -179,7 +186,6 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
     EZ_ASSERT(((+oc & 0b11000000) >> 6) == 3);
 
     auto info = getOpCodeInfoUnprefixed(+oc);
-    log_info("{}", info);
 
     const auto u16 = static_cast<uint16_t>((pcData >> 8) & 0x0000FFFF);
     const auto u8 = static_cast<uint8_t>((pcData >> 8) & 0x000000FF);
@@ -269,7 +275,6 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
     EZ_ASSERT(((+oc & 0b11000000) >> 6) == 2);
 
     const auto info = getOpCodeInfoUnprefixed(+oc);
-    log_info("{}", info);
 
     const auto top_5_bits = (+oc & 0b11111000) >> 3;
     const auto r8 = checked_cast<R8>(+oc & 0b111);
@@ -281,9 +286,17 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
         case 0b10001: // adc a, r8
             EZ_FAIL("not implemented");
             break;
-        case 0b10010: // sub a, r8
-            EZ_FAIL("not implemented");
+        case 0b10010: // sub a, r8 
+        {
+            const auto r8val = getR8(r8);
+            const auto result = m_reg.a - r8val;
+            setFlag(Flag::ZERO, result == 0);
+            setFlag(Flag::NEGATIVE, true);
+            setFlag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (r8val & 0xF)) & 0x10);
+            setFlag(Flag::CARRY, m_reg.a < r8val);
+            m_reg.a = result;
             break;
+        }
         case 0b10011: // sbc a, r8
             EZ_FAIL("not implemented");
             break;
@@ -298,7 +311,9 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
             }
             break;
         case 0b10110: // or a, r8
-            EZ_FAIL("not implemented");
+            m_reg.a = m_reg.a | getR8(r8);
+            clearFlags();
+            setFlag(Flag::ZERO, m_reg.a == 0);
             break;
         case 0b10111: // cp a, r8
             EZ_FAIL("not implemented");
@@ -322,8 +337,6 @@ InstructionResult Emulator::handleInstructionBlock1(uint32_t pcData) {
     const auto srcR8 = checked_cast<R8>(+oc & 0b111);
     const auto dstR8 = checked_cast<R8>((+oc & 0b111000) >> 3);
 
-    log_info("{}", info);
-
     if (srcR8 == R8::HL_ADDR && dstR8 == R8::HL_ADDR) {
         // HALT
         EZ_FAIL("not implemented");
@@ -342,7 +355,6 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
     EZ_ASSERT(((+oc & 0b11000000) >> 6) == 0);
 
     const auto info = getOpCodeInfoUnprefixed(+oc);
-    log_info("{}", info);
 
     bool branched = false;
     auto jumpAddr = std::optional<uint16_t>{};
@@ -425,10 +437,8 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
                 const auto set_carry = bool(0b1000'0000 & m_reg.a);
                 const auto last_bit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
                 m_reg.a = (m_reg.a << 1) | last_bit;
+                clearFlags();
                 setFlag(Flag::CARRY, set_carry);
-                clearFlag(Flag::HALF_CARRY);
-                clearFlag(Flag::NEGATIVE);
-                clearFlag(Flag::ZERO);
             } break;
             case OpCode::LD__a16__SP: getMem16RW(u16) = m_reg.sp; break;
             default:                  EZ_FAIL("not implemented"); break;
@@ -437,7 +447,9 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
 
     if (branched) {
         assert(jumpAddr);
-        log_info("Took branch to {:#06x}", *jumpAddr);
+        if(m_logEnable){
+            log_info("Took branch to {:#06x}", *jumpAddr);
+        }
     }
     const auto cycles = branched ? info.m_cycles : info.m_cyclesIfBranch;
     const auto newPC = jumpAddr.value_or(checked_cast<uint16_t>(m_reg.pc + info.m_size));
@@ -450,9 +462,10 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
 InstructionResult Emulator::handleInstruction(uint32_t pcData) {
 
     EZ_ENSURE(!m_prefix);
-    static int instructionsHandled = 0;
 
     const auto oc = OpCode{static_cast<uint8_t>(pcData & 0x000000FF)};
+    const auto info = getOpCodeInfoUnprefixed(+oc);
+    maybe_log_opcode(info);
 
     const auto block = (+oc & 0b11000000) >> 6;
     switch (block) {
@@ -461,10 +474,6 @@ InstructionResult Emulator::handleInstruction(uint32_t pcData) {
         case 0b10: return handleInstructionBlock2(pcData); break;
         case 0b11: return handleInstructionBlock3(pcData); break;
         default:   EZ_FAIL("should never get here"); break;
-    }
-    ++instructionsHandled;
-    if (instructionsHandled % 10 == 0) {
-        log_info("HANDLED {}", instructionsHandled);
     }
 }
 
@@ -476,7 +485,13 @@ void Emulator::setFlag(Flag flag, bool value) { return value ? setFlag(flag) : c
 
 void Emulator::clearFlag(Flag flag) { m_reg.f &= ~(0x1 << +flag); }
 
+void Emulator::clearFlags() { m_reg.f = 0x00; }
+
 bool Emulator::tick() {
+
+    if(m_reg.pc == m_logEnableWhenPC){
+        m_logEnable = true;
+    }
 
     if(!m_runAsFastAsPossible && !m_tickStopwatch.lapped(MASTER_CLOCK_PERIOD)){
         return m_stop;
@@ -485,7 +500,7 @@ bool Emulator::tick() {
     if (m_cyclesToWait == 0) {
         const auto pcData = *reinterpret_cast<const uint32_t*>(getMemPtr(m_reg.pc));
         auto result = InstructionResult{};
-        log_registers();
+        maybe_log_registers();
         if (m_prefix) {
             m_prefix = false;
             result = handleInstructionCB(pcData);
@@ -509,7 +524,9 @@ bool Emulator::tick() {
     }
     --m_cyclesToWait;
 
-    m_ppu.tick();
+    for(auto i = 0; i < 8; ++i){
+        m_ppu.tick();
+    }
 
     return m_stop;
 }
@@ -558,15 +575,24 @@ const uint8_t* Emulator::getMemPtr(uint16_t addr) const {
     }
 }
 
-void Emulator::log_registers() const {
-    log_info("A {:#04x} B {:#04x} C {:#04x} D {:#04x} E {:#04x} F {:#04x} H {:#04x} L {:#04x}",
-             m_reg.a, m_reg.b, m_reg.c, m_reg.d, m_reg.e, m_reg.f, m_reg.h, m_reg.l);
+void Emulator::maybe_log_opcode(const OpCodeInfo& info) const {
+    if(m_logEnable){
+        log_info("{}", info);
+    }
+}
 
-    log_info("AF {:#06x} BC {:#06x} DE {:#06x} HL {:#06x} PC {:#06x} SP {:#06x} ", m_reg.af,
-             m_reg.bc, m_reg.de, m_reg.hl, m_reg.pc, m_reg.sp);
+void Emulator::maybe_log_registers() const {
+    static Stopwatch sw{};
+    if (m_logEnable || sw.lapped(1s)) {
+        log_info("A {:#04x} B {:#04x} C {:#04x} D {:#04x} E {:#04x} F {:#04x} H {:#04x} L {:#04x}",
+                m_reg.a, m_reg.b, m_reg.c, m_reg.d, m_reg.e, m_reg.f, m_reg.h, m_reg.l);
 
-    log_info("Flags: Z {} N {} H {} C {}", getFlag(Flag::ZERO), getFlag(Flag::NEGATIVE),
-             getFlag(Flag::HALF_CARRY), getFlag(Flag::CARRY));
+        log_info("AF {:#06x} BC {:#06x} DE {:#06x} HL {:#06x} PC {:#06x} SP {:#06x} ", m_reg.af,
+                m_reg.bc, m_reg.de, m_reg.hl, m_reg.pc, m_reg.sp);
+
+        log_info("Flags: Z {} N {} H {} C {}", getFlag(Flag::ZERO), getFlag(Flag::NEGATIVE),
+                getFlag(Flag::HALF_CARRY), getFlag(Flag::CARRY));
+    }
 }
 
 } // namespace ez

@@ -44,6 +44,8 @@ class PPU {
   public:
     static constexpr size_t VRAM_BYTES = 8 * 1024;
     static constexpr uint16_t VRAM_BASE_ADDR = 0x8000;
+    static constexpr int DISPLAY_WIDTH = 160;
+    static constexpr int DISPLAY_HEIGHT = 144;
 
     PPU(LCDRegisters& reg);
 
@@ -52,6 +54,7 @@ class PPU {
     uint8_t* getMemPtrRW(uint16_t address);
     const uint8_t* getMemPtr(uint16_t address) const;
 
+    void dumpDisplay() const;
 
   private:
 
@@ -59,5 +62,6 @@ class PPU {
 
     LCDRegisters& m_reg;
     std::vector<uint8_t> m_vram = std::vector<uint8_t>(VRAM_BYTES, 0u);
+    std::vector<uint8_t> m_display = std::vector<uint8_t>(size_t(DISPLAY_WIDTH * DISPLAY_HEIGHT), 0u);
 };
 } // namespace ez

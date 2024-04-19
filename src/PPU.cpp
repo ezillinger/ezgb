@@ -1,4 +1,13 @@
 #include "PPU.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION 1
+#if EZ_GCC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#endif
+#include "libs/stb_image_write.h"
+#if EZ_GCC
+#pragma GCC diagnostic pop
+#endif
 
 namespace ez {
 
@@ -46,9 +55,17 @@ void PPU::tick() {
                 if (m_reg.m_ly == 154) {
                     m_reg.m_ly = 0;
                     m_reg.m_status.m_ppuMode = +PPUMode::OAM_SCAN;
+                    dumpDisplay();
                 }
             }
             break;
+    }
+}
+
+void PPU::dumpDisplay() const { 
+    const auto dumpLocation = "dump.bmp";
+    if(!stbi_write_bmp(dumpLocation, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, m_display.data())){
+        log_error("Failed to write image to: {}", dumpLocation);
     }
 }
 } // namespace ez
