@@ -104,6 +104,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
     const auto bitIndex = (opByte & 0b00111000) >> 3;
 
     const auto info = getOpCodeInfoPrefixed(opByte);
+    m_lastOpCodeInfo = info;
 
     auto r8 = R8{opByte & 0b00000111};
 

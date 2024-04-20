@@ -12,12 +12,12 @@ int main() {
     //const auto romPath = "C:\\git\\CoronaBoy\\roms\\DMG_ROM.bin";
     log_info("CurrentDir: {}", fs::current_path().c_str());
     const auto romPath = "./roms/tetris.gb";
-    auto cart = Cart{ romPath };
-
-    Emulator emu{cart};
+    auto cart = std::make_unique<Cart>( romPath );
+    auto emu = std::make_unique<Emulator>(*cart);
+    auto state = AppState{std::move(cart), std::move(emu)};
 
     auto window = GuiWindow{"CoronaBoy"};
-    auto gui = EmuGui(emu);
+    auto gui = EmuGui(state);
     bool shouldExit = false;
 
     while (true) {
@@ -27,7 +27,7 @@ int main() {
             const auto frameTime = 16.6666ms;
             const auto timeToDraw = 0.1ms;
             while(sw.elapsed() < (frameTime - timeToDraw)){
-                shouldExit |= emu.tick();
+                shouldExit |= state.m_emu->tick();
             }
             gui.drawGui();
             shouldExit |= gui.shouldExit();

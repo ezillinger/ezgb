@@ -3,9 +3,15 @@
 #include "libs/imgui/imgui.h"
 
 namespace ez {
+
+struct AppState {
+    std::unique_ptr<Cart> m_cart;
+    std::unique_ptr<Emulator> m_emu;
+};
+
 class EmuGui {
   public:
-    EmuGui(Emulator& emu) : m_emu(emu){};
+    EmuGui(AppState& state) : m_state(state){};
     void drawGui();
     bool shouldExit() const { return m_shouldExit; };
 
@@ -14,7 +20,7 @@ class EmuGui {
     void drawRegisters();
     void drawSettings();
 
-    Emulator& m_emu;
+    AppState& m_state;
     bool m_shouldExit = false;
 };
 } // namespace ez

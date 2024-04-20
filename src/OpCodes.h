@@ -19,12 +19,12 @@ namespace ez {
     };
 
     struct OpCodeInfo {
-        const bool m_prefixed = false;
-        const uint8_t m_addr = 0x00;
+        bool m_prefixed = false;
+        uint8_t m_addr = 0x00;
         const char* m_mnemonic = nullptr;
-        const int m_size = 0;
-        const int m_cycles = 0;
-        const int m_cyclesIfBranch = 0;
+        int m_size = 0;
+        int m_cycles = 0;
+        int m_cyclesIfBranch = 0;
         FlagEffect m_flagZero = FlagEffect::NONE;
         FlagEffect m_flagSubtract = FlagEffect::NONE;
         FlagEffect m_flagHalfCarry = FlagEffect::NONE;

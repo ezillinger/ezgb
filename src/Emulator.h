@@ -154,6 +154,7 @@ class Emulator {
     int m_pendingInterruptsEnableCount = 0;  // enable interrupts when reaches 0
     int m_pendingInterruptsDisableCount = 0; // ^ disable
 
+    OpCodeInfo m_lastOpCodeInfo{};
 
     void maybe_log_registers() const;
     void maybe_log_opcode(const OpCodeInfo & oc) const;
