@@ -12,6 +12,7 @@ class EmuGui {
   private:
     void drawToolbar();
     void drawRegisters();
+    void drawSettings();
 
     Emulator& m_emu;
     bool m_shouldExit = false;

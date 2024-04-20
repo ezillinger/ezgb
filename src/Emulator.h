@@ -30,6 +30,8 @@ enum class MemoryBank {
     INVALID
 };
 
+
+
 struct AddrInfo {
     MemoryBank m_bank = MemoryBank::INVALID;
     uint16_t m_baseAddr = 0;
@@ -136,8 +138,15 @@ class Emulator {
 
     static constexpr auto MASTER_CLOCK_PERIOD = 239ns;
 
-    bool m_runAsFastAsPossible = true;
     Stopwatch m_tickStopwatch{};
+
+    struct {
+        bool m_runAsFastAsPossible = true;
+        bool m_logEnable = false;
+        int32_t m_breakOnPC = -1;
+        int32_t m_breakOnOpCode = -1;
+        int32_t m_breakOnOpCodePrefixed = -1;
+    } m_settings;
 
     bool m_stop = false;
     bool m_prefix = false; // was last instruction CB prefix
@@ -145,8 +154,6 @@ class Emulator {
     int m_pendingInterruptsEnableCount = 0;  // enable interrupts when reaches 0
     int m_pendingInterruptsDisableCount = 0; // ^ disable
 
-    bool m_logEnable = false;
-    std::optional<uint16_t> m_logEnableWhenPC = {};
 
     void maybe_log_registers() const;
     void maybe_log_opcode(const OpCodeInfo & oc) const;

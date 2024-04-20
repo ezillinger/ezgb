@@ -4,6 +4,7 @@ namespace ez {
 void EmuGui::drawGui() { 
     drawToolbar();
     drawRegisters();
+    drawSettings();
 }
 
 void EmuGui::drawToolbar() {
@@ -53,4 +54,14 @@ void EmuGui::drawRegisters() {
     ImGui::End();
 }
 
+void EmuGui::drawSettings() {
+    if(ImGui::Begin("Settings")){
+        ImGui::Checkbox("Log", &m_emu.m_settings.m_logEnable);
+        ImGui::Checkbox("No Wait", &m_emu.m_settings.m_runAsFastAsPossible);
+        ImGui::DragInt("PC Break Addr", &m_emu.m_settings.m_breakOnPC, 1.0f, -1, INT16_MAX, "%04x");
+        ImGui::DragInt("OC Break", &m_emu.m_settings.m_breakOnOpCode, 1.0f, -1, INT16_MAX, "%04x");
+        ImGui::DragInt("OC Break Prefixed", &m_emu.m_settings.m_breakOnOpCodePrefixed, 1.0f, -1, INT16_MAX, "%04x");
+    }
+    ImGui::End();
+}
 }
