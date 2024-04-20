@@ -1,9 +1,19 @@
 file(GLOB SOURCES
-    ./*.h
     ./*.cpp
 )
 
-add_executable(CoronaBoy ${SOURCES})
+file(GLOB IMGUI_SOURCES
+    ./libs/imgui/*.cpp
+    ./libs/imgui/backends/imgui_impl_sdl2.cpp
+    ./libs/imgui/backends/imgui_impl_opengl3.cpp
+)
+
+add_executable(CoronaBoy 
+              ${SOURCES}
+              ${IMGUI_SOURCES}
+)
+
+target_include_directories(CoronaBoy PRIVATE ./libs/imgui)   
 
 if(MSVC)
   target_compile_options(CoronaBoy PRIVATE /W4 /WX)
@@ -15,3 +25,7 @@ else()
                           #-Wpedantic 
                           -Werror)
 endif()
+
+find_package(SDL2 REQUIRED)
+find_package(OpenGL REQUIRED)
+target_link_libraries(CoronaBoy SDL2::SDL2 OpenGL::GL)

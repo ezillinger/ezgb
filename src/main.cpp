@@ -1,5 +1,7 @@
 #include "Emulator.h"
 #include "Test.h"
+#include "GuiWindow.h"
+#include "EmuGui.h"
 
 int main() {
     using namespace ez;
@@ -13,9 +15,24 @@ int main() {
     auto cart = Cart{ romPath };
 
     Emulator emu{cart};
+
+    auto window = GuiWindow{"CoronaBoy"};
+    auto gui = EmuGui(emu);
+    bool shouldExit = false;
+
     while (true) {
-        const auto stop = emu.tick();
-        if (stop) {
+        shouldExit |= window.run([&]() {
+            auto sw = Stopwatch();
+            // todo, figure out how to properly allow this to run at a different frequency than vsync
+            const auto frameTime = 16.6666ms;
+            const auto timeToDraw = 0.1ms;
+            while(sw.elapsed() < (frameTime - timeToDraw)){
+                shouldExit |= emu.tick();
+            }
+            gui.drawGui();
+            shouldExit |= gui.shouldExit();
+        });
+        if (shouldExit) {
             break;
         }
     }

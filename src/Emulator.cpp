@@ -172,7 +172,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
         log_info("Took branch to {:#06x}", *jumpAddr);
     }
 
-    const auto cycles = branched ? info.m_cycles : info.m_cyclesIfBranch;
+    const auto cycles = branched ? info.m_cyclesIfBranch : info.m_cycles;
     const auto newPC = jumpAddr ? *jumpAddr : checked_cast<uint16_t>(m_reg.pc + info.m_size);
     return InstructionResult{
         newPC,
@@ -261,7 +261,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
         log_info("Took branch to {:#06x}", *jumpAddr);
     }
 
-    const auto cycles = branched ? info.m_cycles : info.m_cyclesIfBranch;
+    const auto cycles = branched ? info.m_cyclesIfBranch : info.m_cycles;
     const auto newPC = jumpAddr ? *jumpAddr : checked_cast<uint16_t>(m_reg.pc + info.m_size);
     return InstructionResult{
         newPC,
@@ -451,7 +451,7 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
             log_info("Took branch to {:#06x}", *jumpAddr);
         }
     }
-    const auto cycles = branched ? info.m_cycles : info.m_cyclesIfBranch;
+    const auto cycles = branched ? info.m_cyclesIfBranch : info.m_cycles;
     const auto newPC = jumpAddr.value_or(checked_cast<uint16_t>(m_reg.pc + info.m_size));
     return InstructionResult{
         newPC,
@@ -499,7 +499,7 @@ bool Emulator::tick() {
 
     if (m_cyclesToWait == 0) {
         const auto pcData = *reinterpret_cast<const uint32_t*>(getMemPtr(m_reg.pc));
-        auto result = InstructionResult{};
+        auto result = InstructionResult{0,1};
         maybe_log_registers();
         if (m_prefix) {
             m_prefix = false;
@@ -521,6 +521,7 @@ bool Emulator::tick() {
         }
         m_reg.pc = result.m_newPC;
         m_cyclesToWait = result.m_cycles;
+        assert(m_cyclesToWait > 0);
     }
     --m_cyclesToWait;
 

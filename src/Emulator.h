@@ -36,6 +36,10 @@ struct AddrInfo {
 };
 
 struct InstructionResult {
+    InstructionResult() = default;
+    InstructionResult(uint16_t newPC, int cycles) : m_newPC(newPC), m_cycles(cycles) {
+        EZ_ASSERT(cycles > 0);
+    }
     uint16_t m_newPC = 0;
     int m_cycles = 0;
 };
@@ -80,6 +84,8 @@ enum class Flag { ZERO = 7, NEGATIVE = 6, HALF_CARRY = 5, CARRY = 4 };
 class Emulator {
   public:
     friend class Tester;
+    friend class EmuGui;
+
     Emulator(Cart& cart);
     bool tick();
 
