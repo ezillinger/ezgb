@@ -11,7 +11,7 @@ struct AppState {
 
 class EmuGui {
   public:
-    EmuGui(AppState& state) : m_state(state){};
+    EmuGui(AppState& state);
     void drawGui();
     bool shouldExit() const { return m_shouldExit; };
 
@@ -19,8 +19,12 @@ class EmuGui {
     void drawToolbar();
     void drawRegisters();
     void drawSettings();
+    void drawConsole();
+
+    void updateRomList();
 
     AppState& m_state;
+    std::vector<fs::path> m_romsAvail;
     bool m_shouldExit = false;
 };
 } // namespace ez

@@ -6,8 +6,10 @@ namespace ez {
         log_info("Opening cart: {}", path.string());
         EZ_ENSURE(fs::exists(path));
 
-        m_sizeBytes = static_cast<uint16_t>(fs::file_size(path));
-        // we'll pad out our cart with 3 zero bytes so we can safelty do a 4 byte read on the last real byte
+        m_sizeBytes = fs::file_size(path);
+        EZ_ENSURE(m_sizeBytes > 0);
+        // we'll pad out our cart with 3 zero bytes so we can safelty do a 4 byte read on the last
+        // real byte
         m_data = std::vector<uint8_t>(size_t(m_sizeBytes) + 3, 0u);
         auto fp = fopen(path.generic_string().c_str(), "rb");
         fread(m_data.data(), 1, m_sizeBytes, fp);

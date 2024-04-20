@@ -13,17 +13,22 @@ class IO {
     static constexpr uint16_t IO_BASE_ADDR = 0xFF00;
     static constexpr size_t IO_BYTES = 128;
 
-    bool is_bootrom_mapped() const { return !m_reg.m_bootromDisabled; };
+    bool isBootromMapped() const { return !m_reg.m_bootromDisabled; };
+    void setBootromMapped(bool val) { m_reg.m_bootromDisabled = val; }
 
-    uint8_t* getMemPtrRW(uint16_t address);
-    const uint8_t* getMemPtr(uint16_t address) const;
 
-    uint8_t& getMem8RW(uint16_t address) { return *getMemPtrRW(address); }
-    uint8_t getMem8(uint16_t address) const;
+    void writeAddr(uint16_t addr, uint8_t val);
+    uint8_t readAddr(uint16_t address) const;
 
     LCDRegisters& getLCDRegisters() { return m_reg.m_lcd; }
 
+    const std::string& getSerialOutput() { return m_serialOutput; }
+
   private:
+
+    // for testing only
+    uint8_t* getMemPtrRW(uint16_t address);
+
     struct alignas(uint8_t) {
         uint8_t m_joypad{};
         uint8_t m_serial[2]{};
@@ -45,5 +50,7 @@ class IO {
         uint8_t detail_padding[15]{};
     } m_reg;
     static_assert(sizeof(m_reg) == IO_BYTES);
+
+    std::string m_serialOutput;
 };
 } // namespace ez

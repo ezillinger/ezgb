@@ -1,8 +1,8 @@
 #pragma once
 #include "Base.h"
 #include "Cart.h"
-#include "OpCodes.h"
 #include "IO.h"
+#include "OpCodes.h"
 #include "PPU.h"
 
 namespace ez {
@@ -14,6 +14,15 @@ enum class R16 { BC, DE, HL, SP };
 enum class R16Mem { BC, DE, HLI, HLD };
 enum class R16Stack { BC, DE, HL, AF };
 enum class Cond { NZ, Z, NC, C };
+
+struct EmuSettings {
+    bool m_runAsFastAsPossible = true;
+    bool m_logEnable = true;
+    bool m_skipBootROM = false;
+    int32_t m_breakOnPC = -1;
+    int32_t m_breakOnOpCode = -1;
+    int32_t m_breakOnOpCodePrefixed = -1;
+};
 
 enum class MemoryBank {
     ROM_0,
@@ -29,8 +38,6 @@ enum class MemoryBank {
     IE,
     INVALID
 };
-
-
 
 struct AddrInfo {
     MemoryBank m_bank = MemoryBank::INVALID;
@@ -79,8 +86,6 @@ struct Reg {
     };
 };
 
-
-
 enum class Flag { ZERO = 7, NEGATIVE = 6, HALF_CARRY = 5, CARRY = 4 };
 
 class Emulator {
@@ -88,23 +93,17 @@ class Emulator {
     friend class Tester;
     friend class EmuGui;
 
-    Emulator(Cart& cart);
+    Emulator(Cart& cart, EmuSettings = {});
     bool tick();
 
   private:
     AddrInfo getAddressInfo(uint16_t address) const;
 
-    uint8_t* getMemPtrRW(uint16_t address);
-    uint8_t& getMem8RW(uint16_t address) { return *getMemPtrRW(address); }
-    uint16_t& getMem16RW(uint16_t address) {
-        return *reinterpret_cast<uint16_t*>(getMemPtrRW(address));
-    }
+    void writeAddr(uint16_t address, uint8_t val);
+    void writeAddr16(uint16_t address, uint16_t val);
 
-    const uint8_t* getMemPtr(uint16_t address) const;
-    uint8_t getMem8(uint16_t address) const { return *getMemPtr(address); }
-    uint16_t getMem16(uint16_t address) const {
-        return *reinterpret_cast<const uint16_t*>(getMemPtr(address));
-    }
+    uint8_t readAddr(uint16_t address) const;
+    uint16_t readAddr16(uint16_t address) const;
 
     InstructionResult handleInstruction(uint32_t instruction);
     InstructionResult handleInstructionCB(uint32_t instruction);
@@ -120,19 +119,23 @@ class Emulator {
     void clearFlag(Flag flag);
     void clearFlags();
 
-    uint8_t& getR8RW(R8 ra);
-    uint8_t getR8(R8 ra);
-    uint16_t& getR16RW(R16 ra);
-    uint16_t getR16Mem(R16Mem ra) const;
+    void writeR8(R8 ra, uint8_t data);
+    uint8_t readR8(R8 ra) const;
 
-    uint16_t getR16Stack(R16Stack ra) const;
-    uint16_t& getR16StackRW(R16Stack ra);
+    uint16_t readR16(R16 ra) const;
+    void writeR16(R16 ra, uint16_t data);
+
+    uint16_t readR16Mem(R16Mem ra) const;
+    void writeR16Mem(R16Mem ra, uint16_t data);
+
+    uint16_t readR16Stack(R16Stack ra) const;
+    void writeR16Stack(R16Stack ra, uint16_t data);
 
     bool getCond(Cond c) const;
 
     Reg m_reg{};
     IO m_io{};
-    PPU m_ppu { m_io.getLCDRegisters() };
+    PPU m_ppu{m_io.getLCDRegisters()};
 
     uint16_t m_cyclesToWait = 0;
 
@@ -140,24 +143,16 @@ class Emulator {
 
     Stopwatch m_tickStopwatch{};
 
-    struct {
-        bool m_runAsFastAsPossible = true;
-        bool m_logEnable = false;
-        int32_t m_breakOnPC = -1;
-        int32_t m_breakOnOpCode = -1;
-        int32_t m_breakOnOpCodePrefixed = -1;
-    } m_settings;
-
     bool m_stop = false;
     bool m_prefix = false; // was last instruction CB prefix
     bool m_interruptsEnabled = false;
     int m_pendingInterruptsEnableCount = 0;  // enable interrupts when reaches 0
     int m_pendingInterruptsDisableCount = 0; // ^ disable
 
-    OpCodeInfo m_lastOpCodeInfo{};
+    OpCodeInfo m_lastOpCodeInfo;
 
     void maybe_log_registers() const;
-    void maybe_log_opcode(const OpCodeInfo & oc) const;
+    void maybe_log_opcode(const OpCodeInfo& oc) const;
 
     static constexpr size_t HRAM_BYTES = 128;
     static constexpr size_t RAM_BYTES = 8 * 1024;
@@ -168,5 +163,6 @@ class Emulator {
     std::vector<uint8_t> m_hram = std::vector<uint8_t>(HRAM_BYTES, 0u);
 
     Cart& m_cart;
+    EmuSettings m_settings{};
 };
 } // namespace ez

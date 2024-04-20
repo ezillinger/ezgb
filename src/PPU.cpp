@@ -13,14 +13,16 @@ namespace ez {
 
 PPU::PPU(LCDRegisters& reg) : m_reg(reg) {}
 
-uint8_t* PPU::getMemPtrRW(uint16_t addr) {
+void PPU::writeAddr(uint16_t addr, uint8_t data) {
     const auto offset = addr - VRAM_BASE_ADDR;
     EZ_ENSURE(size_t(offset) < VRAM_BYTES);
-    return m_vram.data() + offset;
+    m_vram[offset] = data;
 }
 
-const uint8_t* PPU::getMemPtr(uint16_t addr) const {
-    return const_cast<PPU*>(this)->getMemPtrRW(addr);
+uint8_t PPU::readAddr(uint16_t addr) const {
+    const auto offset = addr - VRAM_BASE_ADDR;
+    EZ_ENSURE(size_t(offset) < VRAM_BYTES);
+    return m_vram[offset];
 }
 
 void PPU::tick() {

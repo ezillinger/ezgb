@@ -20,33 +20,33 @@ namespace ez {
 
         const auto last_addr = [](auto& arr) -> uint8_t* { return &arr[std::size(arr) - 1]; };
 
-        EZ_ASSERT(io.getMemPtr(0xFF00) == &io.m_reg.m_joypad);
+        EZ_ASSERT(io.getMemPtrRW(0xFF00) == &io.m_reg.m_joypad);
 
-        EZ_ASSERT(io.getMemPtr(0xFF01) == io.m_reg.m_serial);
-        EZ_ASSERT(io.getMemPtr(0xFF02) == last_addr(io.m_reg.m_serial));
+        EZ_ASSERT(io.getMemPtrRW(0xFF01) == io.m_reg.m_serial);
+        EZ_ASSERT(io.getMemPtrRW(0xFF02) == last_addr(io.m_reg.m_serial));
 
-        EZ_ASSERT(io.getMemPtr(0xFF04) == io.m_reg.m_timerDivider);
-        EZ_ASSERT(io.getMemPtr(0xFF07) == last_addr(io.m_reg.m_timerDivider));
+        EZ_ASSERT(io.getMemPtrRW(0xFF04) == io.m_reg.m_timerDivider);
+        EZ_ASSERT(io.getMemPtrRW(0xFF07) == last_addr(io.m_reg.m_timerDivider));
 
-        EZ_ASSERT(io.getMemPtr(0xFF10) == io.m_reg.m_audio);
-        EZ_ASSERT(io.getMemPtr(0xFF26) == last_addr(io.m_reg.m_audio));
+        EZ_ASSERT(io.getMemPtrRW(0xFF10) == io.m_reg.m_audio);
+        EZ_ASSERT(io.getMemPtrRW(0xFF26) == last_addr(io.m_reg.m_audio));
 
-        EZ_ASSERT(io.getMemPtr(0xFF30) == io.m_reg.m_wavePattern);
-        EZ_ASSERT(io.getMemPtr(0xFF3F) == last_addr(io.m_reg.m_wavePattern));
+        EZ_ASSERT(io.getMemPtrRW(0xFF30) == io.m_reg.m_wavePattern);
+        EZ_ASSERT(io.getMemPtrRW(0xFF3F) == last_addr(io.m_reg.m_wavePattern));
 
-        EZ_ASSERT(io.getMemPtr(0xFF40) == reinterpret_cast<uint8_t*>(&io.m_reg.m_lcd));
+        EZ_ASSERT(io.getMemPtrRW(0xFF40) == reinterpret_cast<uint8_t*>(&io.m_reg.m_lcd));
         // todo, test individual LCD register layout
 
-        EZ_ASSERT(io.getMemPtr(0xFF4F) == &io.m_reg.m_vramBankSelect);
-        EZ_ASSERT(io.getMemPtr(0xFF50) == reinterpret_cast<uint8_t*>(&io.m_reg.m_bootromDisabled));
+        EZ_ASSERT(io.getMemPtrRW(0xFF4F) == &io.m_reg.m_vramBankSelect);
+        EZ_ASSERT(io.getMemPtrRW(0xFF50) == reinterpret_cast<uint8_t*>(&io.m_reg.m_bootromDisabled));
 
-        EZ_ASSERT(io.getMemPtr(0xFF51) == io.m_reg.m_vramDMA);
-        EZ_ASSERT(io.getMemPtr(0xFF55) == last_addr(io.m_reg.m_vramDMA));
+        EZ_ASSERT(io.getMemPtrRW(0xFF51) == io.m_reg.m_vramDMA);
+        EZ_ASSERT(io.getMemPtrRW(0xFF55) == last_addr(io.m_reg.m_vramDMA));
 
-        EZ_ASSERT(io.getMemPtr(0xFF68) == io.m_reg.m_bgObjPalettes);
-        EZ_ASSERT(io.getMemPtr(0xFF6B) == last_addr(io.m_reg.m_bgObjPalettes));
+        EZ_ASSERT(io.getMemPtrRW(0xFF68) == io.m_reg.m_bgObjPalettes);
+        EZ_ASSERT(io.getMemPtrRW(0xFF6B) == last_addr(io.m_reg.m_bgObjPalettes));
 
-        EZ_ASSERT(io.getMemPtr(0xFF70) == &io.m_reg.m_wramBankSelect);
+        EZ_ASSERT(io.getMemPtrRW(0xFF70) == &io.m_reg.m_wramBankSelect);
 
         return true;
     }

@@ -21,7 +21,7 @@ namespace ez {
     struct OpCodeInfo {
         bool m_prefixed = false;
         uint8_t m_addr = 0x00;
-        const char* m_mnemonic = nullptr;
+        const char* m_mnemonic = "";
         int m_size = 0;
         int m_cycles = 0;
         int m_cyclesIfBranch = 0;
@@ -29,8 +29,8 @@ namespace ez {
         FlagEffect m_flagSubtract = FlagEffect::NONE;
         FlagEffect m_flagHalfCarry = FlagEffect::NONE;
         FlagEffect m_flagCarry = FlagEffect::NONE;
-        const char* m_operandName1 = nullptr;
-        const char* m_operandName2 = nullptr;
+        const char* m_operandName1 = "";
+        const char* m_operandName2 = "";
     };
 
     enum class OpCode : uint8_t {

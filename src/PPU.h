@@ -51,8 +51,8 @@ class PPU {
 
     void tick();
 
-    uint8_t* getMemPtrRW(uint16_t address);
-    const uint8_t* getMemPtr(uint16_t address) const;
+    uint8_t readAddr(uint16_t) const;
+    void writeAddr(uint16_t, uint8_t);
 
     void dumpDisplay() const;
 
