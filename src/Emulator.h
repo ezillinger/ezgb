@@ -17,7 +17,7 @@ enum class Cond { NZ, Z, NC, C };
 
 struct EmuSettings {
     bool m_runAsFastAsPossible = true;
-    bool m_logEnable = true;
+    bool m_logEnable = false;
     bool m_skipBootROM = true;
     int32_t m_breakOnPC = -1;
     int32_t m_breakOnOpCode = -1;
@@ -144,7 +144,8 @@ class Emulator {
 
     Stopwatch m_tickStopwatch{};
 
-    bool m_stop = false;
+    bool m_shouldExit = false;
+    bool m_stopMode = false;
     bool m_prefix = false; // was last instruction CB prefix
     bool m_interruptsEnabled = false;
     int m_pendingInterruptsEnableCount = 0;  // enable interrupts when reaches 0

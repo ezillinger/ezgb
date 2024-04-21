@@ -12,6 +12,7 @@ void EmuGui::updateRomList(){
             m_romsAvail.push_back(file.path());
         }
     }
+    std::sort(m_romsAvail.begin(), m_romsAvail.end());
 }
 
 void EmuGui::drawGui() {
@@ -87,6 +88,7 @@ void EmuGui::drawRegisters() {
                         .c_str());
 
         ImGui::Text("{}"_format(emu.m_lastOpCodeInfo).c_str());
+        ImGui::Checkbox("Stop Mode", &m_state.m_emu->m_stopMode);
     }
     ImGui::End();
 }

@@ -10,8 +10,8 @@ int main() {
     t.test_all();
 
     log_info("CurrentDir: {}", fs::current_path().c_str());
-    //const auto romPath = "./roms/cpu_instrs.gb";
-    const auto romPath = "./roms/tetris.gb";
+    const auto romPath = "./roms/cpu_instrs.gb";
+    //const auto romPath = "./roms/tetris.gb";
     auto cart = std::make_unique<Cart>( romPath );
     auto emu = std::make_unique<Emulator>(*cart);
     auto state = AppState{std::move(cart), std::move(emu)};

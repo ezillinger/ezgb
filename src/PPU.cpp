@@ -19,10 +19,22 @@ void PPU::writeAddr(uint16_t addr, uint8_t data) {
     m_vram[offset] = data;
 }
 
+void PPU::writeAddr16(uint16_t addr, uint16_t data) {
+    const auto offset = addr - VRAM_BASE_ADDR;
+    EZ_ENSURE(size_t(offset) < VRAM_BYTES);
+    *reinterpret_cast<uint16_t*>(m_vram.data() + offset) = data;
+}
+
 uint8_t PPU::readAddr(uint16_t addr) const {
     const auto offset = addr - VRAM_BASE_ADDR;
     EZ_ENSURE(size_t(offset) < VRAM_BYTES);
     return m_vram[offset];
+}
+
+uint16_t PPU::readAddr16(uint16_t addr) const {
+    const auto offset = addr - VRAM_BASE_ADDR;
+    EZ_ENSURE(size_t(offset) < VRAM_BYTES);
+    return *reinterpret_cast<const uint16_t*>(m_vram.data() + offset);
 }
 
 void PPU::tick() {

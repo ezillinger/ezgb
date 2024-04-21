@@ -52,7 +52,10 @@ class PPU {
     void tick();
 
     uint8_t readAddr(uint16_t) const;
+    uint16_t readAddr16(uint16_t) const;
+
     void writeAddr(uint16_t, uint8_t);
+    void writeAddr16(uint16_t, uint16_t);
 
     void dumpDisplay() const;
 

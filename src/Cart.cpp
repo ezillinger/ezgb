@@ -15,7 +15,7 @@ Cart::Cart(const fs::path& path) {
     fread(m_data.data(), 1, m_sizeBytes, fp);
     fclose(fp);
 
-    m_cartType = std::bit_cast<CartType>(m_data[0x0147]);
+    m_cartType = CartType(m_data[0x0147]);
     log_info("CartType: {}", +m_cartType);
 }
 

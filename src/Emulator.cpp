@@ -75,8 +75,12 @@ void Emulator::writeR16Stack(R16Stack r16, uint16_t data) {
         case R16Stack::BC: m_reg.bc = data; break;
         case R16Stack::DE: m_reg.de = data; break;
         case R16Stack::HL: m_reg.hl = data; break;
-        case R16Stack::AF: m_reg.af = data; break;
-        default:           EZ_FAIL("not implemented");
+        case R16Stack::AF: {
+            m_reg.af = data;
+            //m_reg.f &= 0xF0; // bottom bits of flags are always 0
+            break;
+        }
+        default: EZ_FAIL("not implemented");
     }
 }
 
@@ -227,6 +231,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
 
     const auto u16 = static_cast<uint16_t>((pcData >> 8) & 0x0000FFFF);
     const auto u8 = static_cast<uint8_t>((pcData >> 8) & 0x000000FF);
+    const auto i8 = static_cast<int8_t>((pcData >> 8) & 0x000000FF);
     const auto r16stack = checked_cast<R16Stack>((+oc & 0b00110000) >> 4);
 
     bool branched = false;
@@ -341,7 +346,42 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 setFlag(Flag::ZERO, m_reg.a == 0);
                 break;
             }
-            default: EZ_FAIL("not implemented: {}", +oc);
+            case OpCode::JP_NZ_a16: {
+                if (!getFlag(Flag::ZERO)) {
+                    jumpAddr = u16;
+                    branched = true;
+                }
+                break;
+            }
+            case OpCode::LD_HL_SPplus: {
+                const auto result = m_reg.sp + i8;
+                clearFlags();
+                if (i8 >= 0) {
+                    setFlag(Flag::HALF_CARRY, (m_reg.sp ^ i8 ^ result) & 0x10);
+                    setFlag(Flag::CARRY, int(m_reg.sp) + i8 > 0xFF);
+                } else {
+                    setFlag(Flag::CARRY, int(m_reg.sp) + i8 < 0);
+                    setFlag(Flag::HALF_CARRY, ((m_reg.sp & 0xF) - (-int(i8) & 0xF)) & 0x10);
+                }
+                m_reg.hl = result;
+                break;
+            }
+            case OpCode::LD_SP_HL: m_reg.sp = m_reg.hl; break;
+            case OpCode::ADD_SP_i8: {
+                const auto result = m_reg.sp + i8;
+                setFlag(Flag::ZERO, result == 0);
+                clearFlag(Flag::NEGATIVE);
+                if (i8 >= 0) {
+                    setFlag(Flag::HALF_CARRY, (m_reg.sp ^ i8 ^ result) & 0x10);
+                    setFlag(Flag::CARRY, int(m_reg.sp) + i8 > 0xFF);
+                } else {
+                    setFlag(Flag::CARRY, int(m_reg.sp) + i8 < 0);
+                    setFlag(Flag::HALF_CARRY, ((m_reg.sp & 0xF) - (-int(i8) & 0xF)) & 0x10);
+                }
+                m_reg.sp = result;
+                break;
+            }
+            default:               EZ_FAIL("not implemented: {}", +oc);
         }
     }
     if (branched) {
@@ -566,6 +606,52 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
                 setFlag(Flag::ZERO, m_reg.a == 0);
                 break;
             }
+            case OpCode::RLCA: {
+                const auto topBit = m_reg.a & 0b1000'0000;
+                const auto bottomBit = getFlag(Flag::CARRY) ? 0b1 : 0;
+                m_reg.a = (m_reg.a << 1) | bottomBit;
+                setFlag(Flag::CARRY, topBit);
+                clearFlag(Flag::HALF_CARRY);
+                break;
+            }
+            case OpCode::RRCA: {
+                const auto bottomBit = m_reg.a & 0b1;
+                const auto topBit = getFlag(Flag::CARRY) ? 0b1000'0000 : 0;
+                m_reg.a = (m_reg.a >> 1) | topBit;
+                setFlag(Flag::CARRY, bottomBit);
+                clearFlag(Flag::HALF_CARRY);
+                break;
+            }
+            case OpCode::STOP_u8: {
+                m_stopMode = true;
+                break;
+            }
+            case OpCode::DAA: {
+                // https://ehaskins.com/2018-01-30%20Z80%20DAA/
+                auto correction = 0;
+                auto setFlagC = 0;
+                const auto flagHC = getFlag(Flag::HALF_CARRY);
+                const auto flagC = getFlag(Flag::CARRY);
+                const auto flagN = getFlag(Flag::NEGATIVE);
+
+                if (flagHC || (!flagN && (m_reg.a & 0xf) > 9)) {
+                    correction |= 0x6;
+                }
+
+                if (flagC || (!flagN && m_reg.a > 0x99)) {
+                    correction |= 0x60;
+                    setFlagC = true;
+                }
+
+                m_reg.a += flagN ? -correction : correction;
+                m_reg.a &= 0xff;
+
+                setFlag(Flag::CARRY, setFlagC);
+                clearFlag(Flag::HALF_CARRY);
+                clearFlag(Flag::NEGATIVE);
+                setFlag(Flag::ZERO, m_reg.a == 0);
+                break;
+            }
             default: EZ_FAIL("not implemented"); break;
         }
     }
@@ -624,7 +710,12 @@ bool Emulator::tick() {
     }
 
     if (!m_settings.m_runAsFastAsPossible && !m_tickStopwatch.lapped(MASTER_CLOCK_PERIOD)) {
-        return m_stop;
+        return m_shouldExit;
+    }
+
+    if (m_stopMode) {
+        // check buttons?
+        return m_shouldExit;
     }
 
     if (m_cyclesToWait == 0) {
@@ -661,11 +752,11 @@ bool Emulator::tick() {
         m_ppu.tick();
     }
 
-    return m_stop;
+    return m_shouldExit;
 }
 
 AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
-    if (addr < 0x3FFF) {
+    if (addr <= 0x3FFF) {
         return {MemoryBank::ROM_0, 0};
     } else if (addr >= 0x4000 && addr <= 0x7FFF) {
         return {MemoryBank::ROM_NN, 0};
@@ -710,7 +801,7 @@ void Emulator::writeAddr16(uint16_t addr, uint16_t data) {
         case MemoryBank::WRAM_1:
             *reinterpret_cast<uint16_t*>(m_ram.data() + (addr - addrInfo.m_baseAddr)) = data;
             break;
-        // case MemoryBank::VRAM:   m_ppu.writeAddr16(addr, data); break;
+        case MemoryBank::VRAM: m_ppu.writeAddr16(addr, data); break;
         // case MemoryBank::IO:     m_io.writeAddr16(addr, data); break;
         case MemoryBank::HRAM:
             *reinterpret_cast<uint16_t*>(m_hram.data() + addr - addrInfo.m_baseAddr) = data;
@@ -748,12 +839,11 @@ uint16_t Emulator::readAddr16(uint16_t addr) const {
             }
             return m_cart.readAddr16(addr);
 
-        case MemoryBank::ROM_NN:
-            return m_cart.readAddr16(addr);
+        case MemoryBank::ROM_NN: return m_cart.readAddr16(addr);
         case MemoryBank::WRAM_0: [[fallthrough]];
         case MemoryBank::WRAM_1:
             return *reinterpret_cast<const uint16_t*>(m_ram.data() + addr - addrInfo.m_baseAddr);
-        // case MemoryBank::VRAM:   return m_ppu.readAddr(addr);
+        case MemoryBank::VRAM: return m_ppu.readAddr16(addr);
         // case MemoryBank::IO:     return m_io.readAddr(addr);
         case MemoryBank::HRAM:
             return *reinterpret_cast<const uint16_t*>(m_hram.data() + addr - addrInfo.m_baseAddr);
