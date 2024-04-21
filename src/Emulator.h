@@ -18,7 +18,7 @@ enum class Cond { NZ, Z, NC, C };
 struct EmuSettings {
     bool m_runAsFastAsPossible = true;
     bool m_logEnable = true;
-    bool m_skipBootROM = false;
+    bool m_skipBootROM = true;
     int32_t m_breakOnPC = -1;
     int32_t m_breakOnOpCode = -1;
     int32_t m_breakOnOpCodePrefixed = -1;
@@ -84,6 +84,7 @@ struct Reg {
         };
         uint16_t hl = 0;
     };
+    uint8_t ie = 0;
 };
 
 enum class Flag { ZERO = 7, NEGATIVE = 6, HALF_CARRY = 5, CARRY = 4 };

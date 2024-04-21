@@ -2,7 +2,7 @@
 
 namespace ez {
 
-Emulator::Emulator(Cart& cart, EmuSettings settings ) : m_cart(cart), m_settings(settings) {
+Emulator::Emulator(Cart& cart, EmuSettings settings) : m_cart(cart), m_settings(settings) {
     // const auto bootloaderPath = "./roms/bootix_dmg.bin";
     const auto bootloaderPath = "./roms/dmg_boot.bin";
     log_info("Loading bootrom: {}", bootloaderPath);
@@ -155,18 +155,26 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
                     break;
                 case 0b00010: { // rl r8
                     auto r8val = readR8(r8);
-                    const auto set_carry = bool(0b1000'0000 & r8val);
-                    const auto last_bit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
-                    r8val = (r8val << 1) | last_bit;
+                    const auto setCarry = bool(0b1000'0000 & r8val);
+                    const auto lastBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+                    r8val = (r8val << 1) | lastBit;
                     writeR8(r8, r8val);
-                    setFlag(Flag::CARRY, set_carry);
+                    clearFlags();
+                    setFlag(Flag::CARRY, setCarry);
                     setFlag(Flag::ZERO, r8val == 0);
-                    clearFlag(Flag::HALF_CARRY);
-                    clearFlag(Flag::NEGATIVE);
                 } break;
                 case 0b00011: // rr r8
-                    EZ_FAIL("not implemented");
+                {
+                    auto r8val = readR8(r8);
+                    const auto setCarry = bool(0b1 & r8val);
+                    const auto firstBit = getFlag(Flag::CARRY) ? 0b1000'0000 : 0b0;
+                    r8val = (r8val >> 1) | firstBit;
+                    writeR8(r8, r8val);
+                    clearFlags();
+                    setFlag(Flag::CARRY, setCarry);
+                    setFlag(Flag::ZERO, r8val == 0);
                     break;
+                }
                 case 0b00100: // sla r8
                     EZ_FAIL("not implemented");
                     break;
@@ -184,8 +192,14 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
                     break;
                 }
                 case 0b00111: // srl r8
-                    EZ_FAIL("not implemented");
+                {
+                    const auto r8v = readR8(r8);
+                    writeR8(r8, r8v >> 1);
+                    clearFlags();
+                    setFlag(Flag::ZERO, r8v == 0);
+                    setFlag(Flag::CARRY, r8v & 0b1);
                     break;
+                }
                 default: EZ_FAIL("not implemented"); break;
             }
         } break;
@@ -278,7 +292,56 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             } break;
             case OpCode::JP_a16:     jumpAddr = u16; break;
             case OpCode::LDH_A__a8_: m_reg.a = readAddr(u8 + 0xFF00); break;
-            default:                 EZ_FAIL("not implemented");
+            case OpCode::AND_A_u8:
+                m_reg.a &= u8;
+                clearFlags();
+                setFlag(Flag::ZERO, m_reg.a == 0);
+                setFlag(Flag::HALF_CARRY);
+                break;
+            case OpCode::ADD_A_u8: {
+                const auto result = m_reg.a + u8;
+                setFlag(Flag::ZERO, result == 0);
+                clearFlag(Flag::NEGATIVE);
+                setFlag(Flag::HALF_CARRY, (m_reg.a ^ u8 ^ result) & 0x10);
+                setFlag(Flag::CARRY, int(m_reg.a) + u8 > 0xFF);
+                m_reg.a = result;
+                break;
+            }
+            case OpCode::SUB_A_u8: {
+                const auto result = m_reg.a - u8;
+                setFlag(Flag::ZERO, result == 0);
+                setFlag(Flag::NEGATIVE, true);
+                setFlag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (u8 & 0xF)) & 0x10);
+                setFlag(Flag::CARRY, m_reg.a < u8);
+                m_reg.a = result;
+                break;
+            }
+            case OpCode::XOR_A_u8: {
+                m_reg.a ^= u8;
+                clearFlags();
+                setFlag(Flag::ZERO, m_reg.a == 0);
+                break;
+            }
+            case OpCode::ADC_A_u8: {
+                const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+                const auto result = m_reg.a + u8 + carryBit;
+                clearFlag(Flag::NEGATIVE);
+                setFlag(Flag::ZERO, m_reg.a == 0);
+                // wtf? https://gbdev.gg8.se/wiki/articles/ADC
+                setFlag(Flag::HALF_CARRY,
+                        ((m_reg.a & u8) | ((m_reg.a ^ u8) & ~(m_reg.a + u8 + carryBit))) & 0b1000);
+                setFlag(Flag::CARRY, int(m_reg.a) + u8 > 0xFF);
+                m_reg.a = result;
+                break;
+            }
+            case OpCode::JP_HL:   jumpAddr = m_reg.hl; break;
+            case OpCode::OR_A_u8: {
+                m_reg.a |= u8;
+                clearFlags();
+                setFlag(Flag::ZERO, m_reg.a == 0);
+                break;
+            }
+            default: EZ_FAIL("not implemented: {}", +oc);
         }
     }
     if (branched) {
@@ -317,8 +380,19 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
             break;
         }
         case 0b10001: // adc a, r8
-            EZ_FAIL("not implemented");
+        {
+            const auto r8v = readR8(r8);
+            const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+            const auto result = m_reg.a + r8v + carryBit;
+            clearFlag(Flag::NEGATIVE);
+            setFlag(Flag::ZERO, m_reg.a == 0);
+            // wtf? https://gbdev.gg8.se/wiki/articles/ADC
+            setFlag(Flag::HALF_CARRY,
+                    ((m_reg.a & r8v) | ((m_reg.a ^ r8v) & ~(m_reg.a + r8v + carryBit))) & 0b1000);
+            setFlag(Flag::CARRY, int(m_reg.a) + r8v > 0xFF);
+            m_reg.a = result;
             break;
+        }
         case 0b10010: // sub a, r8
         {
             const auto r8val = readR8(r8);
@@ -338,10 +412,8 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
             break;
         case 0b10101: // xor a, r8
             m_reg.a ^= readR8(r8);
-            m_reg.f = 0;
-            if (m_reg.a == 0) {
-                setFlag(Flag::ZERO);
-            }
+            clearFlags();
+            setFlag(Flag::ZERO, m_reg.a == 0);
             break;
         case 0b10110: // or a, r8
             m_reg.a = m_reg.a | readR8(r8);
@@ -445,7 +517,12 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
     } else if (is_dec_r16) {
         writeR16(r16, readR16(r16) - 1);
     } else if (is_add_hl_r16) {
-        EZ_FAIL("not implemented");
+        const auto r16v = readR16(r16);
+        const auto result = m_reg.hl + r16v;
+        clearFlag(Flag::NEGATIVE);
+        setFlag(Flag::CARRY, (uint32_t(m_reg.hl) + r16v) > 0xFFFF);
+        setFlag(Flag::HALF_CARRY, (m_reg.hl ^ r16v ^ result) & 0x1000);
+        m_reg.hl = result;
     } else if (is_inc_r8) {
         auto r8val = readR8(r8);
         const auto wraparound = r8val == 0xFF;
@@ -480,7 +557,16 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
                 setFlag(Flag::CARRY, set_carry);
             } break;
             case OpCode::LD__a16__SP: writeAddr16(u16, m_reg.sp); break;
-            default:                  EZ_FAIL("not implemented"); break;
+            case OpCode::RRA:         {
+                const auto setCarry = bool(0b1 & m_reg.a);
+                const auto firstBit = getFlag(Flag::CARRY) ? 0b1000'0000 : 0b0;
+                m_reg.a = (m_reg.a >> 1) | firstBit;
+                clearFlags();
+                setFlag(Flag::CARRY, setCarry);
+                setFlag(Flag::ZERO, m_reg.a == 0);
+                break;
+            }
+            default: EZ_FAIL("not implemented"); break;
         }
     }
 
@@ -581,14 +667,20 @@ bool Emulator::tick() {
 AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
     if (addr < 0x3FFF) {
         return {MemoryBank::ROM_0, 0};
+    } else if (addr >= 0x4000 && addr <= 0x7FFF) {
+        return {MemoryBank::ROM_NN, 0};
     } else if (addr >= 0xC000 && addr <= 0xCFFF) {
         return {MemoryBank::WRAM_0, 0xC000};
+    } else if (addr >= 0xD000 && addr <= 0xDFFF) {
+        return {MemoryBank::WRAM_1, 0xC000};
     } else if (addr >= 0x8000 && addr <= 0x9FFF) {
         return {MemoryBank::VRAM, 0x8000};
     } else if (addr >= 0xFF00 && addr < 0xFF80) {
         return {MemoryBank::IO, 0xFF00};
     } else if (addr >= 0xFF80 && addr <= 0xFFFE) {
         return {MemoryBank::HRAM, 0xFF80};
+    } else if (addr == 0xFFFF) {
+        return {MemoryBank::IE, 0xFFFF};
     } else {
         EZ_FAIL("not implemented");
     }
@@ -597,11 +689,14 @@ AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
 void Emulator::writeAddr(uint16_t addr, uint8_t data) {
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM_0:  EZ_FAIL("Can't write to ROM!");
-        case MemoryBank::WRAM_0: m_ram[addr - addrInfo.m_baseAddr] = data; break;
+        case MemoryBank::ROM_0:  m_cart.writeAddr(addr, data); break;
+        case MemoryBank::ROM_NN: m_cart.writeAddr(addr, data); break;
+        case MemoryBank::WRAM_0: [[fallthrough]];
+        case MemoryBank::WRAM_1: m_ram[addr - addrInfo.m_baseAddr] = data; break;
         case MemoryBank::VRAM:   m_ppu.writeAddr(addr, data); break;
         case MemoryBank::IO:     m_io.writeAddr(addr, data); break;
         case MemoryBank::HRAM:   m_hram[addr - addrInfo.m_baseAddr] = data; break;
+        case MemoryBank::IE:     m_reg.ie = data; break;
         default:                 EZ_FAIL("not implemented"); break;
     }
 }
@@ -609,12 +704,19 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
 void Emulator::writeAddr16(uint16_t addr, uint16_t data) {
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM_0:  EZ_FAIL("Can't write to ROM!");
-        case MemoryBank::WRAM_0: *reinterpret_cast<uint16_t*>(m_ram.data() + (addr - addrInfo.m_baseAddr)) = data; break;
-        //case MemoryBank::VRAM:   m_ppu.writeAddr16(addr, data); break;
-        //case MemoryBank::IO:     m_io.writeAddr16(addr, data); break;
-        case MemoryBank::HRAM:   *reinterpret_cast<uint16_t*>(m_hram.data() + addr - addrInfo.m_baseAddr) = data; break;
-        default:                 EZ_FAIL("not implemented"); break;
+        case MemoryBank::ROM_0:  m_cart.writeAddr16(addr, data); break;
+        case MemoryBank::ROM_NN: m_cart.writeAddr16(addr, data); break;
+        case MemoryBank::WRAM_0: [[fallthrough]];
+        case MemoryBank::WRAM_1:
+            *reinterpret_cast<uint16_t*>(m_ram.data() + (addr - addrInfo.m_baseAddr)) = data;
+            break;
+        // case MemoryBank::VRAM:   m_ppu.writeAddr16(addr, data); break;
+        // case MemoryBank::IO:     m_io.writeAddr16(addr, data); break;
+        case MemoryBank::HRAM:
+            *reinterpret_cast<uint16_t*>(m_hram.data() + addr - addrInfo.m_baseAddr) = data;
+            break;
+        case MemoryBank::IE: EZ_FAIL("IE is only 8 bits");
+        default:             EZ_FAIL("not implemented"); break;
     }
 }
 
@@ -626,10 +728,13 @@ uint8_t Emulator::readAddr(uint16_t addr) const {
                 return m_bootrom[addr];
             }
             return m_cart.readAddr(addr);
-        case MemoryBank::WRAM_0: return m_ram[addr - addrInfo.m_baseAddr];
+        case MemoryBank::ROM_NN: return m_cart.readAddr(addr);
+        case MemoryBank::WRAM_0: [[fallthrough]];
+        case MemoryBank::WRAM_1: return m_ram[addr - addrInfo.m_baseAddr];
         case MemoryBank::VRAM:   return m_ppu.readAddr(addr);
         case MemoryBank::IO:     return m_io.readAddr(addr);
         case MemoryBank::HRAM:   return m_hram[addr - addrInfo.m_baseAddr];
+        case MemoryBank::IE:     return m_reg.ie;
         default:                 EZ_FAIL("not implemented"); break;
     }
 }
@@ -642,13 +747,18 @@ uint16_t Emulator::readAddr16(uint16_t addr) const {
                 return *reinterpret_cast<const uint16_t*>(m_bootrom.data() + addr);
             }
             return m_cart.readAddr16(addr);
-        case MemoryBank::WRAM_0:
+
+        case MemoryBank::ROM_NN:
+            return m_cart.readAddr16(addr);
+        case MemoryBank::WRAM_0: [[fallthrough]];
+        case MemoryBank::WRAM_1:
             return *reinterpret_cast<const uint16_t*>(m_ram.data() + addr - addrInfo.m_baseAddr);
         // case MemoryBank::VRAM:   return m_ppu.readAddr(addr);
         // case MemoryBank::IO:     return m_io.readAddr(addr);
         case MemoryBank::HRAM:
             return *reinterpret_cast<const uint16_t*>(m_hram.data() + addr - addrInfo.m_baseAddr);
-        default: EZ_FAIL("not implemented"); break;
+        case MemoryBank::IE: EZ_FAIL("IE is 8 bits!");
+        default:             EZ_FAIL("not implemented"); break;
     }
 }
 

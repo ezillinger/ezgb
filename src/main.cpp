@@ -9,8 +9,8 @@ int main() {
     auto t = Tester{};
     t.test_all();
 
-    //const auto romPath = "C:\\git\\CoronaBoy\\roms\\DMG_ROM.bin";
     log_info("CurrentDir: {}", fs::current_path().c_str());
+    //const auto romPath = "./roms/cpu_instrs.gb";
     const auto romPath = "./roms/tetris.gb";
     auto cart = std::make_unique<Cart>( romPath );
     auto emu = std::make_unique<Emulator>(*cart);
