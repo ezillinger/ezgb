@@ -97,6 +97,13 @@ namespace ez {
             EZ_ASSERT(emu.m_reg.a == 0);
         }
 
+        emu.m_reg.f = 0;
+        emu.writeR16Stack(R16Stack::AF, 0xFFFF);
+        for (auto flagSet : {Flag::ZERO, Flag::CARRY, Flag::HALF_CARRY, Flag::NEGATIVE}) {
+            EZ_ASSERT(emu.getFlag(flagSet));
+        }
+        EZ_ASSERT((emu.m_reg.f & 0x0F) == 0);
+
         return true;
     }
 

@@ -97,6 +97,7 @@ void EmuGui::drawSettings() {
     auto& emu = *m_state.m_emu;
     if (ImGui::Begin("Settings")) {
         ImGui::Checkbox("Skip Bootrom", &emu.m_settings.m_skipBootROM);
+        ImGui::Checkbox("Auto Un-Stop", &emu.m_settings.m_autoUnStop);
         ImGui::Checkbox("Log", &emu.m_settings.m_logEnable);
         ImGui::Checkbox("No Wait", &emu.m_settings.m_runAsFastAsPossible);
         ImGui::DragInt("PC Break Addr", &emu.m_settings.m_breakOnPC, 1.0f, -1, INT16_MAX, "%04x");
@@ -112,8 +113,8 @@ void EmuGui::drawSettings() {
 void EmuGui::drawConsole() {
 
     auto& emu = *m_state.m_emu;
-    if (ImGui::Begin("Console")) {
-        ImGui::TextUnformatted(emu.m_io.getSerialOutput().c_str());
+    if (ImGui::Begin("Console", nullptr)) {
+        ImGui::TextWrapped(emu.m_io.getSerialOutput().c_str());
     }
     ImGui::End();
 }

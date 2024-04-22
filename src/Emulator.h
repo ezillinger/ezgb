@@ -18,6 +18,7 @@ enum class Cond { NZ, Z, NC, C };
 struct EmuSettings {
     bool m_runAsFastAsPossible = true;
     bool m_logEnable = false;
+    bool m_autoUnStop = false;
     bool m_skipBootROM = true;
     int32_t m_breakOnPC = -1;
     int32_t m_breakOnOpCode = -1;

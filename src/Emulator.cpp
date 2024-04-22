@@ -77,7 +77,7 @@ void Emulator::writeR16Stack(R16Stack r16, uint16_t data) {
         case R16Stack::HL: m_reg.hl = data; break;
         case R16Stack::AF: {
             m_reg.af = data;
-            //m_reg.f &= 0xF0; // bottom bits of flags are always 0
+            m_reg.f &= 0xF0; // bottom bits of flags are always 0
             break;
         }
         default: EZ_FAIL("not implemented");
@@ -144,19 +144,46 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
             break;
         }
         case 0b10: // RES
-            EZ_FAIL("not implemented");
+            writeR8(r8, readR8(r8) & ~(0b1 << bitIndex));
             break;
         case 0b11: // SET
-            EZ_FAIL("not implemented");
+            writeR8(r8, readR8(r8) | (0b1 << bitIndex));
             break;
         case 0b00: {
+            /*/
+            case OpCode::RLCA: {
+                
+            }
+            case OpCode::RRCA: {
+                const auto bottomBit = m_reg.a & 0b1;
+                const auto topBit = getFlag(Flag::CARRY) ? 0b1000'0000 : 0;
+                m_reg.a = (m_reg.a >> 1) | topBit;
+                setFlag(Flag::CARRY, bottomBit);
+                clearFlag(Flag::HALF_CARRY);
+                break;
+            }
+            */
             switch (top5Bits) {
                 case 0b00000: // rlc r8
-                    EZ_FAIL("not implemented");
+                {
+                    auto r8v = readR8(r8);
+                    const auto topBit = r8v & 0b1000'0000;
+                    const auto bottomBit = getFlag(Flag::CARRY) ? 0b1 : 0;
+                    writeR8(r8, (r8v << 1) | bottomBit);
+                    setFlag(Flag::CARRY, topBit);
+                    clearFlag(Flag::HALF_CARRY);
                     break;
+                }
                 case 0b00001: // rrc r8
-                    EZ_FAIL("not implemented");
+                {
+                    const auto r8v = readR8(r8);
+                    const auto bottomBit = r8v & 0b1;
+                    const auto topBit = getFlag(Flag::CARRY) ? 0b1000'0000 : 0;
+                    writeR8(r8, (r8v >> 1) | topBit);
+                    setFlag(Flag::CARRY, bottomBit);
+                    clearFlag(Flag::HALF_CARRY);
                     break;
+                }
                 case 0b00010: { // rl r8
                     auto r8val = readR8(r8);
                     const auto setCarry = bool(0b1000'0000 & r8val);
@@ -180,11 +207,25 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
                     break;
                 }
                 case 0b00100: // sla r8
-                    EZ_FAIL("not implemented");
+                {
+                    const auto r8val = readR8(r8);
+                    const auto result = r8val << 1;
+                    writeR8(r8, result);
+                    clearFlags();
+                    setFlag(Flag::ZERO, result == 0);
+                    setFlag(Flag::CARRY, r8val & 0b1000'0000);
                     break;
+                }
                 case 0b00101: // sra r8
-                    EZ_FAIL("not implemented");
+                {
+                    const auto r8val = readR8(r8);
+                    const auto topBit = 0b1000'0000 & r8val;
+                    const auto result = (r8val >> 1) | topBit;
+                    writeR8(r8, result);
+                    clearFlags();
+                    setFlag(Flag::ZERO, result == 0);
                     break;
+                }
                 case 0b00110: // swap r8
                 {
                     const auto r8v_copy = readR8(r8);
@@ -211,7 +252,9 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
     }
     if (branched) {
         assert(jumpAddr);
-        log_info("Took branch to {:#06x}", *jumpAddr);
+        if (m_settings.m_logEnable) {
+            log_info("Took branch to {:#06x}", *jumpAddr);
+        }
     }
 
     const auto cycles = branched ? info.m_cyclesIfBranch : info.m_cycles;
@@ -307,7 +350,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 const auto result = m_reg.a + u8;
                 setFlag(Flag::ZERO, result == 0);
                 clearFlag(Flag::NEGATIVE);
-                setFlag(Flag::HALF_CARRY, (m_reg.a ^ u8 ^ result) & 0x10);
+                setFlag(Flag::HALF_CARRY, (((m_reg.a & 0xF) + (u8 & 0xF)) & 0x10) == 0x10);
                 setFlag(Flag::CARRY, int(m_reg.a) + u8 > 0xFF);
                 m_reg.a = result;
                 break;
@@ -331,7 +374,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
                 const auto result = m_reg.a + u8 + carryBit;
                 clearFlag(Flag::NEGATIVE);
-                setFlag(Flag::ZERO, m_reg.a == 0);
+                setFlag(Flag::ZERO, result == 0);
                 // wtf? https://gbdev.gg8.se/wiki/articles/ADC
                 setFlag(Flag::HALF_CARRY,
                         ((m_reg.a & u8) | ((m_reg.a ^ u8) & ~(m_reg.a + u8 + carryBit))) & 0b1000);
@@ -358,7 +401,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 clearFlags();
                 if (i8 >= 0) {
                     setFlag(Flag::HALF_CARRY, (m_reg.sp ^ i8 ^ result) & 0x10);
-                    setFlag(Flag::CARRY, int(m_reg.sp) + i8 > 0xFF);
+                    setFlag(Flag::CARRY, int(0xFF & m_reg.sp) + i8 > 0xFF);
                 } else {
                     setFlag(Flag::CARRY, int(m_reg.sp) + i8 < 0);
                     setFlag(Flag::HALF_CARRY, ((m_reg.sp & 0xF) - (-int(i8) & 0xF)) & 0x10);
@@ -366,27 +409,44 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 m_reg.hl = result;
                 break;
             }
-            case OpCode::LD_SP_HL: m_reg.sp = m_reg.hl; break;
+            case OpCode::LD_SP_HL:  m_reg.sp = m_reg.hl; break;
             case OpCode::ADD_SP_i8: {
                 const auto result = m_reg.sp + i8;
                 setFlag(Flag::ZERO, result == 0);
                 clearFlag(Flag::NEGATIVE);
                 if (i8 >= 0) {
                     setFlag(Flag::HALF_CARRY, (m_reg.sp ^ i8 ^ result) & 0x10);
-                    setFlag(Flag::CARRY, int(m_reg.sp) + i8 > 0xFF);
+                    setFlag(Flag::CARRY, int(0xFF & m_reg.sp) + i8 > 0xFF);
                 } else {
-                    setFlag(Flag::CARRY, int(m_reg.sp) + i8 < 0);
+                    setFlag(Flag::CARRY, int(0xFF & m_reg.sp) + i8 < 0);
                     setFlag(Flag::HALF_CARRY, ((m_reg.sp & 0xF) - (-int(i8) & 0xF)) & 0x10);
                 }
                 m_reg.sp = result;
                 break;
             }
-            default:               EZ_FAIL("not implemented: {}", +oc);
+            case OpCode::SBC_A_u8: {
+                const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0;
+                const auto valSubtracted = u8 - carryBit;
+                const auto result = m_reg.a - valSubtracted;
+                setFlag(Flag::NEGATIVE);
+                setFlag(Flag::ZERO, result == 0);
+                setFlag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (valSubtracted & 0xF)) & 0x10);
+                setFlag(Flag::CARRY, m_reg.a < valSubtracted);
+                m_reg.a = result;
+                break;
+            }
+            case OpCode::LD_A__C_: {
+                m_reg.a = readAddr(0xFF00 + m_reg.c);
+                break;
+            }
+            default: EZ_FAIL("not implemented: {}", +oc);
         }
     }
     if (branched) {
         assert(jumpAddr);
-        log_info("Took branch to {:#06x}", *jumpAddr);
+        if (m_settings.m_logEnable) {
+            log_info("Took branch to {:#06x}", *jumpAddr);
+        }
     }
 
     const auto cycles = branched ? info.m_cyclesIfBranch : info.m_cycles;
@@ -445,10 +505,22 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
             break;
         }
         case 0b10011: // sbc a, r8
-            EZ_FAIL("not implemented");
+        {
+            const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0;
+            const auto valSubtracted = readR8(r8) - carryBit;
+            const auto result = m_reg.a - valSubtracted;
+            setFlag(Flag::NEGATIVE);
+            setFlag(Flag::ZERO, result == 0);
+            setFlag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (valSubtracted & 0xF)) & 0x10);
+            setFlag(Flag::CARRY, m_reg.a < valSubtracted);
+            m_reg.a = result;
             break;
+        }
         case 0b10100: // and a, r8
-            EZ_FAIL("not implemented");
+            m_reg.a &= readR8(r8);
+            clearFlags();
+            setFlag(Flag::ZERO, m_reg.a == 0);
+            setFlag(Flag::HALF_CARRY);
             break;
         case 0b10101: // xor a, r8
             m_reg.a ^= readR8(r8);
@@ -623,7 +695,12 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
                 break;
             }
             case OpCode::STOP_u8: {
-                m_stopMode = true;
+                if(readAddr(0xFF4D) & 0b1){
+                    // KEY1 register bit 0 set while stop doubles clock speed on GBC
+                    log_warn("GBC Speed toggle ignored");
+                } else {
+                    m_stopMode = true;
+                }
                 break;
             }
             case OpCode::DAA: {
@@ -650,6 +727,24 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
                 clearFlag(Flag::HALF_CARRY);
                 clearFlag(Flag::NEGATIVE);
                 setFlag(Flag::ZERO, m_reg.a == 0);
+                break;
+            }
+            case OpCode::CPL: {
+                m_reg.a = ~m_reg.a;
+                setFlag(Flag::NEGATIVE);
+                setFlag(Flag::HALF_CARRY);
+                break;
+            }
+            case OpCode::SCF: {
+                setFlag(Flag::CARRY);
+                clearFlag(Flag::HALF_CARRY);
+                clearFlag(Flag::NEGATIVE);
+                break;
+            }
+            case OpCode::CCF: {
+                setFlag(Flag::CARRY, !getFlag(Flag::CARRY));
+                clearFlag(Flag::HALF_CARRY);
+                clearFlag(Flag::NEGATIVE);
                 break;
             }
             default: EZ_FAIL("not implemented"); break;
@@ -714,6 +809,10 @@ bool Emulator::tick() {
     }
 
     if (m_stopMode) {
+        if (m_settings.m_autoUnStop) {
+            log_warn("Auto-unstopping");
+            m_stopMode = false;
+        }
         // check buttons?
         return m_shouldExit;
     }
