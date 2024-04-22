@@ -399,28 +399,19 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             case OpCode::LD_HL_SPplus: {
                 const auto result = m_reg.sp + i8;
                 clearFlags();
-                if (i8 >= 0) {
-                    setFlag(Flag::HALF_CARRY, (m_reg.sp ^ i8 ^ result) & 0x10);
-                    setFlag(Flag::CARRY, int(0xFF & m_reg.sp) + i8 > 0xFF);
-                } else {
-                    setFlag(Flag::CARRY, int(m_reg.sp) + i8 < 0);
-                    setFlag(Flag::HALF_CARRY, ((m_reg.sp & 0xF) - (-int(i8) & 0xF)) & 0x10);
-                }
+                // flags are set using unsigned byte, even though result is signed
+                setFlag(Flag::HALF_CARRY, (m_reg.sp ^ u8 ^ result) & 0x10);
+                setFlag(Flag::CARRY, int(0xFF & m_reg.sp) + u8 > 0xFF);
                 m_reg.hl = result;
                 break;
             }
             case OpCode::LD_SP_HL:  m_reg.sp = m_reg.hl; break;
             case OpCode::ADD_SP_i8: {
                 const auto result = m_reg.sp + i8;
-                setFlag(Flag::ZERO, result == 0);
-                clearFlag(Flag::NEGATIVE);
-                if (i8 >= 0) {
-                    setFlag(Flag::HALF_CARRY, (m_reg.sp ^ i8 ^ result) & 0x10);
-                    setFlag(Flag::CARRY, int(0xFF & m_reg.sp) + i8 > 0xFF);
-                } else {
-                    setFlag(Flag::CARRY, int(0xFF & m_reg.sp) + i8 < 0);
-                    setFlag(Flag::HALF_CARRY, ((m_reg.sp & 0xF) - (-int(i8) & 0xF)) & 0x10);
-                }
+                clearFlags();
+                // flags are set using unsigned byte, even though result is signed
+                setFlag(Flag::HALF_CARRY, (m_reg.sp ^ u8 ^ result) & 0x10);
+                setFlag(Flag::CARRY, int(0xFF & m_reg.sp) + u8 > 0xFF);
                 m_reg.sp = result;
                 break;
             }
