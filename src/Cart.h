@@ -36,6 +36,9 @@ enum class CartType : uint8_t {
 
 class Cart {
   public:
+    friend class Tester;
+    friend class Gui;
+
     Cart(const fs::path& path);
     Cart(const uint8_t* data, size_t len);
 

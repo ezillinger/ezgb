@@ -15,20 +15,33 @@ void Gui::updateRomList() {
     std::sort(m_romsAvail.begin(), m_romsAvail.end());
 }
 
-void Gui::updateOpCache() { 
-    // todo, support running code from memory
-    const auto lastMemAddr = 0x8000; // last addr in cart
+void Gui::updateOpCache() {
     m_opCache.clear();
-    auto isPrefixedOffset = -1; // when 0 the instr is prefixed
-    for (int lastOpSize, addr = 0; addr < lastMemAddr; addr += lastOpSize) {
-        auto opByte = m_state.m_emu->readAddr(addr);
-        if(opByte == +OpCode::PREFIX){
-            isPrefixedOffset = 1;
+    // cart and wram
+    for (const auto& range : {iRange{0, 0x8000}, iRange{0xC000, 0xE000}}) {
+        auto isPrefixedOffset = -1; // when 0 the instr is prefixed
+        for (int lastOpSize, addr = range.m_min; addr < range.m_max; addr += lastOpSize) {
+            auto opByte = m_state.m_emu->readAddr(addr);
+            if (opByte == +OpCode::PREFIX) {
+                isPrefixedOffset = 1;
+            }
+            const auto info = isPrefixedOffset == 0 ? getOpCodeInfoPrefixed(opByte)
+                                                    : getOpCodeInfoUnprefixed(opByte);
+            m_opCache.emplace_back(addr, info);
+            lastOpSize = info.m_size;
+            --isPrefixedOffset;
         }
-        const auto info = isPrefixedOffset == 0 ? getOpCodeInfoPrefixed(opByte) : getOpCodeInfoUnprefixed(opByte);
-        m_opCache.emplace_back(addr, info);
-        lastOpSize = info.m_size;
-        --isPrefixedOffset;
+    }
+}
+
+void Gui::handleKeyboard() {
+    if(ImGui::IsKeyPressed(ImGuiKey_N)){
+        if(m_state.m_isPaused){
+            m_state.m_singleStep = true;
+        }
+    }
+    if(ImGui::IsKeyPressed(ImGuiKey_Space)){
+        m_state.m_isPaused = !m_state.m_isPaused;
     }
 }
 
@@ -51,6 +64,7 @@ void Gui::drawToolbar() {
             if (ImGui::MenuItem("Reset")) {
                 const auto settingsCopy = m_state.m_emu->m_settings;
                 m_state.m_emu = std::make_unique<Emulator>(*m_state.m_cart, settingsCopy);
+                clearCache();
             }
             if (ImGui::BeginMenu("Load ROM...")) {
                 if (ImGui::MenuItem("Refresh")) {
@@ -62,6 +76,7 @@ void Gui::drawToolbar() {
                         const auto settingsCopy = m_state.m_emu->m_settings;
                         m_state.m_cart = std::make_unique<Cart>(romPath);
                         m_state.m_emu = std::make_unique<Emulator>(*m_state.m_cart, settingsCopy);
+                        clearCache();
                     }
                 }
                 ImGui::EndMenu();
@@ -128,9 +143,18 @@ void Gui::drawRegisters() {
                         .c_str());
 
         ImGui::Checkbox("Stop Mode", &m_state.m_emu->m_stopMode);
+        auto brMapped = m_state.m_emu->m_io.isBootromMapped();
+        ImGui::Checkbox("Bootrom Mapped", &brMapped);
+
+        if (ImGui::CollapsingHeader("Cart")) {
+            ImGui::LabelText("Size", "{}"_format(m_state.m_cart->m_sizeBytes).c_str());
+            ImGui::LabelText("Type", "{}"_format(+m_state.m_cart->m_cartType).c_str());
+        }
     }
     ImGui::End();
 }
+
+void Gui::clearCache() { m_opCache.clear(); }
 
 void Gui::drawSettings() {
     auto& emu = *m_state.m_emu;
@@ -139,10 +163,12 @@ void Gui::drawSettings() {
         ImGui::Checkbox("Auto Un-Stop", &emu.m_settings.m_autoUnStop);
         ImGui::Checkbox("Log", &emu.m_settings.m_logEnable);
         ImGui::Checkbox("No Wait", &emu.m_settings.m_runAsFastAsPossible);
-        ImGui::DragInt("PC Break Addr", &emu.m_settings.m_breakOnPC, 1.0f, -1, INT16_MAX, "%04x");
-        ImGui::DragInt("OC Break", &emu.m_settings.m_breakOnOpCode, 1.0f, -1, INT16_MAX, "%04x");
-        ImGui::DragInt("OC Break Prefixed", &emu.m_settings.m_breakOnOpCodePrefixed, 1.0f, -1,
-                       INT16_MAX, "%04x");
+        ImGui::DragInt("PC Break Addr", &m_state.m_debugSettings.m_breakOnPC, 1.0f, -1, INT16_MAX,
+                       "%04x");
+        ImGui::DragInt("OC Break", &m_state.m_debugSettings.m_breakOnOpCode, 1.0f, -1, INT16_MAX,
+                       "%04x");
+        ImGui::DragInt("OC Break Prefixed", &m_state.m_debugSettings.m_breakOnOpCodePrefixed, 1.0f,
+                       -1, INT16_MAX, "%04x");
 
         ImGui::Separator();
     }
@@ -172,19 +198,20 @@ void Gui::drawInstructions() {
         if (ImGui::Button("Jump to PC") || m_followPC) {
             const auto lb =
                 std::lower_bound(m_opCache.begin(), m_opCache.end(), m_state.m_emu->m_reg.pc,
-                                 [](const OpLine& line,int addr) { return line.m_addr < addr; });
+                                 [](const OpLine& line, int addr) { return line.m_addr < addr; });
             scrollToLine = lb - m_opCache.begin();
         }
-        const auto numCols = 3;
+        const auto numCols = 4;
         if (ImGui::BeginTable("Memory View Table", numCols, ImGuiTableFlags_ScrollY)) {
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_None);
             ImGui::TableSetupColumn("OpCode", ImGuiTableColumnFlags_None);
+            ImGui::TableSetupColumn("Mnemonic", ImGuiTableColumnFlags_None);
             ImGui::TableSetupColumn("Data", ImGuiTableColumnFlags_None);
             ImGui::TableHeadersRow();
             ImGuiListClipper clipper;
             clipper.Begin(m_opCache.size());
-            
+
             while (clipper.Step()) {
                 for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++) {
                     ImGui::TableNextRow();
@@ -196,28 +223,55 @@ void Gui::drawInstructions() {
                     ImGui::Text("{:04x}"_format(ocLine.m_addr).c_str());
 
                     ImGui::TableNextColumn();
-                    ImGui::Text("{} {} {}"_format(ocLine.m_info.m_mnemonic, ocLine.m_info.m_operandName1, ocLine.m_info.m_operandName2).c_str());
+                    ImGui::Text("{}{:02x}"_format(ocLine.m_info.m_prefixed ? "cb " : "", ocLine.m_info.m_addr).c_str());
 
                     ImGui::TableNextColumn();
-                    if(strcmp(ocLine.m_info.m_operandName1,"u16") == 0 || strcmp(ocLine.m_info.m_operandName2,"u16") == 0){
+                    ImGui::Text("{} {} {}"_format(ocLine.m_info.m_mnemonic,
+                                                  ocLine.m_info.m_operandName1,
+                                                  ocLine.m_info.m_operandName2)
+                                    .c_str());
+
+                    ImGui::TableNextColumn();
+                    const auto hasOperand = [&](const char* txt) {
+                        return strcmp(ocLine.m_info.m_operandName1, txt) == 0 ||
+                               strcmp(ocLine.m_info.m_operandName2, txt) == 0;
+                    };
+                    auto operandText = std::string();
+                    if (hasOperand("u16")) {
                         const auto u16 = m_state.m_emu->readAddr16(ocLine.m_addr + 1);
-                        ImGui::Text("u16={:02x}"_format(u16).c_str());
-                    }
-                    else if(strcmp(ocLine.m_info.m_operandName1,"a16") == 0 || strcmp(ocLine.m_info.m_operandName2,"a16") == 0){
+                        operandText += "u16={:04x} "_format(u16);
+                    } 
+                    if (hasOperand("a16") || hasOperand("(a16)")) {
                         const auto u16 = m_state.m_emu->readAddr16(ocLine.m_addr + 1);
-                        ImGui::Text("a16={:02x}"_format(u16).c_str());
+                        operandText += "a16={:04x} "_format(u16);
+                    } 
+                    if (hasOperand("a8") || hasOperand("(a8)")) {
+                        const auto a8 = 0xFF00 + m_state.m_emu->readAddr(ocLine.m_addr + 1);
+                        operandText += "a8={:04x} "_format(a8);
                     }
-                    else if(strcmp(ocLine.m_info.m_operandName1,"i8") == 0 || strcmp(ocLine.m_info.m_operandName2,"i8") == 0){
-                        const auto i8 = static_cast<int8_t>(m_state.m_emu->readAddr(ocLine.m_addr + 1));
-                        ImGui::Text("i8={:02x}"_format(i8).c_str());
+                    if (hasOperand("(a16)")) {
+                        const auto u16 = m_state.m_emu->readAddr16(ocLine.m_addr + 1);
+                        const auto a16deref = m_state.m_emu->readAddr(u16);
+                        operandText += "(a16)={:02x} "_format(a16deref);
+                    } 
+                    if (hasOperand("(a8)")) {
+                        const auto a8 = 0xFF00 + m_state.m_emu->readAddr(ocLine.m_addr + 1);
+                        const auto a8deref = m_state.m_emu->readAddr(a8);
+                        operandText += "(a8)={:02x} "_format(a8deref);
                     }
-                    else if(strcmp(ocLine.m_info.m_operandName1,"u8") == 0 || strcmp(ocLine.m_info.m_operandName2,"u8") == 0){
+                    if (hasOperand("i8")) {
+                        const auto i8 =
+                            static_cast<int8_t>(m_state.m_emu->readAddr(ocLine.m_addr + 1));
+                        operandText += "i8={:02x} "_format(i8);
+                    } 
+                    if (hasOperand("u8")) {
                         const auto u8 = m_state.m_emu->readAddr(ocLine.m_addr + 1);
-                        ImGui::Text("u8={:02x}"_format(u8).c_str());
+                        operandText += "u8={:02x} "_format(u8);
                     }
+                    ImGui::Text(operandText.c_str());
                 }
             }
-            if(scrollToLine){
+            if (scrollToLine) {
                 ImGui::SetScrollY(std::max(*scrollToLine - 2, 0) * clipper.ItemsHeight);
             }
         }

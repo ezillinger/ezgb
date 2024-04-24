@@ -67,9 +67,8 @@ template <typename... TArgs> using log_warn = log<LogLevel::WARN, TArgs...>;
 template <typename... TArgs> using log_error = log<LogLevel::ERROR, TArgs...>;
 template <typename... TArgs> using fail = log<LogLevel::CRITICAL, TArgs...>;
 
-// sets from == to, returns true if changes 
-template <typename T>
-inline bool update(T& from, T&& to){
+// sets from == to, returns true if changes
+template <typename T> inline bool update(T& from, T&& to) {
     const auto changed = from != to;
     from = to;
     return changed;
@@ -83,6 +82,27 @@ inline auto operator"" _format(const char* s, size_t n) {
 
 template <typename T>
 concept is_enum = std::is_enum_v<T>;
+
+template <typename T> struct Range {
+    constexpr Range() : Range(T{}, T{}) {}
+    constexpr Range(T&& a, T&& b) : m_min(std::min(a, b)), m_max(std::max(a, b)) {}
+    constexpr T width() const { return m_max - m_min; }
+    constexpr void extend(const T&& v) {
+        m_min = std::min(m_min, v);
+        m_max = std::max(m_max, v);
+    }
+    constexpr void extend(const Range<T>& other) {
+        m_min = std::min(m_min, other.m_min);
+        m_max = std::max(m_max, other.m_max);
+    }
+    
+    T m_min;
+    T m_max;
+};
+
+using iRange = Range<int>;
+using fRange = Range<float>;
+using dRange = Range<double>;
 
 // unary + operator converts enum to underlying type
 template <typename T>

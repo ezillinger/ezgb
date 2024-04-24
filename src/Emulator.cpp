@@ -116,10 +116,6 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
 
     const auto opByte = static_cast<uint8_t>(pcData & 0x000000FF);
 
-    if (opByte == m_settings.m_breakOnOpCodePrefixed) {
-        EZ_DEBUG_BREAK();
-    }
-
     const auto top2Bits = (opByte & 0b11000000) >> 6;
     const auto top5Bits = (opByte & 0b11111000) >> 3;
     const auto bitIndex = (opByte & 0b00111000) >> 3;
@@ -763,10 +759,6 @@ InstructionResult Emulator::handleInstruction(uint32_t pcData) {
     const auto info = getOpCodeInfoUnprefixed(+oc);
     maybe_log_opcode(info);
 
-    if (+oc == m_settings.m_breakOnOpCode) {
-        EZ_DEBUG_BREAK();
-    }
-
     const auto block = (+oc & 0b11000000) >> 6;
     switch (block) {
         case 0b00: return handleInstructionBlock0(pcData); break;
@@ -787,14 +779,10 @@ void Emulator::clearFlag(Flag flag) { m_reg.f &= ~(0x1 << +flag); }
 
 void Emulator::clearFlags() { m_reg.f = 0x00; }
 
-bool Emulator::tick() {
-
-    if (m_reg.pc == m_settings.m_breakOnPC) {
-        EZ_DEBUG_BREAK();
-    }
+void Emulator::tick() {
 
     if (!m_settings.m_runAsFastAsPossible && !m_tickStopwatch.lapped(MASTER_CLOCK_PERIOD)) {
-        return m_shouldExit;
+        return;
     }
 
     if (m_stopMode) {
@@ -803,7 +791,7 @@ bool Emulator::tick() {
             m_stopMode = false;
         }
         // check buttons?
-        return m_shouldExit;
+        return;
     }
 
     if (m_cyclesToWait == 0 || m_settings.m_runAsFastAsPossible) {
@@ -840,7 +828,7 @@ bool Emulator::tick() {
         m_ppu.tick();
     }
 
-    return m_shouldExit;
+    return;
 }
 
 AddrInfo Emulator::getAddressInfo(uint16_t addr) const {

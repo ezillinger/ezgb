@@ -20,9 +20,6 @@ struct EmuSettings {
     bool m_logEnable = false;
     bool m_autoUnStop = false;
     bool m_skipBootROM = true;
-    int32_t m_breakOnPC = -1;
-    int32_t m_breakOnOpCode = -1;
-    int32_t m_breakOnOpCodePrefixed = -1;
 };
 
 enum class MemoryBank {
@@ -96,7 +93,16 @@ class Emulator {
     friend class Gui;
 
     Emulator(Cart& cart, EmuSettings = {});
-    bool tick();
+    void tick();
+
+    uint16_t getPC() const { return m_reg.pc; }
+    OpCodeInfo getCurrentOpCode() const {
+        const auto opByte = readAddr(m_reg.pc);
+        return m_prefix ? getOpCodeInfoPrefixed(opByte) : getOpCodeInfoUnprefixed(opByte);
+    }
+
+    static constexpr auto MASTER_CLOCK_PERIOD = 239ns;
+    static constexpr int MASTER_TICKS_PER_INSTRUCTION_TICK = 4;
 
   private:
     AddrInfo getAddressInfo(uint16_t address) const;
@@ -141,11 +147,8 @@ class Emulator {
 
     uint16_t m_cyclesToWait = 0;
 
-    static constexpr auto MASTER_CLOCK_PERIOD = 239ns;
-
     Stopwatch m_tickStopwatch{};
 
-    bool m_shouldExit = false;
     bool m_stopMode = false;
     bool m_prefix = false; // was last instruction CB prefix
     bool m_interruptsEnabled = false;

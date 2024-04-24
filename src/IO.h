@@ -14,7 +14,7 @@ class IO {
     static constexpr size_t IO_BYTES = 128;
 
     bool isBootromMapped() const { return !m_reg.m_bootromDisabled; };
-    void setBootromMapped(bool val) { m_reg.m_bootromDisabled = val; }
+    void setBootromMapped(bool val) { m_reg.m_bootromDisabled = !val; }
 
 
     void writeAddr(uint16_t addr, uint8_t val);
