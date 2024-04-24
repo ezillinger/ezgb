@@ -26,6 +26,7 @@ class Gui {
     void updateOpCache();
 
     void clearCache();
+    void resetEmulator();
 
     AppState& m_state;
     std::vector<fs::path> m_romsAvail;

@@ -6,7 +6,8 @@
 namespace ez {
 
 struct DebugSettings {
-    int m_breakOnPC = 0xc000;
+    //int m_breakOnPC = 0xc000;
+    int m_breakOnPC = -1;
     int m_breakOnOpCode = -1;
     int m_breakOnOpCodePrefixed = -1;
 };

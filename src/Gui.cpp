@@ -35,6 +35,10 @@ void Gui::updateOpCache() {
 }
 
 void Gui::handleKeyboard() {
+
+    if(ImGui::IsKeyPressed(ImGuiKey_R)){
+        resetEmulator();
+    }
     if(ImGui::IsKeyPressed(ImGuiKey_N)){
         if(m_state.m_isPaused){
             m_state.m_singleStep = true;
@@ -62,9 +66,7 @@ void Gui::drawToolbar() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Reset")) {
-                const auto settingsCopy = m_state.m_emu->m_settings;
-                m_state.m_emu = std::make_unique<Emulator>(*m_state.m_cart, settingsCopy);
-                clearCache();
+                resetEmulator();
             }
             if (ImGui::BeginMenu("Load ROM...")) {
                 if (ImGui::MenuItem("Refresh")) {
@@ -73,10 +75,8 @@ void Gui::drawToolbar() {
                 ImGui::Separator();
                 for (auto& romPath : m_romsAvail) {
                     if (ImGui::MenuItem(romPath.c_str())) {
-                        const auto settingsCopy = m_state.m_emu->m_settings;
                         m_state.m_cart = std::make_unique<Cart>(romPath);
-                        m_state.m_emu = std::make_unique<Emulator>(*m_state.m_cart, settingsCopy);
-                        clearCache();
+                        resetEmulator();
                     }
                 }
                 ImGui::EndMenu();
@@ -155,6 +155,12 @@ void Gui::drawRegisters() {
 }
 
 void Gui::clearCache() { m_opCache.clear(); }
+
+void Gui::resetEmulator() {
+    const auto settingsCopy = m_state.m_emu->m_settings;
+    m_state.m_emu = std::make_unique<Emulator>(*m_state.m_cart, settingsCopy);
+    clearCache();
+}
 
 void Gui::drawSettings() {
     auto& emu = *m_state.m_emu;

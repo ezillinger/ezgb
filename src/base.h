@@ -39,6 +39,7 @@ template <typename TTo, typename TFrom> inline TTo checked_cast(const TFrom&& fr
 namespace fs = std::filesystem;
 namespace chrono = std::chrono;
 using namespace std::literals::chrono_literals;
+using namespace std::literals;
 
 enum class LogLevel { INFO, WARN, ERROR, CRITICAL };
 

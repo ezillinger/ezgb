@@ -11,9 +11,14 @@ int main() {
     t.test_all();
 
     log_info("CurrentDir: {}", fs::current_path().c_str());
-    // const auto romPath = "./roms/cpu_instrs.gb";
-    // const auto romPath = "./roms/tetris.gb";
-    const auto romPath = "./roms/07-jr,jp,call,ret,rst.gb";
+    auto romStartsWith = "09";
+    auto romPath = "./roms/cpu_instrs.gb"s;
+    for(auto& romFile : fs::directory_iterator("./roms/")){
+        if(romFile.path().filename().string().starts_with(romStartsWith)){
+            romPath = romFile.path().string();
+            break;
+        }
+    }
 
     auto state = AppState{};
     state.m_cart = std::make_unique<Cart>(romPath);
