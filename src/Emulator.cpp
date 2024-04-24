@@ -1,4 +1,5 @@
 #include "Emulator.h"
+#include "MiscOps.h"
 
 namespace ez {
 
@@ -145,19 +146,6 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
             writeR8(r8, readR8(r8) | (0b1 << bitIndex));
             break;
         case 0b00: {
-            /*/
-            case OpCode::RLCA: {
-                
-            }
-            case OpCode::RRCA: {
-                const auto bottomBit = m_reg.a & 0b1;
-                const auto topBit = getFlag(Flag::CARRY) ? 0b1000'0000 : 0;
-                m_reg.a = (m_reg.a >> 1) | topBit;
-                setFlag(Flag::CARRY, bottomBit);
-                clearFlag(Flag::HALF_CARRY);
-                break;
-            }
-            */
             switch (top5Bits) {
                 case 0b00000: // rlc r8
                 {
@@ -204,7 +192,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
                 case 0b00100: // sla r8
                 {
                     const auto r8val = readR8(r8);
-                    const auto result = r8val << 1;
+                    const uint8_t result = r8val << 1;
                     writeR8(r8, result);
                     clearFlags();
                     setFlag(Flag::ZERO, result == 0);
@@ -215,7 +203,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
                 {
                     const auto r8val = readR8(r8);
                     const auto topBit = 0b1000'0000 & r8val;
-                    const auto result = (r8val >> 1) | topBit;
+                    const uint8_t result = (r8val >> 1) | topBit;
                     writeR8(r8, result);
                     clearFlags();
                     setFlag(Flag::ZERO, result == 0);
@@ -275,6 +263,13 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
     bool branched = false;
     auto jumpAddr = std::optional<uint16_t>{};
 
+    const auto maybeDoJump = [&](bool condition) {
+        if (condition) {
+            jumpAddr = u16;
+            branched = true;
+        }
+    };
+
     const auto maybeDoCall = [&](bool condition, bool setBranched) {
         if (condition) {
             // todo, verify timing - different values on different sources
@@ -297,8 +292,18 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
         }
     };
 
+    const auto last3bits = +oc & 0b111;
     const auto last4bits = +oc & 0b1111;
-    if (last4bits == 0b0101) { // push r16stack
+    if(last3bits == 0b111){ // rst tgt3
+        const auto tgt3 = ((+oc & 0b00111000) >> 3) * 8;
+        if(oc == OpCode::RST_08h){
+            assert(tgt3 == 0x08);
+        }
+        m_reg.sp -= 2;
+        writeAddr16(m_reg.sp, m_reg.pc + info.m_size);
+        jumpAddr = tgt3;
+    }
+    else if (last4bits == 0b0101) { // push r16stack
         m_reg.sp -= sizeof(uint16_t);
         writeAddr16(m_reg.sp, readR16Stack(r16stack));
     } else if (last4bits == 0b0001) { // pop r16stack
@@ -342,16 +347,16 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 setFlag(Flag::HALF_CARRY);
                 break;
             case OpCode::ADD_A_u8: {
-                const auto result = m_reg.a + u8;
+                const uint8_t result = m_reg.a + u8;
                 setFlag(Flag::ZERO, result == 0);
                 clearFlag(Flag::NEGATIVE);
-                setFlag(Flag::HALF_CARRY, (((m_reg.a & 0xF) + (u8 & 0xF)) & 0x10) == 0x10);
-                setFlag(Flag::CARRY, int(m_reg.a) + u8 > 0xFF);
+                setFlag(Flag::HALF_CARRY, getFlagHalfCarryAdd(m_reg.a, u8));
+                setFlag(Flag::CARRY, getFlagCarryAdd(m_reg.a, u8));
                 m_reg.a = result;
                 break;
             }
             case OpCode::SUB_A_u8: {
-                const auto result = m_reg.a - u8;
+                const uint8_t result = m_reg.a - u8;
                 setFlag(Flag::ZERO, result == 0);
                 setFlag(Flag::NEGATIVE, true);
                 setFlag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (u8 & 0xF)) & 0x10);
@@ -367,7 +372,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             }
             case OpCode::ADC_A_u8: {
                 const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
-                const auto result = m_reg.a + u8 + carryBit;
+                const uint8_t result = m_reg.a + u8 + carryBit;
                 clearFlag(Flag::NEGATIVE);
                 setFlag(Flag::ZERO, result == 0);
                 // wtf? https://gbdev.gg8.se/wiki/articles/ADC
@@ -384,15 +389,12 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 setFlag(Flag::ZERO, m_reg.a == 0);
                 break;
             }
-            case OpCode::JP_NZ_a16: {
-                if (!getFlag(Flag::ZERO)) {
-                    jumpAddr = u16;
-                    branched = true;
-                }
-                break;
-            }
+            case OpCode::JP_NZ_a16: maybeDoJump(!getFlag(Flag::ZERO)); break; 
+            case OpCode::JP_Z_a16: maybeDoJump(getFlag(Flag::ZERO)); break; 
+            case OpCode::JP_C_a16: maybeDoJump(getFlag(Flag::CARRY)); break; 
+            case OpCode::JP_NC_a16: maybeDoJump(!getFlag(Flag::CARRY)); break; 
             case OpCode::LD_HL_SPplus: {
-                const auto result = m_reg.sp + i8;
+                const uint16_t result = m_reg.sp + i8;
                 clearFlags();
                 // flags are set using unsigned byte, even though result is signed
                 setFlag(Flag::HALF_CARRY, (m_reg.sp ^ u8 ^ result) & 0x10);
@@ -402,7 +404,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             }
             case OpCode::LD_SP_HL:  m_reg.sp = m_reg.hl; break;
             case OpCode::ADD_SP_i8: {
-                const auto result = m_reg.sp + i8;
+                const uint16_t result = m_reg.sp + i8;
                 clearFlags();
                 // flags are set using unsigned byte, even though result is signed
                 setFlag(Flag::HALF_CARRY, (m_reg.sp ^ u8 ^ result) & 0x10);
@@ -413,7 +415,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             case OpCode::SBC_A_u8: {
                 const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0;
                 const auto valSubtracted = u8 - carryBit;
-                const auto result = m_reg.a - valSubtracted;
+                const uint8_t result = m_reg.a - valSubtracted;
                 setFlag(Flag::NEGATIVE);
                 setFlag(Flag::ZERO, result == 0);
                 setFlag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (valSubtracted & 0xF)) & 0x10);
@@ -423,6 +425,12 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             }
             case OpCode::LD_A__C_: {
                 m_reg.a = readAddr(0xFF00 + m_reg.c);
+                break;
+            }
+            case OpCode::RETI: {
+                jumpAddr = readAddr16(m_reg.sp);
+                m_reg.sp += 2;
+                m_reg.ie = 0xFF;
                 break;
             }
             default: EZ_FAIL("not implemented: {}", +oc);
@@ -457,11 +465,11 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
         case 0b10000: // add a, r8
         {
             const auto r8val = readR8(r8);
-            const auto result = m_reg.a + r8val;
+            const uint8_t result = m_reg.a + r8val;
             setFlag(Flag::ZERO, result == 0);
             setFlag(Flag::NEGATIVE, false);
-            setFlag(Flag::HALF_CARRY, (m_reg.a ^ r8val ^ result) & 0x10);
-            setFlag(Flag::CARRY, int(m_reg.a) + r8val > 0xFF);
+            setFlag(Flag::HALF_CARRY, getFlagHalfCarryAdd(m_reg.a, r8val));
+            setFlag(Flag::CARRY, getFlagCarryAdd(m_reg.a, r8val));
             m_reg.a = result;
             break;
         }
@@ -469,7 +477,7 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
         {
             const auto r8v = readR8(r8);
             const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
-            const auto result = m_reg.a + r8v + carryBit;
+            const uint8_t result = m_reg.a + r8v + carryBit;
             clearFlag(Flag::NEGATIVE);
             setFlag(Flag::ZERO, m_reg.a == 0);
             // wtf? https://gbdev.gg8.se/wiki/articles/ADC
@@ -482,7 +490,7 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
         case 0b10010: // sub a, r8
         {
             const auto r8val = readR8(r8);
-            const auto result = m_reg.a - r8val;
+            const uint8_t result = m_reg.a - r8val;
             setFlag(Flag::ZERO, result == 0);
             setFlag(Flag::NEGATIVE, true);
             setFlag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (r8val & 0xF)) & 0x10);
@@ -494,7 +502,7 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
         {
             const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0;
             const auto valSubtracted = readR8(r8) - carryBit;
-            const auto result = m_reg.a - valSubtracted;
+            const uint8_t result = m_reg.a - valSubtracted;
             setFlag(Flag::NEGATIVE);
             setFlag(Flag::ZERO, result == 0);
             setFlag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (valSubtracted & 0xF)) & 0x10);
@@ -521,7 +529,7 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
         case 0b10111: // cp a, r8
         {
             const auto r8val = readR8(r8);
-            const auto result = m_reg.a - r8val;
+            const uint8_t result = m_reg.a - r8val;
             setFlag(Flag::ZERO, result == 0);
             setFlag(Flag::NEGATIVE, true);
             setFlag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (r8val & 0xF)) & 0x10);
@@ -616,7 +624,7 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
         writeR16(r16, readR16(r16) - 1);
     } else if (is_add_hl_r16) {
         const auto r16v = readR16(r16);
-        const auto result = m_reg.hl + r16v;
+        const uint16_t result = m_reg.hl + r16v;
         clearFlag(Flag::NEGATIVE);
         setFlag(Flag::CARRY, (uint32_t(m_reg.hl) + r16v) > 0xFFFF);
         setFlag(Flag::HALF_CARRY, (m_reg.hl ^ r16v ^ result) & 0x1000);
