@@ -60,6 +60,7 @@ namespace ez {
         success &= test_inc_dec();
         success &= test_push_pop();
         success &= test_io_reg();
+        success &= test_call_ret();
 
         if(success){
             log_info("All tests passed!");
@@ -103,6 +104,22 @@ namespace ez {
             EZ_ASSERT(emu.getFlag(flagSet));
         }
         EZ_ASSERT((emu.m_reg.f & 0x0F) == 0);
+
+        return true;
+    }
+
+    bool Tester::test_call_ret() { 
+        auto emu = make_emulator();
+
+        auto makeOpBytesU16 = [](OpCode oc, uint16_t u16) { return uint32_t(+oc) | uint32_t(u16) << 8; };
+        auto makeOpBytes = [](OpCode oc) { return uint32_t(+oc); };
+        emu.m_reg.sp = 0xFFFE;
+        emu.m_reg.pc = 0xABCD;
+        auto result = emu.handleInstruction(makeOpBytesU16(OpCode::CALL_a16, 0x1234));
+        EZ_ASSERT(result.m_newPC == 0x1234);
+        result = emu.handleInstruction(makeOpBytes(OpCode::RET));
+        EZ_ASSERT(result.m_newPC == 0xABCD + 3);
+        EZ_ASSERT(emu.m_reg.sp == 0xFFFE);
 
         return true;
     }

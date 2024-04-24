@@ -125,7 +125,6 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
     const auto bitIndex = (opByte & 0b00111000) >> 3;
 
     const auto info = getOpCodeInfoPrefixed(opByte);
-    m_lastOpCodeInfo = info;
 
     auto r8 = R8{opByte & 0b00000111};
 
@@ -257,7 +256,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
         }
     }
 
-    const auto cycles = branched ? info.m_cyclesIfBranch : info.m_cycles;
+    const auto cycles = branched ? *info.m_cyclesIfBranch : info.m_cycles;
     const auto newPC = jumpAddr ? *jumpAddr : checked_cast<uint16_t>(m_reg.pc + info.m_size);
     return InstructionResult{
         newPC,
@@ -440,7 +439,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
         }
     }
 
-    const auto cycles = branched ? info.m_cyclesIfBranch : info.m_cycles;
+    const auto cycles = branched ? *info.m_cyclesIfBranch : info.m_cycles;
     const auto newPC = jumpAddr ? *jumpAddr : checked_cast<uint16_t>(m_reg.pc + info.m_size);
     return InstructionResult{
         newPC,
@@ -748,7 +747,7 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
             log_info("Took branch to {:#06x}", *jumpAddr);
         }
     }
-    const auto cycles = branched ? info.m_cyclesIfBranch : info.m_cycles;
+    const auto cycles = branched ? *info.m_cyclesIfBranch : info.m_cycles;
     const auto newPC = jumpAddr.value_or(checked_cast<uint16_t>(m_reg.pc + info.m_size));
     return InstructionResult{
         newPC,
@@ -762,7 +761,6 @@ InstructionResult Emulator::handleInstruction(uint32_t pcData) {
 
     const auto oc = OpCode{static_cast<uint8_t>(pcData & 0x000000FF)};
     const auto info = getOpCodeInfoUnprefixed(+oc);
-    m_lastOpCodeInfo = info;
     maybe_log_opcode(info);
 
     if (+oc == m_settings.m_breakOnOpCode) {
@@ -808,7 +806,7 @@ bool Emulator::tick() {
         return m_shouldExit;
     }
 
-    if (m_cyclesToWait == 0) {
+    if (m_cyclesToWait == 0 || m_settings.m_runAsFastAsPossible) {
         const auto word0 = readAddr16(m_reg.pc);
         const auto word1 = readAddr16(m_reg.pc + 2);
         const auto pcData = (uint32_t(word1) << 16) | (uint32_t(word0));

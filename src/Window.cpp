@@ -1,4 +1,4 @@
-#include "GuiWindow.h"
+#include "Window.h"
 
 #include "libs/imgui/imgui.h"
 #include "libs/imgui/backends/imgui_impl_opengl3.h"
@@ -6,7 +6,7 @@
 
 namespace ez {
 
-GuiWindow::GuiWindow(const char* title, int width, int height) {
+Window::Window(const char* title, int width, int height) {
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
         EZ_FAIL("Failed to init SDL: {}\n", SDL_GetError());
@@ -92,14 +92,27 @@ GuiWindow::GuiWindow(const char* title, int width, int height) {
     // "fonts/" folder. See Makefile.emscripten for details.
     // io.Fonts->AddFontDefault();
     // io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
-    // io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
+    ImFont* defaultFont = nullptr;
+    for (const auto& fontPath : std::filesystem::directory_iterator("./data/fonts")) {
+        if(fontPath.path().extension() == ".ttf"){
+            auto fontPtr = io.Fonts->AddFontFromFileTTF(fontPath.path().c_str(), 15.0f);
+            if(fontPath.path().string().find("Cousine") != std::string::npos){
+                defaultFont = fontPtr;
+            }
+        }
+        if(defaultFont){
+            io.FontDefault = defaultFont;
+        }
+        //io.Fonts->AddFontFromFileTTF("./data/fonts/ProggyClean.ttf", 15.0f);
+        //io.Fonts->AddFontFromFileTTF("./data/fonts/Roboto-Medium.ttf", 15.0f);
+    }
     // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
     // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
     // ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f,
     // nullptr, io.Fonts->GetGlyphRangesJapanese()); IM_ASSERT(font != nullptr);
 }
 
-GuiWindow::~GuiWindow() { 
+Window::~Window() { 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
@@ -110,7 +123,7 @@ GuiWindow::~GuiWindow() {
     SDL_Quit();
 }
 
-void GuiWindow::beginFrame() {
+void Window::beginFrame() {
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
@@ -132,7 +145,7 @@ void GuiWindow::beginFrame() {
         ImGui::NewFrame();
 }
 
-void GuiWindow::endFrame() {
+void Window::endFrame() {
          // Rendering
         ImGui::Render();
         auto& io = ImGui::GetIO();

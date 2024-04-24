@@ -9,11 +9,11 @@
 
 
 namespace ez {
-    class GuiWindow {
+    class Window {
     public:
-        GuiWindow(const char* title, int w = 1280, int h = 720);
-        ~GuiWindow();
-        GuiWindow(const GuiWindow&) = delete;
+        Window(const char* title, int w = 1280, int h = 720);
+        ~Window();
+        Window(const Window&) = delete;
 
         template <typename TFunc> 
         inline bool run(TFunc&& func) { 

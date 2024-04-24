@@ -67,6 +67,14 @@ template <typename... TArgs> using log_warn = log<LogLevel::WARN, TArgs...>;
 template <typename... TArgs> using log_error = log<LogLevel::ERROR, TArgs...>;
 template <typename... TArgs> using fail = log<LogLevel::CRITICAL, TArgs...>;
 
+// sets from == to, returns true if changes 
+template <typename T>
+inline bool update(T& from, T&& to){
+    const auto changed = from != to;
+    from = to;
+    return changed;
+}
+
 inline auto operator"" _format(const char* s, size_t n) {
     return [=](auto&&... args) {
         return std::vformat(std::string_view(s, n), std::make_format_args(args...));

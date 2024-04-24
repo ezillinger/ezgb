@@ -16,6 +16,7 @@ class Tester {
     bool test_inc_dec();
     bool test_push_pop();
     bool test_io_reg();
+    bool test_call_ret();
 
     std::unique_ptr<Cart> m_cart;
 };

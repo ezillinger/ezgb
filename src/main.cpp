@@ -1,7 +1,7 @@
 #include "Emulator.h"
 #include "Test.h"
-#include "GuiWindow.h"
-#include "EmuGui.h"
+#include "Window.h"
+#include "Gui.h"
 
 int main() {
     using namespace ez;
@@ -10,14 +10,17 @@ int main() {
     t.test_all();
 
     log_info("CurrentDir: {}", fs::current_path().c_str());
-    const auto romPath = "./roms/cpu_instrs.gb";
+    //const auto romPath = "./roms/cpu_instrs.gb";
     //const auto romPath = "./roms/tetris.gb";
-    auto cart = std::make_unique<Cart>( romPath );
-    auto emu = std::make_unique<Emulator>(*cart);
-    auto state = AppState{std::move(cart), std::move(emu)};
+    const auto romPath = "./roms/07-jr,jp,call,ret,rst.gb";
 
-    auto window = GuiWindow{"CoronaBoy"};
-    auto gui = EmuGui(state);
+    auto state = AppState{};
+    state.m_isPaused = true;
+    state.m_cart = std::make_unique<Cart>(romPath);
+    state.m_emu = std::make_unique<Emulator>(*state.m_cart);
+
+          auto window = Window{"CoronaBoy"};
+    auto gui = Gui(state);
     bool shouldExit = false;
 
     while (true) {
@@ -27,7 +30,16 @@ int main() {
             const auto frameTime = 16.6666ms;
             const auto timeToDraw = 0.1ms;
             while(sw.elapsed() < (frameTime - timeToDraw)){
-                shouldExit |= state.m_emu->tick();
+                if(state.m_isPaused){
+                    if(state.m_singleStep){
+                        shouldExit |= state.m_emu->tick();
+                        state.m_singleStep = false;
+                    }
+                    break;
+                }
+                else{
+                    shouldExit |= state.m_emu->tick();
+                }
             }
             gui.drawGui();
             shouldExit |= gui.shouldExit();

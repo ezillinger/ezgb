@@ -93,7 +93,7 @@ enum class Flag { ZERO = 7, NEGATIVE = 6, HALF_CARRY = 5, CARRY = 4 };
 class Emulator {
   public:
     friend class Tester;
-    friend class EmuGui;
+    friend class Gui;
 
     Emulator(Cart& cart, EmuSettings = {});
     bool tick();
@@ -151,8 +151,6 @@ class Emulator {
     bool m_interruptsEnabled = false;
     int m_pendingInterruptsEnableCount = 0;  // enable interrupts when reaches 0
     int m_pendingInterruptsDisableCount = 0; // ^ disable
-
-    OpCodeInfo m_lastOpCodeInfo;
 
     void maybe_log_registers() const;
     void maybe_log_opcode(const OpCodeInfo& oc) const;

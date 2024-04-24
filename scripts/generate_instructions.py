@@ -70,7 +70,7 @@ namespace ez {
         const char* m_mnemonic = "";
         int m_size = 0;
         int m_cycles = 0;
-        int m_cyclesIfBranch = 0;
+        std::optional<int> m_cyclesIfBranch = {};
         FlagEffect m_flagZero = FlagEffect::NONE;
         FlagEffect m_flagSubtract = FlagEffect::NONE;
         FlagEffect m_flagHalfCarry = FlagEffect::NONE;
@@ -124,7 +124,7 @@ def generate_switch_case(prefixed: bool, oc: dict) -> str:
         assert(False)
 
     cyclesWo = oc["cycles"][0]
-    cyclesW = oc["cycles"][1] if len(oc["cycles"]) == 2 else 0
+    cyclesW = oc["cycles"][1] if len(oc["cycles"]) == 2 else "{}"
 
     caseTemplate = \
 f"""
