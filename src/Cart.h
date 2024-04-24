@@ -34,28 +34,47 @@ enum class CartType : uint8_t {
     HuC1_RAM_BATTERY = 0xFF,
 };
 
+struct MBC1State {
+    static constexpr size_t RAM_SIZE = 32 * 1024; // max possible size
+    uint8_t m_ramEnable = 0;
+    uint8_t m_romBankSelect = 0;
+    uint8_t m_ramBankSelect = 0;
+    uint8_t m_romRamModeSelect = 0;
+    std::vector<uint8_t> m_ram = std::vector<uint8_t>(RAM_SIZE);
+
+    bool isRamEnabled() const { return (m_ramEnable & 0x0A) == 0x0A; }
+};
+
 class Cart {
   public:
     friend class Tester;
     friend class Gui;
 
-    Cart(const fs::path& path);
     Cart(const uint8_t* data, size_t len);
+    static Cart loadFromDisk(const fs::path& path);
 
-    const uint8_t* data(uint16_t byteOffset) const;
-    uint8_t readAddr(uint16_t addr) const { return m_data[addr]; }
-    uint16_t readAddr16(uint16_t addr) const {
-        return *reinterpret_cast<const uint16_t*>(m_data.data() + addr);
-    };
+    uint8_t readAddr(uint16_t addr) const;
+    uint16_t readAddr16(uint16_t addr) const;
 
     void writeAddr(uint16_t addr, uint8_t val);
     void writeAddr16(uint16_t addr, uint16_t val);
 
-    bool isReadOnlyAddr(uint16_t addr);
+    static constexpr iRange ROM_RANGE = iRange{0x0000, 0x8000};
+    static constexpr iRange RAM_RANGE = iRange{0xA000, 0xC000};
+
+    static constexpr bool isValidAddr(uint16_t addr) {
+        return ROM_RANGE.containsExclusive(addr) || RAM_RANGE.containsExclusive(addr);
+    }
 
   private:
+
+    const uint8_t* getROMPtr(uint16_t addr) const;
+    uint8_t* getRAMPtr(uint16_t ) { EZ_FAIL("RAM not implemented" ); }
+    const uint8_t* getRAMPtr(uint16_t ) const { EZ_FAIL("RAM not implemented"); }
+
     CartType m_cartType = CartType::ROM_ONLY;
     size_t m_sizeBytes = 0ull;
-    std::vector<uint8_t> m_data;
+    MBC1State m_mbc1State{};
+    const std::vector<uint8_t> m_data;
 };
 } // namespace ez

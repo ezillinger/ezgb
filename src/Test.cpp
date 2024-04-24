@@ -4,11 +4,15 @@
 namespace ez {
 
     Tester::Tester(){
-        const auto zeros = std::vector<uint8_t>(256ull);
-        m_cart = std::make_unique<Cart>(zeros.data(), zeros.size());
+    }
+
+    Cart Tester::make_cart() {
+        const auto zeros = std::vector<uint8_t>(64 * 1024ull);
+        return Cart(zeros.data(), zeros.size());
     }
 
     Emulator Tester::make_emulator() {
+        m_cart = std::make_unique<Cart>(make_cart());
         auto emu = Emulator{ *m_cart };
         emu.m_reg.sp = 0xFFFE;
         return emu;
@@ -61,6 +65,7 @@ namespace ez {
         success &= test_push_pop();
         success &= test_io_reg();
         success &= test_call_ret();
+        success &= test_cart();
 
         if(success){
             log_info("All tests passed!");
@@ -81,6 +86,23 @@ namespace ez {
         emu.m_reg.hl = 0xFF00;
         EZ_ASSERT(emu.m_reg.h == 0xFF);
         EZ_ASSERT(emu.m_reg.l == 0x00);
+
+        return true;
+    }
+
+    bool Tester::test_cart() { 
+        auto cart = make_cart();
+        const auto baseAddr = cart.m_data.data();
+        cart.m_cartType = CartType::MBC1;
+
+        auto offset = 0;
+        cart.m_mbc1State.m_romBankSelect = 0;
+        offset = cart.getROMPtr(0x7FFF) - baseAddr;
+        EZ_ASSERT(offset == 0x7FFF);
+
+        cart.m_mbc1State.m_romBankSelect = 1;
+        offset = cart.getROMPtr(0x7FFF) - baseAddr;
+        EZ_ASSERT(offset == 0x7FFF);
 
         return true;
     }

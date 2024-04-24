@@ -87,7 +87,7 @@ concept is_enum = std::is_enum_v<T>;
 template <typename T> struct Range {
     constexpr Range() : Range(T{}, T{}) {}
     constexpr Range(T&& a, T&& b) : m_min(std::min(a, b)), m_max(std::max(a, b)) {}
-    constexpr T width() const { return m_max - m_min; }
+    inline constexpr T width() const { return m_max - m_min; }
     constexpr void extend(const T&& v) {
         m_min = std::min(m_min, v);
         m_max = std::max(m_max, v);
@@ -96,7 +96,10 @@ template <typename T> struct Range {
         m_min = std::min(m_min, other.m_min);
         m_max = std::max(m_max, other.m_max);
     }
-    
+
+    inline constexpr bool containsExclusive(const T& v) const { return v >= m_min && v < m_max; }
+    inline constexpr bool containsInclusive(const T& v) const { return v >= m_min && v <= m_max; }
+
     T m_min;
     T m_max;
 };

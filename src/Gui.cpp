@@ -75,7 +75,7 @@ void Gui::drawToolbar() {
                 ImGui::Separator();
                 for (auto& romPath : m_romsAvail) {
                     if (ImGui::MenuItem(romPath.c_str())) {
-                        m_state.m_cart = std::make_unique<Cart>(romPath);
+                        m_state.m_cart = std::make_unique<Cart>(Cart::loadFromDisk(romPath));
                         resetEmulator();
                     }
                 }
@@ -146,9 +146,12 @@ void Gui::drawRegisters() {
         auto brMapped = m_state.m_emu->m_io.isBootromMapped();
         ImGui::Checkbox("Bootrom Mapped", &brMapped);
 
-        if (ImGui::CollapsingHeader("Cart")) {
+        if (ImGui::CollapsingHeader("Cart", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::LabelText("Size", "{}"_format(m_state.m_cart->m_sizeBytes).c_str());
             ImGui::LabelText("Type", "{}"_format(+m_state.m_cart->m_cartType).c_str());
+            if(m_state.m_cart->m_cartType == CartType::MBC1){
+                ImGui::LabelText("ROM Bank", "{}"_format(m_state.m_cart->m_mbc1State.m_romBankSelect).c_str());
+            }
         }
     }
     ImGui::End();

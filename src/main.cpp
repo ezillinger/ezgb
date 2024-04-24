@@ -11,7 +11,7 @@ int main() {
     t.test_all();
 
     log_info("CurrentDir: {}", fs::current_path().c_str());
-    auto romStartsWith = "09";
+    auto romStartsWith = "cpu_";
     auto romPath = "./roms/cpu_instrs.gb"s;
     for(auto& romFile : fs::directory_iterator("./roms/")){
         if(romFile.path().filename().string().starts_with(romStartsWith)){
@@ -21,7 +21,7 @@ int main() {
     }
 
     auto state = AppState{};
-    state.m_cart = std::make_unique<Cart>(romPath);
+    state.m_cart = std::make_unique<Cart>(Cart::loadFromDisk(romPath));
     state.m_emu = std::make_unique<Emulator>(*state.m_cart);
 
     auto window = Window{"CoronaBoy"};
