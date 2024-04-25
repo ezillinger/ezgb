@@ -6,7 +6,12 @@ RunResult ez::Runner::tick() {
     auto ret = RunResult::CONTINUE;
     if (m_state.m_isPaused) {
         if (m_state.m_singleStep) {
-            tickEmuOnce();
+            while (true) {
+                tickEmuOnce();
+                if (m_state.m_emu->getCyclesUntilNextInstruction() == 0) {
+                    break;
+                }
+            }
             m_state.m_singleStep = false;
         }
         ret = RunResult::DRAW;
@@ -17,7 +22,7 @@ RunResult ez::Runner::tick() {
             ret = RunResult::DRAW;
         }
     }
-    if(ret == RunResult::DRAW){
+    if (ret == RunResult::DRAW) {
         m_ticksSinceLastDraw = 0;
     }
     return ret;
@@ -26,14 +31,20 @@ RunResult ez::Runner::tick() {
 void Runner::tickEmuOnce() {
     bool shouldBreak = false;
     m_state.m_emu->tick();
+    const auto cyclesTillNext = m_state.m_emu->getCyclesUntilNextInstruction();
     shouldBreak = m_state.m_emu->getPC() == m_state.m_debugSettings.m_breakOnPC;
     const auto currentOp = m_state.m_emu->getCurrentOpCode();
-    shouldBreak |= currentOp.m_addr == (currentOp.m_prefixed
-                       ? m_state.m_debugSettings.m_breakOnOpCodePrefixed
-                       : m_state.m_debugSettings.m_breakOnOpCode);
+    shouldBreak |=
+        currentOp.m_addr == (currentOp.m_prefixed ? m_state.m_debugSettings.m_breakOnOpCodePrefixed
+                                                  : m_state.m_debugSettings.m_breakOnOpCode);
+    if (m_state.m_emu->getLastWrittenAddr() == m_state.m_debugSettings.m_breakOnWriteAddr) {
+        shouldBreak = true;
+        if (m_state.m_emu->getCyclesUntilNextInstruction() == 0) {
+            m_state.m_emu->getLastWrittenAddr() = -2;
+        }
+    }
 
-
-    if(shouldBreak){
+    if (shouldBreak && cyclesTillNext == 0) {
         log_info("Debug Break!");
         m_state.m_isPaused = true;
     }

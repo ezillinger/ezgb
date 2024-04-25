@@ -24,28 +24,28 @@ namespace ez {
 
         const auto last_addr = [](auto& arr) -> uint8_t* { return &arr[std::size(arr) - 1]; };
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF00) == &io.m_reg.m_joypad);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::P1_JOYP) == &io.m_reg.m_joypad);
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF01) == &io.m_reg.m_serialData);
-        EZ_ASSERT(io.getMemPtrRW(0xFF02) == &io.m_reg.m_serialControl);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::SB) == &io.m_reg.m_serialData);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::SC) == &io.m_reg.m_serialControl);
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF04) == &io.m_reg.m_timerDivider);
-        EZ_ASSERT(io.getMemPtrRW(0xFF05) == &io.m_reg.m_timerCounter);
-        EZ_ASSERT(io.getMemPtrRW(0xFF06) == &io.m_reg.m_timerModulo);
-        EZ_ASSERT(io.getMemPtrRW(0xFF07) == &io.m_reg.m_timerControl);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::DIV) == &io.m_reg.m_timerDivider);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::TIMA) == &io.m_reg.m_timerCounter);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::TMA) == &io.m_reg.m_timerModulo);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::TAC) == &io.m_reg.m_timerControl);
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF0F) == reinterpret_cast<uint8_t*>(&io.m_reg.m_if));
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::IF) == reinterpret_cast<uint8_t*>(&io.m_reg.m_if));
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF10) == io.m_reg.m_audio);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::NR10) == io.m_reg.m_audio);
         EZ_ASSERT(io.getMemPtrRW(0xFF26) == last_addr(io.m_reg.m_audio));
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF30) == io.m_reg.m_wavePattern);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::WaveRAMBegin) == io.m_reg.m_wavePattern);
         EZ_ASSERT(io.getMemPtrRW(0xFF3F) == last_addr(io.m_reg.m_wavePattern));
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF40) == reinterpret_cast<uint8_t*>(&io.m_reg.m_lcd));
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::LCDC) == reinterpret_cast<uint8_t*>(&io.m_reg.m_lcd));
         // todo, test individual LCD register layout
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF4F) == &io.m_reg.m_vramBankSelect);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::VBK) == &io.m_reg.m_vramBankSelect);
         EZ_ASSERT(io.getMemPtrRW(0xFF50) == reinterpret_cast<uint8_t*>(&io.m_reg.m_bootromDisabled));
 
         EZ_ASSERT(io.getMemPtrRW(0xFF51) == io.m_reg.m_vramDMA);

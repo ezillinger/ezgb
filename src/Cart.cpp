@@ -25,7 +25,7 @@ Cart::Cart(const uint8_t* data, size_t len) : m_sizeBytes(len), m_data(data, dat
 void Cart::writeAddr(uint16_t addr, uint8_t val) {
     EZ_ASSERT(isValidAddr(addr));
     if (m_cartType == CartType::ROM_ONLY) {
-        EZ_FAIL("Can't write to ROM only cart!");
+        log_warn("Can't write to ROM only cart!");
     } else if (m_cartType == CartType::MBC1) {
         if (addr <= 0x1FFF) {
             m_mbc1State.m_ramEnable = val;

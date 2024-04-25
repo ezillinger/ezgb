@@ -16,4 +16,5 @@ AlignConsecutiveShortCaseStatements:
   AlignCaseColons: false
 IndentCaseLabels: 'true'
 IndentPPDirectives: 'BeforeHash'
+AllowShortEnumsOnASingleLine: 'false'
 ---

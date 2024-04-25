@@ -9,14 +9,42 @@ namespace ez {
 
 class Tester;
 
-enum class R8 { B, C, D, E, H, L, HL_ADDR, A };
-enum class R16 { BC, DE, HL, SP };
-enum class R16Mem { BC, DE, HLI, HLD };
-enum class R16Stack { BC, DE, HL, AF };
-enum class Cond { NZ, Z, NC, C };
+enum class R8 {
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    HL_ADDR,
+    A
+};
+enum class R16 {
+    BC,
+    DE,
+    HL,
+    SP
+};
+enum class R16Mem {
+    BC,
+    DE,
+    HLI,
+    HLD
+};
+enum class R16Stack {
+    BC,
+    DE,
+    HL,
+    AF
+};
+enum class Cond {
+    NZ,
+    Z,
+    NC,
+    C
+};
 
 struct EmuSettings {
-    bool m_runAsFastAsPossible = true;
     bool m_logEnable = false;
     bool m_autoUnStop = false;
     bool m_skipBootROM = true;
@@ -29,8 +57,9 @@ enum class MemoryBank {
     WRAM_0,
     WRAM_1,
     MIRROR,
-    SPRITES,
+    OAM,
     IO,
+    NOT_USEABLE,
     INVALID
 };
 
@@ -79,10 +108,14 @@ struct Reg {
         };
         uint16_t hl = 0;
     };
-    
 };
 
-enum class Flag { ZERO = 7, NEGATIVE = 6, HALF_CARRY = 5, CARRY = 4 };
+enum class Flag {
+    ZERO = 7,
+    NEGATIVE = 6,
+    HALF_CARRY = 5,
+    CARRY = 4
+};
 
 class Emulator {
   public:
@@ -91,6 +124,7 @@ class Emulator {
 
     Emulator(Cart& cart, EmuSettings = {});
     void tick();
+    int getCyclesUntilNextInstruction() { return m_cyclesToWait; }
 
     uint16_t getPC() const { return m_reg.pc; }
     OpCodeInfo getCurrentOpCode() const {
@@ -98,10 +132,16 @@ class Emulator {
         return m_prefix ? getOpCodeInfoPrefixed(opByte) : getOpCodeInfoUnprefixed(opByte);
     }
 
+    // todo, make this less greasy
+    int& getLastWrittenAddr() { return m_lastWrittenAddr; }
+
     static constexpr auto MASTER_CLOCK_PERIOD = 239ns;
     static constexpr int MASTER_TICKS_PER_INSTRUCTION_TICK = 4;
 
   private:
+    void tickTimers();
+    void tickInterrupts();
+
     AddrInfo getAddressInfo(uint16_t address) const;
 
     void writeAddr(uint16_t address, uint8_t val);
@@ -142,13 +182,14 @@ class Emulator {
     IO m_io{};
     PPU m_ppu{m_io};
 
+    int m_lastWrittenAddr = -2;
     uint16_t m_cyclesToWait = 0;
-
-    Stopwatch m_tickStopwatch{};
+    int m_divCycleCounterM = 0;  // m cycles
+    int m_timaCycleCounterM = 0; // m cycles
 
     bool m_stopMode = false;
     bool m_prefix = false; // was last instruction CB prefix
-    bool m_interruptsEnabled = false;
+    bool m_interruptMasterEnable = false;
     int m_pendingInterruptsEnableCount = 0;  // enable interrupts when reaches 0
     int m_pendingInterruptsDisableCount = 0; // ^ disable
 

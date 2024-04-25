@@ -11,7 +11,6 @@ Emulator::Emulator(Cart& cart, EmuSettings settings) : m_cart(cart), m_settings(
     EZ_ASSERT(fp);
     EZ_ASSERT(BOOTROM_BYTES == fread(m_bootrom.data(), 1, BOOTROM_BYTES, fp));
     fclose(fp);
-    m_tickStopwatch.reset();
 
     if (m_settings.m_skipBootROM) {
         // todo, bootrom does more stuff
@@ -432,7 +431,8 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             case OpCode::RETI: {
                 jumpAddr = readAddr16(m_reg.sp);
                 m_reg.sp += 2;
-                m_interruptsEnabled = true;
+                // todo, is this also delayed by 2?
+                m_pendingInterruptsEnableCount = 2;
                 break;
             }
             default: EZ_FAIL("not implemented: {}", +oc);
@@ -690,12 +690,14 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
                     log_warn("GBC Speed toggle ignored");
                 } else {
                     m_stopMode = true;
+                    m_io.getRegisters().m_timerDivider = 0;
                 }
                 break;
             }
             case OpCode::DAA: {
                 // i have no idea how this works
-                // ripped from: https://stackoverflow.com/questions/45227884/z80-daa-implementation-and-blarggs-test-rom-issues
+                // ripped from:
+                // https://stackoverflow.com/questions/45227884/z80-daa-implementation-and-blarggs-test-rom-issues
                 int tmp = m_reg.a;
                 if (!(getFlag(Flag::NEGATIVE))) {
                     if ((getFlag(Flag::HALF_CARRY)) || (tmp & 0x0F) > 9)
@@ -708,13 +710,13 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
                         if (!(getFlag(Flag::CARRY)))
                             tmp &= 0xFF;
                     }
-                    if (getFlag(Flag::CARRY)){
+                    if (getFlag(Flag::CARRY)) {
                         tmp -= 0x60;
                     }
                 }
                 clearFlag(Flag::HALF_CARRY);
                 clearFlag(Flag::ZERO);
-                if (tmp & 0x100){
+                if (tmp & 0x100) {
                     setFlag(Flag::CARRY);
                 }
                 m_reg.a = tmp & 0xFF;
@@ -788,20 +790,18 @@ void Emulator::clearFlags() { m_reg.f = 0x00; }
 
 void Emulator::tick() {
 
-    if (!m_settings.m_runAsFastAsPossible && !m_tickStopwatch.lapped(MASTER_CLOCK_PERIOD)) {
-        return;
-    }
-
     if (m_stopMode) {
         if (m_settings.m_autoUnStop) {
             log_warn("Auto-unstopping");
             m_stopMode = false;
         }
-        // check buttons?
         return;
     }
+    if (m_cyclesToWait == 0) {
+        tickInterrupts();
+    }
 
-    if (m_cyclesToWait == 0 || m_settings.m_runAsFastAsPossible) {
+    if (m_cyclesToWait == 0) {
         const auto word0 = readAddr16(m_reg.pc);
         const auto word1 = readAddr16(m_reg.pc + 2);
         const auto pcData = (uint32_t(word1) << 16) | (uint32_t(word0));
@@ -816,13 +816,13 @@ void Emulator::tick() {
         if (m_pendingInterruptsEnableCount > 0) {
             --m_pendingInterruptsEnableCount;
             if (m_pendingInterruptsEnableCount == 0) {
-                m_interruptsEnabled = true;
+                m_interruptMasterEnable = true;
             }
         }
         if (m_pendingInterruptsDisableCount > 0) {
             --m_pendingInterruptsDisableCount;
             if (m_pendingInterruptsDisableCount == 0) {
-                m_interruptsEnabled = false;
+                m_interruptMasterEnable = false;
             }
         }
         m_reg.pc = result.m_newPC;
@@ -831,11 +831,74 @@ void Emulator::tick() {
     }
     --m_cyclesToWait;
 
-    for (auto i = 0; i < 8; ++i) {
+    tickTimers();
+
+    for (auto i = 0; i < 4; ++i) {
         m_ppu.tick();
     }
 
     return;
+}
+
+void Emulator::tickTimers() {
+    ++m_divCycleCounterM;
+
+    static constexpr auto cyclesPerDivCycle = 64;
+    if (m_divCycleCounterM >= cyclesPerDivCycle) {
+        m_divCycleCounterM -= cyclesPerDivCycle;
+        m_io.getRegisters().m_timerDivider += 1;
+    }
+
+    if (m_io.getRegisters().m_timerControl & 0b100) {
+        // todo, what happens if this changes mid cycle?
+        ++m_timaCycleCounterM;
+        const auto timaControlBits = m_io.getRegisters().m_timerControl & 0b11;
+        const auto cyclesPerTimaCycle = timaControlBits == 0b00   ? 256
+                                        : timaControlBits == 0b01 ? 4
+                                        : timaControlBits == 0b10 ? 16
+                                                                  : 64;
+
+        if (m_timaCycleCounterM >= cyclesPerTimaCycle) {
+            if (m_io.getRegisters().m_timerCounter == 0xFF) {
+                m_io.setInterruptFlag(Interrupts::TIMER);
+                m_io.getRegisters().m_timerCounter = m_io.getRegisters().m_timerModulo;
+            } else {
+                ++m_io.getRegisters().m_timerCounter;
+            }
+            m_timaCycleCounterM -= cyclesPerTimaCycle;
+        }
+    }
+}
+
+void Emulator::tickInterrupts() {
+
+    if (!m_interruptMasterEnable) {
+        return;
+    }
+
+    auto& ioReg = m_io.getRegisters();
+    for (auto i = 0; i < +Interrupts::NUM_INTERRUPTS; ++i) {
+        const uint8_t bitFlag = 0b1 << i;
+        if (ioReg.m_ie.data & bitFlag && ioReg.m_if.data & bitFlag) {
+            log_info("Calling ISR {}", i);
+            ioReg.m_if.data &= ~bitFlag;
+            m_interruptMasterEnable = false;
+            m_reg.sp -= 2;
+            writeAddr16(m_reg.sp, m_reg.pc);
+            EZ_ASSERT(m_cyclesToWait == 0);
+            m_cyclesToWait = 5;
+            switch (i) {
+                case +Interrupts::VBLANK: m_reg.pc = 0x40; break;
+                case +Interrupts::JOYPAD: m_reg.pc = 0x60; break;
+                case +Interrupts::SERIAL: m_reg.pc = 0x58; break;
+                case +Interrupts::LCD:    m_reg.pc = 0x48; break;
+                case +Interrupts::TIMER:  m_reg.pc = 0x50; break;
+                default:                  EZ_FAIL("Should never get here");
+            }
+            // only one interrupt serviced per tick
+            break;
+        }
+    }
 }
 
 AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
@@ -847,6 +910,10 @@ AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
         return {MemoryBank::WRAM_1, 0xC000};
     } else if (addr >= 0x8000 && addr <= 0x9FFF) {
         return {MemoryBank::VRAM, 0x8000};
+    } else if (addr >= 0xFE00 && addr <= 0xFE9F) {
+        return {MemoryBank::OAM, 0xFEA0};
+    } else if (addr >= 0xFEA0 && addr <= 0xFEFF) {
+        return {MemoryBank::NOT_USEABLE, 0xFEA0};
     } else if (IO::ADDRESS_RANGE.containsExclusive(addr)) {
         return {MemoryBank::IO, 0xFF00};
     } else {
@@ -855,28 +922,32 @@ AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
 }
 
 void Emulator::writeAddr(uint16_t addr, uint8_t data) {
+    m_lastWrittenAddr = addr;
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM:  m_cart.writeAddr(addr, data); break;
-        case MemoryBank::WRAM_0: [[fallthrough]];
-        case MemoryBank::WRAM_1: m_ram[addr - addrInfo.m_baseAddr] = data; break;
-        case MemoryBank::VRAM:   m_ppu.writeAddr(addr, data); break;
-        case MemoryBank::IO:     m_io.writeAddr(addr, data); break;
-        default:                 EZ_FAIL("not implemented"); break;
+        case MemoryBank::ROM:         m_cart.writeAddr(addr, data); break;
+        case MemoryBank::WRAM_0:      [[fallthrough]];
+        case MemoryBank::WRAM_1:      m_ram[addr - addrInfo.m_baseAddr] = data; break;
+        case MemoryBank::VRAM:        m_ppu.writeAddr(addr, data); break;
+        case MemoryBank::IO:          m_io.writeAddr(addr, data); break;
+        case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); break;
+        default:                      EZ_FAIL("not implemented"); break;
     }
 }
 
 void Emulator::writeAddr16(uint16_t addr, uint16_t data) {
+    m_lastWrittenAddr = addr;
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM:  m_cart.writeAddr16(addr, data); break;
+        case MemoryBank::ROM:    m_cart.writeAddr16(addr, data); break;
         case MemoryBank::WRAM_0: [[fallthrough]];
         case MemoryBank::WRAM_1:
             *reinterpret_cast<uint16_t*>(m_ram.data() + (addr - addrInfo.m_baseAddr)) = data;
             break;
-        case MemoryBank::VRAM: m_ppu.writeAddr16(addr, data); break;
-        case MemoryBank::IO:     m_io.writeAddr16(addr, data); break;
-        default:             EZ_FAIL("not implemented"); break;
+        case MemoryBank::VRAM:        m_ppu.writeAddr16(addr, data); break;
+        case MemoryBank::IO:          m_io.writeAddr16(addr, data); break;
+        case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); break;
+        default:                      EZ_FAIL("not implemented"); break;
     }
 }
 
@@ -888,11 +959,12 @@ uint8_t Emulator::readAddr(uint16_t addr) const {
                 return m_bootrom[addr];
             }
             return m_cart.readAddr(addr);
-        case MemoryBank::WRAM_0: [[fallthrough]];
-        case MemoryBank::WRAM_1: return m_ram[addr - addrInfo.m_baseAddr];
-        case MemoryBank::VRAM:   return m_ppu.readAddr(addr);
-        case MemoryBank::IO:     return m_io.readAddr(addr);
-        default:                 EZ_FAIL("not implemented"); break;
+        case MemoryBank::WRAM_0:      [[fallthrough]];
+        case MemoryBank::WRAM_1:      return m_ram[addr - addrInfo.m_baseAddr];
+        case MemoryBank::VRAM:        return m_ppu.readAddr(addr);
+        case MemoryBank::IO:          return m_io.readAddr(addr);
+        case MemoryBank::NOT_USEABLE: log_warn("Read from unusable zone: {}", addr); return 0xFF;
+        default:                      EZ_FAIL("not implemented"); break;
     }
 }
 
@@ -908,9 +980,10 @@ uint16_t Emulator::readAddr16(uint16_t addr) const {
         case MemoryBank::WRAM_0: [[fallthrough]];
         case MemoryBank::WRAM_1:
             return *reinterpret_cast<const uint16_t*>(m_ram.data() + addr - addrInfo.m_baseAddr);
-        case MemoryBank::VRAM: return m_ppu.readAddr16(addr);
-        case MemoryBank::IO:     return m_io.readAddr16(addr);
-        default:             EZ_FAIL("not implemented"); break;
+        case MemoryBank::VRAM:        return m_ppu.readAddr16(addr);
+        case MemoryBank::IO:          return m_io.readAddr16(addr);
+        case MemoryBank::NOT_USEABLE: log_warn("Read from unusable zone: {}", addr); return 0xFFFF;
+        default:                      EZ_FAIL("not implemented"); break;
     }
 }
 
@@ -921,8 +994,7 @@ void Emulator::maybe_log_opcode(const OpCodeInfo& info) const {
 }
 
 void Emulator::maybe_log_registers() const {
-    static Stopwatch sw{};
-    if (m_settings.m_logEnable || sw.lapped(1s)) {
+    if (m_settings.m_logEnable) {
         log_info("A {:#04x} B {:#04x} C {:#04x} D {:#04x} E {:#04x} F {:#04x} H {:#04x} L {:#04x}",
                  m_reg.a, m_reg.b, m_reg.c, m_reg.d, m_reg.e, m_reg.f, m_reg.h, m_reg.l);
 

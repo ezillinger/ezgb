@@ -10,6 +10,7 @@ struct DebugSettings {
     int m_breakOnPC = -1;
     int m_breakOnOpCode = -1;
     int m_breakOnOpCodePrefixed = -1;
+    int m_breakOnWriteAddr = -1;
 };
 
 struct AppState {

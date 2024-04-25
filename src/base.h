@@ -69,7 +69,7 @@ template <typename... TArgs> using log_error = log<LogLevel::ERROR, TArgs...>;
 template <typename... TArgs> using fail = log<LogLevel::CRITICAL, TArgs...>;
 
 // sets from == to, returns true if changes
-template <typename T> inline bool update(T& from, T&& to) {
+template <typename T> inline bool update(T& from, const T& to) {
     const auto changed = from != to;
     from = to;
     return changed;

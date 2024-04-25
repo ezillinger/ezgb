@@ -2,7 +2,9 @@
 
 namespace ez {
 
-void IO::setInterruptFlag(Interrupts f) { m_reg.m_if.data |= (0x1 << +f); }
+void IO::setInterruptFlag(Interrupts f) { 
+    m_reg.m_if.data |= (0x1 << +f); 
+}
 
 void IO::tick() {
 }
@@ -19,14 +21,13 @@ void IO::writeAddr(uint16_t addr, uint8_t val) {
 
     EZ_ENSURE(ADDRESS_RANGE.containsExclusive(addr));
     switch (addr) {
-        case 0xFF01:
+        case +IOAddr::SB:
             m_serialOutput.push_back(std::bit_cast<uint8_t>(val));
-            log_info("Wrote to serial console: {}", m_serialOutput);
             break;
-        default: break;
+        case +IOAddr::DIV: m_reg.m_timerDivider = 0; return; // any write resets div
+        default:           break;
     }
     const auto offset = addr - ADDRESS_RANGE.m_min;
-
     // todo, check which registers are allowed to be written by CPU
     reinterpret_cast<uint8_t*>(&m_reg)[offset] = val;
 }

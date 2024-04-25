@@ -1,17 +1,17 @@
 #include "PPU.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION 1
 #if EZ_GCC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
 #include "libs/stb_image_write.h"
 #if EZ_GCC
-#pragma GCC diagnostic pop
+    #pragma GCC diagnostic pop
 #endif
 
 namespace ez {
 
-PPU::PPU(IO& io) : m_io(io), m_reg(io.getLCDRegisters()) {}
+PPU::PPU(IO& io) : m_io(io), m_reg(io.getRegisters()) {}
 
 void PPU::writeAddr(uint16_t addr, uint8_t data) {
     const auto offset = addr - VRAM_BASE_ADDR;
@@ -38,49 +38,88 @@ uint16_t PPU::readAddr16(uint16_t addr) const {
 }
 
 void PPU::tick() {
+
+    for (auto& v : m_statIRQSources) {
+        v = false;
+    }
+
     ++m_currentLineDotTickCount;
-    switch (m_reg.m_status.m_ppuMode) {
+    switch (m_reg.m_lcd.m_status.m_ppuMode) {
         case +PPUMode::OAM_SCAN:
             if (m_currentLineDotTickCount == 80) {
                 m_currentLineDotTickCount = 0;
-                m_reg.m_status.m_ppuMode = +PPUMode::DRAWING;
+                m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::DRAWING;
             }
             break;
         case +PPUMode::DRAWING:
             if (m_currentLineDotTickCount == 200) {
-                m_reg.m_status.m_ppuMode = +PPUMode::HBLANK;
+                m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::HBLANK;
+                if (m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_mode0InterruptSelect) {
+                    setStatIRQHigh(StatIRQSources::MODE_0);
+                }
             }
             break;
         case +PPUMode::HBLANK:
             if (m_currentLineDotTickCount == 456) {
-                ++m_reg.m_ly;
+                ++m_reg.m_lcd.m_ly;
+                updateLyLyc();
                 m_currentLineDotTickCount = 0;
-                if (m_reg.m_ly == 144) {
-                    m_reg.m_status.m_ppuMode = +PPUMode::VBLANK;
+                if (m_reg.m_lcd.m_ly == 144) {
+                    m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::VBLANK;
                     m_io.setInterruptFlag(Interrupts::VBLANK);
-                } else {
-                    m_reg.m_status.m_ppuMode = +PPUMode::HBLANK;
+                    if (m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_mode1InterruptSelect) {
+                        setStatIRQHigh(StatIRQSources::MODE_1);
+                    }
                 }
             }
             break;
         case +PPUMode::VBLANK:
             if (m_currentLineDotTickCount == 456) {
-                ++m_reg.m_ly;
+                ++m_reg.m_lcd.m_ly;
+                updateLyLyc();
                 m_currentLineDotTickCount = 0;
-                if (m_reg.m_ly == 154) {
-                    m_reg.m_ly = 0;
-                    m_reg.m_status.m_ppuMode = +PPUMode::OAM_SCAN;
+                if (m_reg.m_lcd.m_ly == 154) {
+                    m_reg.m_lcd.m_ly = 0;
+                    updateLyLyc();
+                    m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::OAM_SCAN;
+                    if (m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_mode2InterruptSelect) {
+                        setStatIRQHigh(StatIRQSources::MODE_2);
+                    }
                     dumpDisplay();
                 }
             }
             break;
     }
+
+    // stat IRQ only fires on rising edge, if it never falls it never fires
+    auto statIRQ = false;
+    for(const auto src : m_statIRQSources){
+        statIRQ |= src;
+    }
+    if(update(m_statIRQ, statIRQ) && statIRQ){
+        log_info("Stat IRQ fired!");
+        m_io.setInterruptFlag(Interrupts::LCD);
+    }
 }
 
-void PPU::dumpDisplay() const { 
+void PPU::dumpDisplay() const {
     const auto dumpLocation = "dump.bmp";
-    if(!stbi_write_bmp(dumpLocation, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, m_display.data())){
+    if (!stbi_write_bmp(dumpLocation, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, m_display.data())) {
         log_error("Failed to write image to: {}", dumpLocation);
+    }
+}
+
+void PPU::setStatIRQHigh(StatIRQSources src) { m_statIRQSources[+src] = true; }
+
+void PPU::updateLyLyc() { 
+    if(m_reg.m_lcd.m_ly == m_reg.m_lcd.m_lyc){
+        m_reg.m_lcd.m_status.m_lyc_is_ly = true;
+        if(m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_lycInterruptSelect){
+            setStatIRQHigh(StatIRQSources::LY);
+        }
+    }
+    else{
+        m_reg.m_lcd.m_status.m_lyc_is_ly = false;
     }
 }
 } // namespace ez

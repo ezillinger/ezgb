@@ -36,16 +36,17 @@ void Gui::updateOpCache() {
 
 void Gui::handleKeyboard() {
 
-    if(ImGui::IsKeyPressed(ImGuiKey_R)){
+    if (ImGui::IsKeyPressed(ImGuiKey_R)) {
         resetEmulator();
     }
-    if(ImGui::IsKeyPressed(ImGuiKey_N)){
-        if(m_state.m_isPaused){
+    if (ImGui::IsKeyPressed(ImGuiKey_N)) {
+        if (m_state.m_isPaused) {
             m_state.m_singleStep = true;
         }
     }
-    if(ImGui::IsKeyPressed(ImGuiKey_Space)){
+    if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
         m_state.m_isPaused = !m_state.m_isPaused;
+        updateOpCache();
     }
 }
 
@@ -96,10 +97,12 @@ void Gui::drawToolbar() {
             }
             if (ImGui::Button("Step")) {
                 m_state.m_singleStep = true;
+                updateOpCache();
             }
         } else {
             if (ImGui::Button("Pause")) {
                 m_state.m_isPaused = true;
+                updateOpCache();
             }
         }
 
@@ -145,12 +148,39 @@ void Gui::drawRegisters() {
         ImGui::Checkbox("Stop Mode", &m_state.m_emu->m_stopMode);
         auto brMapped = m_state.m_emu->m_io.isBootromMapped();
         ImGui::Checkbox("Bootrom Mapped", &brMapped);
+        ImGui::Checkbox("IME", &m_state.m_emu->m_interruptMasterEnable);
+
+        if (ImGui::CollapsingHeader("Timers", ImGuiTreeNodeFlags_DefaultOpen)) {
+            auto& ioReg = m_state.m_emu->m_io.getRegisters();
+            ImGui::LabelText("DIV", "{}"_format(ioReg.m_timerDivider).c_str());
+            ImGui::LabelText("TIMA Enabled",
+                             "{}"_format(bool(ioReg.m_timerControl & 0b100)).c_str());
+            ImGui::LabelText("TIMA", "{}"_format(ioReg.m_timerCounter).c_str());
+            ImGui::LabelText("MODULO", "{}"_format(ioReg.m_timerModulo).c_str());
+        }
+        if (ImGui::CollapsingHeader("Interrupts", ImGuiTreeNodeFlags_DefaultOpen)) {
+            auto& ioReg = m_state.m_emu->m_io.getRegisters();
+            ImGui::Text("IE/IF:\n VB      {} {}\n LCD     {} {}\n TIMER   {} {}\n SERIAL  {} {}\n JOY     {} {}"_format(
+                                       bool(ioReg.m_ie.vblank), 
+                                       bool(ioReg.m_if.vblank), 
+                                       bool(ioReg.m_ie.lcd),
+                                       bool(ioReg.m_if.lcd),
+                                       bool(ioReg.m_ie.timer), 
+                                       bool(ioReg.m_if.timer), 
+                                       bool(ioReg.m_ie.serial),
+                                       bool(ioReg.m_if.serial),
+                                       bool(ioReg.m_ie.joypad),
+                                       bool(ioReg.m_if.joypad)
+                                       )
+                                       .c_str());
+        }
 
         if (ImGui::CollapsingHeader("Cart", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::LabelText("Size", "{}"_format(m_state.m_cart->m_sizeBytes).c_str());
             ImGui::LabelText("Type", "{}"_format(+m_state.m_cart->m_cartType).c_str());
-            if(m_state.m_cart->m_cartType == CartType::MBC1){
-                ImGui::LabelText("ROM Bank", "{}"_format(m_state.m_cart->m_mbc1State.m_romBankSelect).c_str());
+            if (m_state.m_cart->m_cartType == CartType::MBC1) {
+                ImGui::LabelText("ROM Bank",
+                                 "{}"_format(m_state.m_cart->m_mbc1State.m_romBankSelect).c_str());
             }
         }
     }
@@ -171,13 +201,12 @@ void Gui::drawSettings() {
         ImGui::Checkbox("Skip Bootrom", &emu.m_settings.m_skipBootROM);
         ImGui::Checkbox("Auto Un-Stop", &emu.m_settings.m_autoUnStop);
         ImGui::Checkbox("Log", &emu.m_settings.m_logEnable);
-        ImGui::Checkbox("No Wait", &emu.m_settings.m_runAsFastAsPossible);
         ImGui::DragInt("PC Break Addr", &m_state.m_debugSettings.m_breakOnPC, 1.0f, -1, INT16_MAX,
                        "%04x");
         ImGui::DragInt("OC Break", &m_state.m_debugSettings.m_breakOnOpCode, 1.0f, -1, INT16_MAX,
                        "%04x");
-        ImGui::DragInt("OC Break Prefixed", &m_state.m_debugSettings.m_breakOnOpCodePrefixed, 1.0f,
-                       -1, INT16_MAX, "%04x");
+        ImGui::DragInt("OC Break Prefixed", &m_state.m_debugSettings.m_breakOnOpCodePrefixed, 1.0f, -1, INT16_MAX, "%04x");
+        ImGui::DragInt("Break On Write Addr", &m_state.m_debugSettings.m_breakOnWriteAddr, 1.0f, -1, INT16_MAX, "%04x");
 
         ImGui::Separator();
     }
@@ -232,7 +261,9 @@ void Gui::drawInstructions() {
                     ImGui::Text("{:04x}"_format(ocLine.m_addr).c_str());
 
                     ImGui::TableNextColumn();
-                    ImGui::Text("{}{:02x}"_format(ocLine.m_info.m_prefixed ? "cb " : "", ocLine.m_info.m_addr).c_str());
+                    ImGui::Text("{}{:02x}"_format(ocLine.m_info.m_prefixed ? "cb " : "",
+                                                  ocLine.m_info.m_addr)
+                                    .c_str());
 
                     ImGui::TableNextColumn();
                     ImGui::Text("{} {} {}"_format(ocLine.m_info.m_mnemonic,
@@ -249,11 +280,11 @@ void Gui::drawInstructions() {
                     if (hasOperand("u16")) {
                         const auto u16 = m_state.m_emu->readAddr16(ocLine.m_addr + 1);
                         operandText += "u16={:04x} "_format(u16);
-                    } 
+                    }
                     if (hasOperand("a16") || hasOperand("(a16)")) {
                         const auto u16 = m_state.m_emu->readAddr16(ocLine.m_addr + 1);
                         operandText += "a16={:04x} "_format(u16);
-                    } 
+                    }
                     if (hasOperand("a8") || hasOperand("(a8)")) {
                         const auto a8 = 0xFF00 + m_state.m_emu->readAddr(ocLine.m_addr + 1);
                         operandText += "a8={:04x} "_format(a8);
@@ -262,7 +293,7 @@ void Gui::drawInstructions() {
                         const auto u16 = m_state.m_emu->readAddr16(ocLine.m_addr + 1);
                         const auto a16deref = m_state.m_emu->readAddr(u16);
                         operandText += "(a16)={:02x} "_format(a16deref);
-                    } 
+                    }
                     if (hasOperand("(a8)")) {
                         const auto a8 = 0xFF00 + m_state.m_emu->readAddr(ocLine.m_addr + 1);
                         const auto a8deref = m_state.m_emu->readAddr(a8);
@@ -272,7 +303,7 @@ void Gui::drawInstructions() {
                         const auto i8 =
                             static_cast<int8_t>(m_state.m_emu->readAddr(ocLine.m_addr + 1));
                         operandText += "i8={:02x} "_format(i8);
-                    } 
+                    }
                     if (hasOperand("u8")) {
                         const auto u8 = m_state.m_emu->readAddr(ocLine.m_addr + 1);
                         operandText += "u8={:02x} "_format(u8);
