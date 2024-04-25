@@ -26,11 +26,15 @@ namespace ez {
 
         EZ_ASSERT(io.getMemPtrRW(0xFF00) == &io.m_reg.m_joypad);
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF01) == io.m_reg.m_serial);
-        EZ_ASSERT(io.getMemPtrRW(0xFF02) == last_addr(io.m_reg.m_serial));
+        EZ_ASSERT(io.getMemPtrRW(0xFF01) == &io.m_reg.m_serialData);
+        EZ_ASSERT(io.getMemPtrRW(0xFF02) == &io.m_reg.m_serialControl);
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF04) == io.m_reg.m_timerDivider);
-        EZ_ASSERT(io.getMemPtrRW(0xFF07) == last_addr(io.m_reg.m_timerDivider));
+        EZ_ASSERT(io.getMemPtrRW(0xFF04) == &io.m_reg.m_timerDivider);
+        EZ_ASSERT(io.getMemPtrRW(0xFF05) == &io.m_reg.m_timerCounter);
+        EZ_ASSERT(io.getMemPtrRW(0xFF06) == &io.m_reg.m_timerModulo);
+        EZ_ASSERT(io.getMemPtrRW(0xFF07) == &io.m_reg.m_timerControl);
+
+        EZ_ASSERT(io.getMemPtrRW(0xFF0F) == reinterpret_cast<uint8_t*>(&io.m_reg.m_if));
 
         EZ_ASSERT(io.getMemPtrRW(0xFF10) == io.m_reg.m_audio);
         EZ_ASSERT(io.getMemPtrRW(0xFF26) == last_addr(io.m_reg.m_audio));
@@ -52,6 +56,16 @@ namespace ez {
 
         EZ_ASSERT(io.getMemPtrRW(0xFF70) == &io.m_reg.m_wramBankSelect);
 
+        EZ_ASSERT(io.getMemPtrRW(0xFF76) == &io.m_reg.m_pcm12);
+        EZ_ASSERT(io.getMemPtrRW(0xFF77) == &io.m_reg.m_pcm34);
+
+        EZ_ASSERT(io.getMemPtrRW(0xFF80) == io.m_reg.m_hram);
+
+        io.writeAddr16(0xFF81, 0xABCD);
+        EZ_ENSURE(io.readAddr16(0xFF81) == 0xABCD);
+
+        EZ_ASSERT(io.getMemPtrRW(0xFFFF) == reinterpret_cast<uint8_t*>(&io.m_reg.m_ie));
+
         return true;
     }
 
@@ -61,9 +75,9 @@ namespace ez {
 
         success &= test_flags();
         success &= test_regs();
+        success &= test_io_reg();
         success &= test_inc_dec();
         success &= test_push_pop();
-        success &= test_io_reg();
         success &= test_call_ret();
         success &= test_cart();
 

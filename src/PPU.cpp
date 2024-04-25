@@ -11,7 +11,7 @@
 
 namespace ez {
 
-PPU::PPU(LCDRegisters& reg) : m_reg(reg) {}
+PPU::PPU(IO& io) : m_io(io), m_reg(io.getLCDRegisters()) {}
 
 void PPU::writeAddr(uint16_t addr, uint8_t data) {
     const auto offset = addr - VRAM_BASE_ADDR;
@@ -57,6 +57,7 @@ void PPU::tick() {
                 m_currentLineDotTickCount = 0;
                 if (m_reg.m_ly == 144) {
                     m_reg.m_status.m_ppuMode = +PPUMode::VBLANK;
+                    m_io.setInterruptFlag(Interrupts::VBLANK);
                 } else {
                     m_reg.m_status.m_ppuMode = +PPUMode::HBLANK;
                 }

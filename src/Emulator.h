@@ -23,8 +23,7 @@ struct EmuSettings {
 };
 
 enum class MemoryBank {
-    ROM_0,
-    ROM_NN,
+    ROM,
     VRAM,
     EXT_RAM,
     WRAM_0,
@@ -32,8 +31,6 @@ enum class MemoryBank {
     MIRROR,
     SPRITES,
     IO,
-    HRAM,
-    IE,
     INVALID
 };
 
@@ -82,7 +79,7 @@ struct Reg {
         };
         uint16_t hl = 0;
     };
-    uint8_t ie = 0;
+    
 };
 
 enum class Flag { ZERO = 7, NEGATIVE = 6, HALF_CARRY = 5, CARRY = 4 };
@@ -143,7 +140,7 @@ class Emulator {
 
     Reg m_reg{};
     IO m_io{};
-    PPU m_ppu{m_io.getLCDRegisters()};
+    PPU m_ppu{m_io};
 
     uint16_t m_cyclesToWait = 0;
 

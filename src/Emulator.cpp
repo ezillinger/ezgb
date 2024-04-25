@@ -432,7 +432,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             case OpCode::RETI: {
                 jumpAddr = readAddr16(m_reg.sp);
                 m_reg.sp += 2;
-                m_reg.ie = 0xFF;
+                m_interruptsEnabled = true;
                 break;
             }
             default: EZ_FAIL("not implemented: {}", +oc);
@@ -839,22 +839,16 @@ void Emulator::tick() {
 }
 
 AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
-    if (addr <= 0x3FFF) {
-        return {MemoryBank::ROM_0, 0};
-    } else if (addr >= 0x4000 && addr <= 0x7FFF) {
-        return {MemoryBank::ROM_NN, 0};
+    if (Cart::ROM_RANGE.containsExclusive(addr)) {
+        return {MemoryBank::ROM, 0};
     } else if (addr >= 0xC000 && addr <= 0xCFFF) {
         return {MemoryBank::WRAM_0, 0xC000};
     } else if (addr >= 0xD000 && addr <= 0xDFFF) {
         return {MemoryBank::WRAM_1, 0xC000};
     } else if (addr >= 0x8000 && addr <= 0x9FFF) {
         return {MemoryBank::VRAM, 0x8000};
-    } else if (addr >= 0xFF00 && addr < 0xFF80) {
+    } else if (IO::ADDRESS_RANGE.containsExclusive(addr)) {
         return {MemoryBank::IO, 0xFF00};
-    } else if (addr >= 0xFF80 && addr <= 0xFFFE) {
-        return {MemoryBank::HRAM, 0xFF80};
-    } else if (addr == 0xFFFF) {
-        return {MemoryBank::IE, 0xFFFF};
     } else {
         EZ_FAIL("not implemented");
     }
@@ -863,14 +857,11 @@ AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
 void Emulator::writeAddr(uint16_t addr, uint8_t data) {
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM_0:  m_cart.writeAddr(addr, data); break;
-        case MemoryBank::ROM_NN: m_cart.writeAddr(addr, data); break;
+        case MemoryBank::ROM:  m_cart.writeAddr(addr, data); break;
         case MemoryBank::WRAM_0: [[fallthrough]];
         case MemoryBank::WRAM_1: m_ram[addr - addrInfo.m_baseAddr] = data; break;
         case MemoryBank::VRAM:   m_ppu.writeAddr(addr, data); break;
         case MemoryBank::IO:     m_io.writeAddr(addr, data); break;
-        case MemoryBank::HRAM:   m_hram[addr - addrInfo.m_baseAddr] = data; break;
-        case MemoryBank::IE:     m_reg.ie = data; break;
         default:                 EZ_FAIL("not implemented"); break;
     }
 }
@@ -878,18 +869,13 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
 void Emulator::writeAddr16(uint16_t addr, uint16_t data) {
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM_0:  m_cart.writeAddr16(addr, data); break;
-        case MemoryBank::ROM_NN: m_cart.writeAddr16(addr, data); break;
+        case MemoryBank::ROM:  m_cart.writeAddr16(addr, data); break;
         case MemoryBank::WRAM_0: [[fallthrough]];
         case MemoryBank::WRAM_1:
             *reinterpret_cast<uint16_t*>(m_ram.data() + (addr - addrInfo.m_baseAddr)) = data;
             break;
         case MemoryBank::VRAM: m_ppu.writeAddr16(addr, data); break;
-        // case MemoryBank::IO:     m_io.writeAddr16(addr, data); break;
-        case MemoryBank::HRAM:
-            *reinterpret_cast<uint16_t*>(m_hram.data() + addr - addrInfo.m_baseAddr) = data;
-            break;
-        case MemoryBank::IE: EZ_FAIL("IE is only 8 bits");
+        case MemoryBank::IO:     m_io.writeAddr16(addr, data); break;
         default:             EZ_FAIL("not implemented"); break;
     }
 }
@@ -897,18 +883,15 @@ void Emulator::writeAddr16(uint16_t addr, uint16_t data) {
 uint8_t Emulator::readAddr(uint16_t addr) const {
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM_0:
+        case MemoryBank::ROM:
             if (addr < BOOTROM_BYTES && m_io.isBootromMapped()) {
                 return m_bootrom[addr];
             }
             return m_cart.readAddr(addr);
-        case MemoryBank::ROM_NN: return m_cart.readAddr(addr);
         case MemoryBank::WRAM_0: [[fallthrough]];
         case MemoryBank::WRAM_1: return m_ram[addr - addrInfo.m_baseAddr];
         case MemoryBank::VRAM:   return m_ppu.readAddr(addr);
         case MemoryBank::IO:     return m_io.readAddr(addr);
-        case MemoryBank::HRAM:   return m_hram[addr - addrInfo.m_baseAddr];
-        case MemoryBank::IE:     return m_reg.ie;
         default:                 EZ_FAIL("not implemented"); break;
     }
 }
@@ -916,21 +899,17 @@ uint8_t Emulator::readAddr(uint16_t addr) const {
 uint16_t Emulator::readAddr16(uint16_t addr) const {
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM_0:
+        case MemoryBank::ROM:
             if (addr < BOOTROM_BYTES && m_io.isBootromMapped()) {
                 return *reinterpret_cast<const uint16_t*>(m_bootrom.data() + addr);
             }
             return m_cart.readAddr16(addr);
 
-        case MemoryBank::ROM_NN: return m_cart.readAddr16(addr);
         case MemoryBank::WRAM_0: [[fallthrough]];
         case MemoryBank::WRAM_1:
             return *reinterpret_cast<const uint16_t*>(m_ram.data() + addr - addrInfo.m_baseAddr);
         case MemoryBank::VRAM: return m_ppu.readAddr16(addr);
-        // case MemoryBank::IO:     return m_io.readAddr(addr);
-        case MemoryBank::HRAM:
-            return *reinterpret_cast<const uint16_t*>(m_hram.data() + addr - addrInfo.m_baseAddr);
-        case MemoryBank::IE: EZ_FAIL("IE is 8 bits!");
+        case MemoryBank::IO:     return m_io.readAddr16(addr);
         default:             EZ_FAIL("not implemented"); break;
     }
 }

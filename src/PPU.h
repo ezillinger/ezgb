@@ -1,43 +1,10 @@
 #pragma once
 #include "Base.h"
+#include "IO.h"
 
 namespace ez {
 
-enum class PPUMode { OAM_SCAN = 2, DRAWING = 3, HBLANK = 0, VBLANK = 1 };
 
-struct alignas(uint8_t) LCDRegisters {
-    struct {
-        bool m_bgWindowEnable : 1 = false;
-        bool m_objEnable : 1 = false;
-        bool m_objSize : 1 = false;
-        bool m_bgTilemap : 1 = false;
-        bool m_bgWindowTiles : 1 = false;
-        bool m_windowEnable : 1 = false;
-        bool m_windowTilemap : 1 = false;
-        bool m_ppuEnable : 1 = false;
-    } m_control;
-    static_assert(sizeof(m_control) == 1);
-    struct {
-        uint8_t m_ppuMode : 2 = 2;
-        bool m_lyc_is_ly : 1 = false;
-        bool m_mode0InterruptSelect : 1 = false;
-        bool m_mode1InterruptSelect : 1 = false;
-        bool m_mode2InterruptSelect : 1 = false;
-        bool m_lycInterruptSelect : 1 = false;
-    } m_status;
-    static_assert(sizeof(m_status) == 1);
-    uint8_t m_scy = 0; // scy
-    uint8_t m_scx = 0; // scx
-    uint8_t m_ly = 0; // lcd y
-    uint8_t m_lyc = 0;
-    uint8_t m_dma = 0;
-    uint8_t m_bgp = 0;
-    uint8_t m_obp0 = 0;
-    uint8_t m_obp1 = 0;
-    uint8_t m_windowY = 0;
-    uint8_t m_windowX = 0; // plus 7 whatever that means
-};
-static_assert(sizeof(LCDRegisters) == 12);
 
 class PPU {
 
@@ -47,7 +14,7 @@ class PPU {
     static constexpr int DISPLAY_WIDTH = 160;
     static constexpr int DISPLAY_HEIGHT = 144;
 
-    PPU(LCDRegisters& reg);
+    PPU(IO& io);
 
     void tick();
 
@@ -63,6 +30,7 @@ class PPU {
 
     int m_currentLineDotTickCount = 0;
 
+    IO& m_io;
     LCDRegisters& m_reg;
     std::vector<uint8_t> m_vram = std::vector<uint8_t>(VRAM_BYTES, 0u);
     std::vector<uint8_t> m_display = std::vector<uint8_t>(size_t(DISPLAY_WIDTH * DISPLAY_HEIGHT), 0u);
