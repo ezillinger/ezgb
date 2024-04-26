@@ -904,12 +904,16 @@ void Emulator::tickInterrupts() {
 AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
     if (Cart::ROM_RANGE.containsExclusive(addr)) {
         return {MemoryBank::ROM, 0};
+    } else if (Cart::RAM_RANGE.containsExclusive(addr)) {
+        return {MemoryBank::EXT_RAM, Cart::RAM_RANGE.m_min};
     } else if (addr >= 0xC000 && addr <= 0xCFFF) {
         return {MemoryBank::WRAM_0, 0xC000};
     } else if (addr >= 0xD000 && addr <= 0xDFFF) {
         return {MemoryBank::WRAM_1, 0xC000};
-    } else if (addr >= 0x8000 && addr <= 0x9FFF) {
-        return {MemoryBank::VRAM, 0x8000};
+    } else if (PPU::VRAM_ADDR_RANGE.containsExclusive(addr)) {
+        return {MemoryBank::VRAM, PPU::VRAM_ADDR_RANGE.m_min};
+    } else if (PPU::OAM_ADDR_RANGE.containsExclusive(addr)) {
+        return {MemoryBank::OAM, PPU::OAM_ADDR_RANGE.m_min};
     } else if (addr >= 0xFE00 && addr <= 0xFE9F) {
         return {MemoryBank::OAM, 0xFEA0};
     } else if (addr >= 0xFEA0 && addr <= 0xFEFF) {
@@ -926,9 +930,11 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
         case MemoryBank::ROM:         m_cart.writeAddr(addr, data); break;
+        case MemoryBank::EXT_RAM:     m_cart.writeAddr(addr, data); break;
         case MemoryBank::WRAM_0:      [[fallthrough]];
         case MemoryBank::WRAM_1:      m_ram[addr - addrInfo.m_baseAddr] = data; break;
         case MemoryBank::VRAM:        m_ppu.writeAddr(addr, data); break;
+        case MemoryBank::OAM:         m_ppu.writeAddr(addr, data); break;
         case MemoryBank::IO:          m_io.writeAddr(addr, data); break;
         case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); break;
         default:                      EZ_FAIL("not implemented"); break;
@@ -939,12 +945,14 @@ void Emulator::writeAddr16(uint16_t addr, uint16_t data) {
     m_lastWrittenAddr = addr;
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM:    m_cart.writeAddr16(addr, data); break;
-        case MemoryBank::WRAM_0: [[fallthrough]];
+        case MemoryBank::ROM:     m_cart.writeAddr16(addr, data); break;
+        case MemoryBank::EXT_RAM: m_cart.writeAddr(addr, data); break;
+        case MemoryBank::WRAM_0:  [[fallthrough]];
         case MemoryBank::WRAM_1:
             *reinterpret_cast<uint16_t*>(m_ram.data() + (addr - addrInfo.m_baseAddr)) = data;
             break;
         case MemoryBank::VRAM:        m_ppu.writeAddr16(addr, data); break;
+        case MemoryBank::OAM:         m_ppu.writeAddr16(addr, data); break;
         case MemoryBank::IO:          m_io.writeAddr16(addr, data); break;
         case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); break;
         default:                      EZ_FAIL("not implemented"); break;
@@ -959,9 +967,11 @@ uint8_t Emulator::readAddr(uint16_t addr) const {
                 return m_bootrom[addr];
             }
             return m_cart.readAddr(addr);
+        case MemoryBank::EXT_RAM:     return m_cart.readAddr(addr);
         case MemoryBank::WRAM_0:      [[fallthrough]];
         case MemoryBank::WRAM_1:      return m_ram[addr - addrInfo.m_baseAddr];
         case MemoryBank::VRAM:        return m_ppu.readAddr(addr);
+        case MemoryBank::OAM:         return m_ppu.readAddr(addr);
         case MemoryBank::IO:          return m_io.readAddr(addr);
         case MemoryBank::NOT_USEABLE: log_warn("Read from unusable zone: {}", addr); return 0xFF;
         default:                      EZ_FAIL("not implemented"); break;
@@ -977,10 +987,12 @@ uint16_t Emulator::readAddr16(uint16_t addr) const {
             }
             return m_cart.readAddr16(addr);
 
-        case MemoryBank::WRAM_0: [[fallthrough]];
+        case MemoryBank::EXT_RAM: return m_cart.readAddr16(addr);
+        case MemoryBank::WRAM_0:  [[fallthrough]];
         case MemoryBank::WRAM_1:
             return *reinterpret_cast<const uint16_t*>(m_ram.data() + addr - addrInfo.m_baseAddr);
         case MemoryBank::VRAM:        return m_ppu.readAddr16(addr);
+        case MemoryBank::OAM:         return m_ppu.readAddr16(addr);
         case MemoryBank::IO:          return m_io.readAddr16(addr);
         case MemoryBank::NOT_USEABLE: log_warn("Read from unusable zone: {}", addr); return 0xFFFF;
         default:                      EZ_FAIL("not implemented"); break;

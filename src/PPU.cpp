@@ -14,43 +14,88 @@ namespace ez {
 PPU::PPU(IO& io) : m_io(io), m_reg(io.getRegisters()) {}
 
 void PPU::writeAddr(uint16_t addr, uint8_t data) {
-    if (!isVramAvailToCPU()) {
-        log_warn("CPU write while VRAM inaccessible");
-        return;
+    if (VRAM_ADDR_RANGE.containsExclusive(addr)) {
+        if (!isVramAvailToCPU()) {
+            log_warn("CPU write while VRAM inaccessible");
+            return;
+        }
+        const auto offset = addr - VRAM_ADDR_RANGE.m_min;
+        EZ_ENSURE(size_t(offset) < VRAM_ADDR_RANGE.width());
+        m_vram[offset] = data;
+    } else {
+        EZ_ENSURE(OAM_ADDR_RANGE.containsExclusive(addr));
+        if (!isOamAvailToCPU()) {
+            log_warn("CPU write while OAM inaccessible");
+            return;
+        }
+        const auto offset = addr - OAM_ADDR_RANGE.m_min;
+        EZ_ENSURE(size_t(offset) < OAM_ADDR_RANGE.width());
+        m_oam[offset] = data;
     }
-    const auto offset = addr - VRAM_ADDR_RANGE.m_min;
-    EZ_ENSURE(size_t(offset) < VRAM_ADDR_RANGE.width());
-    m_vram[offset] = data;
 }
 
 void PPU::writeAddr16(uint16_t addr, uint16_t data) {
-    if (!isVramAvailToCPU()) {
-        log_warn("CPU write while VRAM inaccessible");
-        return;
+    if (VRAM_ADDR_RANGE.containsExclusive(addr)) {
+        if (!isVramAvailToCPU()) {
+            log_warn("CPU write while VRAM inaccessible");
+            return;
+        }
+        const auto offset = addr - VRAM_ADDR_RANGE.m_min;
+        EZ_ENSURE(size_t(offset) < VRAM_ADDR_RANGE.width());
+        *reinterpret_cast<uint16_t*>(m_vram.data() + offset) = data;
+    } else {
+        EZ_ENSURE(OAM_ADDR_RANGE.containsExclusive(addr));
+        if (!isOamAvailToCPU()) {
+            log_warn("CPU write while OAM inaccessible");
+            return;
+        }
+        const auto offset = addr - OAM_ADDR_RANGE.m_min;
+        EZ_ENSURE(size_t(offset) < OAM_ADDR_RANGE.width());
+        *reinterpret_cast<uint16_t*>(m_oam.data() + offset) = data;
     }
-    const auto offset = addr - VRAM_ADDR_RANGE.m_min;
-    EZ_ENSURE(size_t(offset) < VRAM_ADDR_RANGE.width());
-    *reinterpret_cast<uint16_t*>(m_vram.data() + offset) = data;
 }
 
 uint8_t PPU::readAddr(uint16_t addr) const {
-    if (!isVramAvailToCPU()) {
-        log_warn("CPU read while VRAM inaccessible");
-        return 0xFF;
+    if (VRAM_ADDR_RANGE.containsExclusive(addr)) {
+        if (!isVramAvailToCPU()) {
+            log_warn("CPU read while VRAM inaccessible");
+            return 0xFF;
+        }
+        const auto offset = addr - VRAM_ADDR_RANGE.m_min;
+        EZ_ENSURE(size_t(offset) < VRAM_ADDR_RANGE.width());
+        return m_vram[offset];
+    } else {
+        if (!isOamAvailToCPU()) {
+            log_warn("CPU read while OAM inaccessible");
+            return 0xFF;
+        }
+        EZ_ENSURE(OAM_ADDR_RANGE.containsExclusive(addr));
+        const auto offset = addr - OAM_ADDR_RANGE.m_min;
+        EZ_ENSURE(size_t(offset) < OAM_ADDR_RANGE.width());
+        return m_oam[offset];
     }
-    const auto offset = addr - VRAM_ADDR_RANGE.m_min;
-    EZ_ENSURE(size_t(offset) < VRAM_ADDR_RANGE.width());
-    return m_vram[offset];
 }
 
 uint16_t PPU::readAddr16(uint16_t addr) const {
-    if (!isVramAvailToCPU()) {
-        log_warn("CPU read while VRAM inaccessible");
-        return 0xFFFF;
+
+    if (VRAM_ADDR_RANGE.containsExclusive(addr)) {
+        if (!isVramAvailToCPU()) {
+            log_warn("CPU read while VRAM inaccessible");
+            return 0xFFFF;
+        }
+        const auto offset = addr - VRAM_ADDR_RANGE.m_min;
+        EZ_ENSURE(size_t(offset) < VRAM_ADDR_RANGE.width());
+        return *reinterpret_cast<const uint16_t*>(m_vram.data() + offset);
+    } else {
+        if (!isOamAvailToCPU()) {
+            log_warn("CPU read while OAM inaccessible");
+            return 0xFFFF;
+        }
+        EZ_ENSURE(OAM_ADDR_RANGE.containsExclusive(addr));
+        const auto offset = addr - OAM_ADDR_RANGE.m_min;
+        EZ_ENSURE(size_t(offset) < OAM_ADDR_RANGE.width());
+        return *reinterpret_cast<const uint16_t*>(m_oam.data() + offset);
     }
-    const auto offset = addr - VRAM_ADDR_RANGE.m_min;
-    EZ_ENSURE(size_t(offset) < VRAM_ADDR_RANGE.width());
-    return *reinterpret_cast<const uint16_t*>(m_vram.data() + offset);
 }
 
 void PPU::tick() {
@@ -119,13 +164,25 @@ void PPU::tick() {
 }
 
 void PPU::updateDisplay() {
-    const auto bg = renderBG();
+    updateBG();
+    updateWindow();
     for (auto y = 0; y < DISPLAY_HEIGHT; ++y) {
         for (auto x = 0; x < DISPLAY_WIDTH; ++x) {
+
             const auto bgY = (y + m_reg.m_lcd.m_scy) % BG_DIM_XY;
             const auto bgX = (x + m_reg.m_lcd.m_scx) % BG_DIM_XY;
-            const uint8_t bgPx = bg[bgY * BG_DIM_XY + bgX];
-            m_display[y * DISPLAY_WIDTH + x] = getBGColor(bgPx);
+
+            const auto windowLeft = m_reg.m_lcd.m_windowXPlus7 - 7;
+            const auto windowTop = m_reg.m_lcd.m_windowY;
+            const auto wX = x - windowLeft;
+            const auto wY = y - windowTop;
+
+            const bool inWindow = m_reg.m_lcd.m_control.m_windowEnable &&
+                                  iRange{windowLeft, windowLeft + BG_DIM_XY}.containsExclusive(x) &&
+                                  iRange{windowTop, windowTop + BG_DIM_XY}.containsExclusive(y);
+
+            uint8_t px = inWindow ? m_window[wY * BG_DIM_XY + wX] : m_bg[bgY * BG_DIM_XY + bgX];
+            m_display[y * DISPLAY_WIDTH + x] = getBGColor(px);
         }
     }
 }
@@ -151,14 +208,13 @@ std::array<uint8_t, 64> PPU::renderTile(const uint8_t* tileBegin) {
     return result;
 }
 
-std::vector<uint8_t> PPU::renderBG() {
-    auto ret = std::vector<uint8_t>(BG_DIM_XY * BG_DIM_XY);
-    if(!m_reg.m_lcd.m_control.m_bgWindowEnable){
-        return ret;
+void PPU::renderBGWindow(bool enable, bool tileMap, uint8_t* dst) {
+    if (!enable) {
+        memset(dst, 0, BG_DIM_XY * BG_DIM_XY);
+        return;
     }
 
-    const auto tileMapOffset =
-        (m_reg.m_lcd.m_control.m_bgTilemap ? 0x9C00 : 0x9800) - VRAM_ADDR_RANGE.m_min;
+    const auto tileMapOffset = (tileMap ? 0x9C00 : 0x9800) - VRAM_ADDR_RANGE.m_min;
     ;
 
     const auto tileBytes = 16;
@@ -180,14 +236,23 @@ std::vector<uint8_t> PPU::renderBG() {
             const auto tilePtr = getTilePtr(tileIdx);
             const auto renderedTile = renderTile(tilePtr);
             for (auto ty = 0; ty < tileDim; ++ty) {
-                auto dstPtr = ret.data() + ((tmy * tileDim + ty) * BG_DIM_XY) + tmx * tileDim;
+                auto dstPtr = dst + ((tmy * tileDim + ty) * BG_DIM_XY) + tmx * tileDim;
                 for (auto tx = 0; tx < tileDim; ++tx) {
                     dstPtr[tx] = renderedTile[ty * tileDim + tx];
                 }
             }
         }
     }
-    return ret;
+}
+
+void PPU::updateWindow() {
+    renderBGWindow(m_reg.m_lcd.m_control.m_windowEnable && m_reg.m_lcd.m_control.m_bgWindowEnable,
+                   m_reg.m_lcd.m_control.m_windowTilemap, m_window.data());
+}
+
+void PPU::updateBG() {
+    renderBGWindow(m_reg.m_lcd.m_control.m_bgWindowEnable, m_reg.m_lcd.m_control.m_bgTilemap,
+                   m_bg.data());
 }
 
 bool PPU::isVramAvailToCPU() const {
@@ -195,6 +260,14 @@ bool PPU::isVramAvailToCPU() const {
         return true;
     }
     return m_reg.m_lcd.m_status.m_ppuMode != +PPUMode::DRAWING;
+}
+
+bool PPU::isOamAvailToCPU() const {
+    if (m_reg.m_lcd.m_control.m_ppuEnable == false) {
+        return true;
+    }
+    return m_reg.m_lcd.m_status.m_ppuMode == +PPUMode::VBLANK ||
+           m_reg.m_lcd.m_status.m_ppuMode == +PPUMode::HBLANK;
 }
 
 rgba8 PPU::getBGColor(const uint8_t paletteIdx) {

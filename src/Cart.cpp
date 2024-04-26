@@ -36,6 +36,10 @@ void Cart::writeAddr(uint16_t addr, uint8_t val) {
         } else if (addr >= 0x6000 && addr < 0x7FFF) {
             m_mbc1State.m_romRamModeSelect = val;
         } else if (RAM_RANGE.containsExclusive(addr)) {
+            if (m_cartType == CartType::ROM_ONLY) {
+                log_error("Write to ROM only RAM addr");
+                return;
+            }
             *getRAMPtr(addr) = val;
         } else {
             EZ_FAIL("Wat?");

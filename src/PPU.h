@@ -4,7 +4,13 @@
 
 namespace ez {
 
-enum class StatIRQSources { MODE_0 = 0, MODE_1, MODE_2, LY, NUM_SOURCES };
+enum class StatIRQSources {
+    MODE_0 = 0,
+    MODE_1,
+    MODE_2,
+    LY,
+    NUM_SOURCES
+};
 
 class PPU {
 
@@ -14,6 +20,7 @@ class PPU {
     static constexpr int DISPLAY_HEIGHT = 144;
     static constexpr int BG_DIM_XY = 256;
     static constexpr iRange VRAM_ADDR_RANGE = {0x8000, 0xA000};
+    static constexpr iRange OAM_ADDR_RANGE = {0xFE00, 0xFEA0};
 
     PPU(IO& io);
 
@@ -31,13 +38,16 @@ class PPU {
     rgba8 getBGColor(const uint8_t paletteIdx);
 
     bool isVramAvailToCPU() const;
+    bool isOamAvailToCPU() const;
     void setStatIRQHigh(StatIRQSources src);
     void updateLyLyc();
     void updateDisplay();
 
     static std::array<uint8_t, 64> renderTile(const uint8_t* tileBegin);
 
-    std::vector<uint8_t> renderBG();
+    void renderBGWindow(bool enable, bool tileMap, uint8_t* dst);
+    void updateBG();
+    void updateWindow();
 
     int m_currentLineDotTickCount = 0;
 
@@ -47,7 +57,12 @@ class PPU {
 
     IO& m_io;
     IORegisters& m_reg;
+
+    std::vector<uint8_t> m_bg = std::vector<uint8_t>(BG_DIM_XY * BG_DIM_XY);
+    std::vector<uint8_t> m_window = std::vector<uint8_t>(BG_DIM_XY * BG_DIM_XY);
+
     std::vector<uint8_t> m_vram = std::vector<uint8_t>(VRAM_ADDR_RANGE.width(), 0u);
+    std::vector<uint8_t> m_oam = std::vector<uint8_t>(OAM_ADDR_RANGE.width(), 0u);
     std::vector<rgba8> m_display = std::vector<rgba8>(size_t(DISPLAY_WIDTH * DISPLAY_HEIGHT));
 };
 } // namespace ez

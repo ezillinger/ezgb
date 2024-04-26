@@ -67,10 +67,14 @@ class Cart {
     }
 
   private:
-
     const uint8_t* getROMPtr(uint16_t addr) const;
-    uint8_t* getRAMPtr(uint16_t ) { EZ_FAIL("RAM not implemented" ); }
-    const uint8_t* getRAMPtr(uint16_t ) const { EZ_FAIL("RAM not implemented"); }
+    // todo, add RAM bank switching
+    uint8_t* getRAMPtr(uint16_t addr) {
+        return m_mbc1State.m_ram.data() + (addr - RAM_RANGE.m_min);
+    }
+    const uint8_t* getRAMPtr(uint16_t addr) const {
+        return m_mbc1State.m_ram.data() + (addr - RAM_RANGE.m_min);
+    }
 
     CartType m_cartType = CartType::ROM_ONLY;
     size_t m_sizeBytes = 0ull;
