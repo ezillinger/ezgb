@@ -20,6 +20,7 @@ class Tester {
     bool test_io_reg();
     bool test_call_ret();
     bool test_cart();
+    bool test_ppu();
 
     std::unique_ptr<Cart> m_cart;
 };

@@ -7,6 +7,7 @@ namespace ez {
 class Gui {
   public:
     Gui(AppState& state);
+    ~Gui();
 
     void handleKeyboard();
 

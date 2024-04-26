@@ -23,6 +23,8 @@ Gui::Gui(AppState& state) : m_state(state) {
                  GL_UNSIGNED_BYTE, state.m_emu->getDisplayFramebuffer());
 }
 
+Gui::~Gui() { glDeleteTextures(1, &m_displayTexHandle); }
+
 void Gui::updateRomList() {
     const auto romDir = "./roms/";
     for (auto& file : fs::recursive_directory_iterator(romDir)) {

@@ -18,6 +18,23 @@ namespace ez {
         return emu;
     }
 
+    bool Tester::test_ppu() {
+        const std::array<uint8_t, 16> tile{0x3C, 0x7E, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42,
+                                     0x7E, 0x5E, 0x7E, 0x0A, 0x7C, 0x56, 0x38, 0x7C};
+        const std::array<uint8_t, 64> expected{
+            0b00, 0b10, 0b11, 0b11, 0b11, 0b11, 0b10, 0b00, 0b00, 0b11, 0b00, 0b00, 0b00,
+            0b00, 0b11, 0b00, 0b00, 0b11, 0b00, 0b00, 0b00, 0b00, 0b11, 0b00, 0b00, 0b11,
+            0b00, 0b00, 0b00, 0b00, 0b11, 0b00, 0b00, 0b11, 0b01, 0b11, 0b11, 0b11, 0b11,
+            0b00, 0b00, 0b01, 0b01, 0b01, 0b11, 0b01, 0b11, 0b00, 0b00, 0b11, 0b01, 0b11,
+            0b01, 0b11, 0b10, 0b00, 0b00, 0b10, 0b11, 0b11, 0b11, 0b10, 0b00, 0b00};
+        auto renderedTile = PPU::renderTile(tile.data());
+        for(auto i = 0; i < 64; ++i){
+            EZ_ASSERT(expected[i] == renderedTile[i]);
+        }
+
+        return true;
+    }
+
     bool Tester::test_io_reg() { 
         auto emu = make_emulator();
         auto& io = emu.m_io;
@@ -80,6 +97,7 @@ namespace ez {
         success &= test_push_pop();
         success &= test_call_ret();
         success &= test_cart();
+        success &= test_ppu();
 
         if(success){
             log_info("All tests passed!");
