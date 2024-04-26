@@ -125,6 +125,13 @@ void Gui::drawToolbar() {
             }
         }
 
+        static Stopwatch frameTimer{};
+        const auto frameTime = frameTimer.elapsed();
+        const auto timeText = "{}"_format(frameTime);
+        ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::CalcTextSize(timeText.c_str()).x);
+        ImGui::Text(timeText.c_str());
+        frameTimer.reset();
+
         ImGui::EndMainMenuBar();
     }
 }
@@ -337,12 +344,13 @@ void Gui::drawInstructions() {
 
 void Gui::drawDisplay() {
 
-    // todo, use pixel buffer to upload
-    glBindTexture(GL_TEXTURE_2D, m_displayTexHandle);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, PPU::DISPLAY_WIDTH, PPU::DISPLAY_HEIGHT, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, m_state.m_emu->getDisplayFramebuffer());
-
     if (ImGui::Begin("Display", nullptr)) {
+        // todo, use pixel buffer to upload
+        glBindTexture(GL_TEXTURE_2D, m_displayTexHandle);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, PPU::DISPLAY_WIDTH, PPU::DISPLAY_HEIGHT, 0, GL_RGBA,
+                    GL_UNSIGNED_BYTE, m_state.m_emu->getDisplayFramebuffer());
+
+
         ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(m_displayTexHandle)), ImGui::GetContentRegionAvail());
     }
     ImGui::End();

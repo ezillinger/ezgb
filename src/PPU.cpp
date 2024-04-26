@@ -107,7 +107,7 @@ void PPU::updateDisplay() {
     static constexpr auto mid_x = DISPLAY_WIDTH / 2;
     static constexpr auto mid_y = DISPLAY_HEIGHT / 2;
     static int radiusStep = 0;
-    radiusStep = (radiusStep + 1) % int(DISPLAY_WIDTH * 1.5f);
+    radiusStep = (radiusStep + 1) % DISPLAY_WIDTH;
     static constexpr auto lineWidth = 2.0f;
     for (auto y = 0; y < DISPLAY_HEIGHT; ++y) {
         for(auto x = 0; x < DISPLAY_WIDTH; ++x){
