@@ -29,12 +29,16 @@ int main() {
     auto runner = Runner(state);
     bool shouldExit = false;
 
+    
+
     while (true) {
         shouldExit |= window.run([&]() {
             gui.handleKeyboard();
             while (RunResult::CONTINUE == runner.tick()) {
                 // run emu logic
             }
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R, PPU::DISPLAY_WIDTH, PPU::DISPLAY_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, state.m_emu->getDisplayFramebuffer());
             gui.drawGui();
             shouldExit |= gui.shouldExit();
         });

@@ -138,6 +138,8 @@ class Emulator {
     static constexpr auto MASTER_CLOCK_PERIOD = 239ns;
     static constexpr int MASTER_TICKS_PER_INSTRUCTION_TICK = 4;
 
+    const rgba8* getDisplayFramebuffer() const { return m_ppu.getDisplayFramebuffer(); };
+
   private:
     void tickTimers();
     void tickInterrupts();

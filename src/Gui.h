@@ -1,6 +1,6 @@
 #include "Base.h"
 #include "AppState.h"
-#include "libs/imgui/imgui.h"
+#include "Window.h"
 
 namespace ez {
 
@@ -36,5 +36,6 @@ class Gui {
     bool m_followPC = true;
 
     std::vector<OpLine> m_opCache;
+    GLuint m_displayTexHandle = 0;
 };
 } // namespace ez

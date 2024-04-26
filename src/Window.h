@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Base.h"
 #include <SDL.h>
 #if defined(IMGUI_IMPL_OPENGL_ES2)

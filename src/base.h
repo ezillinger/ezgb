@@ -135,4 +135,11 @@ class Stopwatch {
     chrono::steady_clock::time_point m_start = chrono::steady_clock::now();
 };
 
+struct rgba8 {
+    uint8_t r = 0;
+    uint8_t g = 0;
+    uint8_t b = 0;
+    uint8_t a = 0;
+};
+
 } // namespace ez

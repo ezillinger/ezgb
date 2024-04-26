@@ -24,12 +24,13 @@ class PPU {
     void writeAddr(uint16_t, uint8_t);
     void writeAddr16(uint16_t, uint16_t);
 
-    void dumpDisplay() const;
+    const rgba8* getDisplayFramebuffer() const;
 
   private:
 
     void setStatIRQHigh(StatIRQSources src);
     void updateLyLyc();
+    void updateDisplay();
 
     int m_currentLineDotTickCount = 0;
 
@@ -40,6 +41,6 @@ class PPU {
     IO& m_io;
     IORegisters& m_reg;
     std::vector<uint8_t> m_vram = std::vector<uint8_t>(VRAM_BYTES, 0u);
-    std::vector<uint8_t> m_display = std::vector<uint8_t>(size_t(DISPLAY_WIDTH * DISPLAY_HEIGHT), 0u);
+    std::vector<rgba8> m_display = std::vector<rgba8>(size_t(DISPLAY_WIDTH * DISPLAY_HEIGHT));
 };
 } // namespace ez

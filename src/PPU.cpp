@@ -85,7 +85,7 @@ void PPU::tick() {
                     if (m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_mode2InterruptSelect) {
                         setStatIRQHigh(StatIRQSources::MODE_2);
                     }
-                    dumpDisplay();
+                    updateDisplay();
                 }
             }
             break;
@@ -102,11 +102,26 @@ void PPU::tick() {
     }
 }
 
-void PPU::dumpDisplay() const {
-    const auto dumpLocation = "dump.bmp";
-    if (!stbi_write_bmp(dumpLocation, DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, m_display.data())) {
-        log_error("Failed to write image to: {}", dumpLocation);
+
+void PPU::updateDisplay() {
+    static constexpr auto mid_x = DISPLAY_WIDTH / 2;
+    static constexpr auto mid_y = DISPLAY_HEIGHT / 2;
+    static int radiusStep = 0;
+    radiusStep = (radiusStep + 1) % int(DISPLAY_WIDTH * 1.5f);
+    static constexpr auto lineWidth = 2.0f;
+    for (auto y = 0; y < DISPLAY_HEIGHT; ++y) {
+        for(auto x = 0; x < DISPLAY_WIDTH; ++x){
+            const auto dx = fabs(mid_x - x);
+            const auto dy = fabs(mid_y - y);
+            const auto radius = sqrtf(dx * dx + dy * dy);
+            const uint8_t intensity = fabs(radius - radiusStep) < lineWidth ? 0xFF : 0;
+            m_display[y * DISPLAY_WIDTH + x] = {intensity, intensity, intensity, 0xFF};
+        }
     }
+}
+
+const rgba8* PPU::getDisplayFramebuffer() const { 
+    return m_display.data(); 
 }
 
 void PPU::setStatIRQHigh(StatIRQSources src) { m_statIRQSources[+src] = true; }

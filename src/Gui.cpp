@@ -1,12 +1,31 @@
 #include "Gui.h"
 #include <filesystem>
+#include <imgui.h>
+
+#define EZ_GLC(_CALL)                                                                              \
+    do {                                                                                           \
+        _CALL;                                                                                     \
+        GLenum gl_err = glGetError();                                                              \
+        if (gl_err != 0)                                                                           \
+            fprintf(stderr, "GL error 0x%x returned from '%s'.\n", gl_err, #_CALL);                \
+    } while (0) // Call with error check
+
 namespace ez {
 
-Gui::Gui(AppState& state) : m_state(state) { updateRomList(); }
+Gui::Gui(AppState& state) : m_state(state) {
+    updateRomList();
+
+    glGenTextures(1, &m_displayTexHandle);
+    glBindTexture(GL_TEXTURE_2D, m_displayTexHandle);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, PPU::DISPLAY_WIDTH, PPU::DISPLAY_HEIGHT, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, state.m_emu->getDisplayFramebuffer());
+}
 
 void Gui::updateRomList() {
     const auto romDir = "./roms/";
-    for (auto& file : fs::directory_iterator(romDir)) {
+    for (auto& file : fs::recursive_directory_iterator(romDir)) {
         if (file.is_regular_file() && file.path().extension() == ".gb") {
             log_info("Found rom: {}", file.path().c_str());
             m_romsAvail.push_back(file.path());
@@ -160,19 +179,13 @@ void Gui::drawRegisters() {
         }
         if (ImGui::CollapsingHeader("Interrupts", ImGuiTreeNodeFlags_DefaultOpen)) {
             auto& ioReg = m_state.m_emu->m_io.getRegisters();
-            ImGui::Text("IE/IF:\n VB      {} {}\n LCD     {} {}\n TIMER   {} {}\n SERIAL  {} {}\n JOY     {} {}"_format(
-                                       bool(ioReg.m_ie.vblank), 
-                                       bool(ioReg.m_if.vblank), 
-                                       bool(ioReg.m_ie.lcd),
-                                       bool(ioReg.m_if.lcd),
-                                       bool(ioReg.m_ie.timer), 
-                                       bool(ioReg.m_if.timer), 
-                                       bool(ioReg.m_ie.serial),
-                                       bool(ioReg.m_if.serial),
-                                       bool(ioReg.m_ie.joypad),
-                                       bool(ioReg.m_if.joypad)
-                                       )
-                                       .c_str());
+            ImGui::Text(
+                "IE/IF:\n VB      {} {}\n LCD     {} {}\n TIMER   {} {}\n SERIAL  {} {}\n JOY     {} {}"_format(
+                    bool(ioReg.m_ie.vblank), bool(ioReg.m_if.vblank), bool(ioReg.m_ie.lcd),
+                    bool(ioReg.m_if.lcd), bool(ioReg.m_ie.timer), bool(ioReg.m_if.timer),
+                    bool(ioReg.m_ie.serial), bool(ioReg.m_if.serial), bool(ioReg.m_ie.joypad),
+                    bool(ioReg.m_if.joypad))
+                    .c_str());
         }
 
         if (ImGui::CollapsingHeader("Cart", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -205,8 +218,10 @@ void Gui::drawSettings() {
                        "%04x");
         ImGui::DragInt("OC Break", &m_state.m_debugSettings.m_breakOnOpCode, 1.0f, -1, INT16_MAX,
                        "%04x");
-        ImGui::DragInt("OC Break Prefixed", &m_state.m_debugSettings.m_breakOnOpCodePrefixed, 1.0f, -1, INT16_MAX, "%04x");
-        ImGui::DragInt("Break On Write Addr", &m_state.m_debugSettings.m_breakOnWriteAddr, 1.0f, -1, INT16_MAX, "%04x");
+        ImGui::DragInt("OC Break Prefixed", &m_state.m_debugSettings.m_breakOnOpCodePrefixed, 1.0f,
+                       -1, INT16_MAX, "%04x");
+        ImGui::DragInt("Break On Write Addr", &m_state.m_debugSettings.m_breakOnWriteAddr, 1.0f, -1,
+                       INT16_MAX, "%04x");
 
         ImGui::Separator();
     }
@@ -322,9 +337,13 @@ void Gui::drawInstructions() {
 
 void Gui::drawDisplay() {
 
+    // todo, use pixel buffer to upload
+    glBindTexture(GL_TEXTURE_2D, m_displayTexHandle);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, PPU::DISPLAY_WIDTH, PPU::DISPLAY_HEIGHT, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, m_state.m_emu->getDisplayFramebuffer());
+
     if (ImGui::Begin("Display", nullptr)) {
-        const auto& io = ImGui::GetIO();
-        ImGui::Image(io.Fonts->TexID, ImGui::GetContentRegionAvail());
+        ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(m_displayTexHandle)), ImGui::GetContentRegionAvail());
     }
     ImGui::End();
 }
