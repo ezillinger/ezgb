@@ -799,7 +799,10 @@ void Emulator::tick() {
         return;
     }
 
-    if (m_cyclesToWait == 0) {
+    m_cyclesToWait = std::max(m_cyclesToWait - 1, 0);
+
+    // prefix instructions are atomic
+    if (m_cyclesToWait == 0 && !m_prefix) {
         tickInterrupts();
     }
 
@@ -831,51 +834,16 @@ void Emulator::tick() {
         m_cyclesToWait = result.m_cycles;
         assert(m_cyclesToWait > 0);
     }
-    m_cyclesToWait = std::max(0, m_cyclesToWait - 1);
-    EZ_ASSERT(m_cyclesToWait >= 0);
 
-    // todo, find out why my timers are running too fast
-    static auto hack_tick_times_half_speed = 0;
-    if(hack_tick_times_half_speed++ == 2){
-        tickTimers();
-        hack_tick_times_half_speed = 0;
-    }
+    m_io.tick();
 
     for (auto i = 0; i < 4; ++i) {
         m_ppu.tick();
     }
 
+    m_cycleCounter++;
+
     return;
-}
-
-void Emulator::tickTimers() {
-    ++m_divCycleCounterM;
-
-    static constexpr auto cyclesPerDivCycle = 64;
-    if (m_divCycleCounterM >= cyclesPerDivCycle) {
-        m_divCycleCounterM -= cyclesPerDivCycle;
-        m_io.getRegisters().m_timerDivider += 1;
-    }
-
-    if (m_io.getRegisters().m_timerControl & 0b100) {
-        // todo, what happens if this changes mid cycle?
-        ++m_timaCycleCounterM;
-        const auto timaControlBits = m_io.getRegisters().m_timerControl & 0b11;
-        const auto cyclesPerTimaCycle = timaControlBits == 0b00   ? 256
-                                        : timaControlBits == 0b01 ? 4
-                                        : timaControlBits == 0b10 ? 16
-                                                                  : 64;
-
-        if (m_timaCycleCounterM >= cyclesPerTimaCycle) {
-            if (m_io.getRegisters().m_timerCounter == 0xFF) {
-                m_io.setInterruptFlag(Interrupts::TIMER);
-                m_io.getRegisters().m_timerCounter = m_io.getRegisters().m_timerModulo;
-            } else {
-                ++m_io.getRegisters().m_timerCounter;
-            }
-            m_timaCycleCounterM -= cyclesPerTimaCycle;
-        }
-    }
 }
 
 void Emulator::tickInterrupts() {
@@ -936,6 +904,12 @@ AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
 }
 
 void Emulator::writeAddr(uint16_t addr, uint8_t data) {
+    if(addr == +IOAddr::TAC){
+        log_warn("TAC set to {}", data);
+    }
+    if(addr == +IOAddr::TIMA){
+        log_warn("TIMA set to {}", data);
+    }
     m_lastWrittenAddr = addr;
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {

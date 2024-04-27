@@ -193,6 +193,10 @@ class IO {
     // for testing only
     uint8_t* getMemPtrRW(uint16_t address);
 
+    void tickTimers();
+
+    int16_t m_sysclk = 0; // t cycles
+
     IORegisters m_reg;
     static_assert(sizeof(m_reg) == ADDRESS_RANGE.width());
 

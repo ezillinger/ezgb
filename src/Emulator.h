@@ -184,10 +184,10 @@ class Emulator {
     IO m_io{};
     PPU m_ppu{m_io};
 
+    int64_t m_cycleCounter = 0;
+
     int m_lastWrittenAddr = -2;
     int m_cyclesToWait = 0;
-    int m_divCycleCounterM = 0;  // m cycles
-    int m_timaCycleCounterM = 0; // m cycles
 
     bool m_stopMode = false;
     bool m_haltMode = false;
