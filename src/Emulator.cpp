@@ -316,10 +316,10 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
         switch (oc) {
             case OpCode::PREFIX: m_prefix = true; break;
             // enable/disable interrupts after instruction after this one finishes
-            case OpCode::EI: m_pendingInterruptsEnableCount = 1; break;
+            case OpCode::EI: m_pendingInterruptEnableCycleCount = 4; break;
             case OpCode::DI:
                 m_interruptMasterEnable = false;
-                m_pendingInterruptsEnableCount = 0;
+                m_pendingInterruptEnableCycleCount = 0;
                 break;
 
             case OpCode::LD__C__A:    writeAddr(0xFF00 + m_reg.c, m_reg.a); break;
@@ -435,7 +435,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 jumpAddr = readAddr16(m_reg.sp);
                 m_reg.sp += 2;
                 // todo, is this also delayed?
-                m_pendingInterruptsEnableCount = 1;
+                m_pendingInterruptEnableCycleCount = 4;
                 break;
             }
             default: EZ_FAIL("not implemented: {}", +oc);
@@ -831,19 +831,16 @@ void Emulator::tick() {
 
     if (!handledInstructionOrInterrupt) {
         m_cyclesToWait = std::max(m_cyclesToWait - 1, 0);
-        if (m_pendingInterruptsEnableCount > 0) {
-            --m_pendingInterruptsEnableCount;
-            if (m_pendingInterruptsEnableCount == 0) {
+        if (m_pendingInterruptEnableCycleCount > 0) {
+            --m_pendingInterruptEnableCycleCount;
+            if (m_pendingInterruptEnableCycleCount == 0) {
                 m_interruptMasterEnable = true;
             }
         }
     }
 
     m_io.tick();
-
-    for (auto i = 0; i < 4; ++i) {
-        m_ppu.tick();
-    }
+    m_ppu.tick();
 
     m_cycleCounter++;
 
@@ -867,7 +864,7 @@ void Emulator::tickInterrupts() {
                 m_reg.sp -= 2;
                 writeAddr16(m_reg.sp, m_reg.pc);
                 EZ_ASSERT(m_cyclesToWait == 0);
-                m_cyclesToWait = 5;
+                m_cyclesToWait = 20; // 5 m-cycles
                 switch (i) {
                     case +Interrupts::VBLANK: m_reg.pc = 0x40; break;
                     case +Interrupts::JOYPAD: m_reg.pc = 0x60; break;

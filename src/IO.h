@@ -129,9 +129,9 @@ struct alignas(uint8_t) IORegisters {
     uint8_t m_serialControl;
     uint8_t detail_padding0{};
     uint8_t m_timerDivider{};
-    uint8_t m_timerCounter{};
-    uint8_t m_timerModulo{};
-    uint8_t m_timerControl{};
+    uint8_t m_tima{}; // timer ocunter
+    uint8_t m_tma{}; // timer modula
+    uint8_t m_tac{}; // timer control
     uint8_t detail_padding1[7]{};
     InterruptControl m_if{}; // interrupt flag
     uint8_t m_audio[23]{};
@@ -196,6 +196,7 @@ class IO {
     void tickTimers();
 
     int16_t m_sysclk = 0; // t cycles
+    bool m_pendingTimaOverflow = false;
 
     IORegisters m_reg;
     static_assert(sizeof(m_reg) == ADDRESS_RANGE.width());

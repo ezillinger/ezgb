@@ -47,9 +47,9 @@ namespace ez {
         EZ_ASSERT(io.getMemPtrRW(+IOAddr::SC) == &io.m_reg.m_serialControl);
 
         EZ_ASSERT(io.getMemPtrRW(+IOAddr::DIV) == &io.m_reg.m_timerDivider);
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::TIMA) == &io.m_reg.m_timerCounter);
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::TMA) == &io.m_reg.m_timerModulo);
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::TAC) == &io.m_reg.m_timerControl);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::TIMA) == &io.m_reg.m_tima);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::TMA) == &io.m_reg.m_tma);
+        EZ_ASSERT(io.getMemPtrRW(+IOAddr::TAC) == &io.m_reg.m_tac);
 
         EZ_ASSERT(io.getMemPtrRW(+IOAddr::IF) == reinterpret_cast<uint8_t*>(&io.m_reg.m_if));
 

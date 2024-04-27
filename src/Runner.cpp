@@ -5,14 +5,18 @@ namespace ez {
 RunResult ez::Runner::tick() {
     auto ret = RunResult::CONTINUE;
     if (m_state.m_isPaused) {
-        if (m_state.m_singleStep) {
+        if (m_state.m_stepToNextInstr) {
             while (true) {
                 tickEmuOnce();
                 if (m_state.m_emu->getCyclesUntilNextInstruction() == 0) {
                     break;
                 }
             }
-            m_state.m_singleStep = false;
+            m_state.m_stepToNextInstr = false;
+        }
+        else if(m_state.m_stepOneCycle){
+            tickEmuOnce();
+            m_state.m_stepOneCycle = false;
         }
         ret = RunResult::DRAW;
     } else {

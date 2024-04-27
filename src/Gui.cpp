@@ -62,7 +62,12 @@ void Gui::handleKeyboard() {
     }
     if (ImGui::IsKeyPressed(ImGuiKey_N)) {
         if (m_state.m_isPaused) {
-            m_state.m_singleStep = true;
+            m_state.m_stepToNextInstr = true;
+        }
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_M)) {
+        if (m_state.m_isPaused) {
+            m_state.m_stepOneCycle = true;
         }
     }
     if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
@@ -116,8 +121,12 @@ void Gui::drawToolbar() {
             if (ImGui::Button("Play")) {
                 m_state.m_isPaused = false;
             }
+            if (ImGui::Button("Next Instr")) {
+                m_state.m_stepToNextInstr = true;
+                updateOpCache();
+            }
             if (ImGui::Button("Step")) {
-                m_state.m_singleStep = true;
+                m_state.m_stepOneCycle = true;
                 updateOpCache();
             }
         } else {
@@ -181,11 +190,12 @@ void Gui::drawRegisters() {
 
         if (ImGui::CollapsingHeader("Timers", ImGuiTreeNodeFlags_DefaultOpen)) {
             auto& ioReg = m_state.m_emu->m_io.getRegisters();
+            ImGui::LabelText("T-CYCLES", "{}"_format(m_state.m_emu->getCycleCounter()).c_str());
             ImGui::LabelText("DIV", "{}"_format(ioReg.m_timerDivider).c_str());
             ImGui::LabelText("TIMA Enabled",
-                             "{}"_format(bool(ioReg.m_timerControl & 0b100)).c_str());
-            ImGui::LabelText("TIMA", "{}"_format(ioReg.m_timerCounter).c_str());
-            ImGui::LabelText("MODULO", "{}"_format(ioReg.m_timerModulo).c_str());
+                             "{}"_format(bool(ioReg.m_tac & 0b100)).c_str());
+            ImGui::LabelText("TIMA", "{}"_format(ioReg.m_tima).c_str());
+            ImGui::LabelText("MODULO", "{}"_format(ioReg.m_tma).c_str());
         }
         if (ImGui::CollapsingHeader("Interrupts", ImGuiTreeNodeFlags_DefaultOpen)) {
             auto& ioReg = m_state.m_emu->m_io.getRegisters();
@@ -264,13 +274,14 @@ void Gui::drawInstructions() {
                                  [](const OpLine& line, int addr) { return line.m_addr < addr; });
             scrollToLine = lb - m_opCache.begin();
         }
-        const auto numCols = 4;
+        const auto numCols = 5;
         if (ImGui::BeginTable("Memory View Table", numCols, ImGuiTableFlags_ScrollY)) {
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_None);
             ImGui::TableSetupColumn("OpCode", ImGuiTableColumnFlags_None);
             ImGui::TableSetupColumn("Mnemonic", ImGuiTableColumnFlags_None);
             ImGui::TableSetupColumn("Data", ImGuiTableColumnFlags_None);
+            ImGui::TableSetupColumn("Cycles", ImGuiTableColumnFlags_None);
             ImGui::TableHeadersRow();
             ImGuiListClipper clipper;
             clipper.Begin(m_opCache.size());
@@ -334,6 +345,11 @@ void Gui::drawInstructions() {
                         operandText += "u8={:02x} "_format(u8);
                     }
                     ImGui::Text(operandText.c_str());
+                    ImGui::TableNextColumn();
+                    auto cycleText = ocLine.m_info.m_cyclesIfBranch
+                        ? "{}/{}"_format(ocLine.m_info.m_cycles, *ocLine.m_info.m_cyclesIfBranch)
+                               : "{}"_format(ocLine.m_info.m_cycles);
+                    ImGui::Text(cycleText.c_str());
                 }
             }
             if (scrollToLine) {

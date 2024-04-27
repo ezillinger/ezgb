@@ -15,7 +15,8 @@ struct DebugSettings {
 
 struct AppState {
     bool m_isPaused = false;
-    bool m_singleStep = false;
+    bool m_stepToNextInstr = false;
+    bool m_stepOneCycle = false;
     std::unique_ptr<Cart> m_cart;
     std::unique_ptr<Emulator> m_emu;
     DebugSettings m_debugSettings{};

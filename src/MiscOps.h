@@ -33,15 +33,23 @@ inline constexpr bool getFlagC_SBC(uint8_t a, uint8_t b, uint8_t carryBit) {
     return a < (b + carryBit);
 }
 
-inline constexpr bool is_tima_increment(uint16_t sysclkBefore, uint16_t sysclkAfter, uint8_t timc){
-    const auto timaControlBits = 0b11 & timc;
-    const auto fallingEdgeBit = timaControlBits == 0b00   ? 9
-                                : timaControlBits == 0b11 ? 7
-                                : timaControlBits == 0b10 ? 5
-                                                          : 3;
+inline constexpr bool is_tima_increment(uint16_t sysclkBefore, uint16_t sysclkAfter, uint8_t tacBefore, uint8_t tacAfter){
+    // if enable bit isn't set no increment
+    if(!(tacAfter & 0b100)){
+        return false;
+    }
+    auto getBitIdx = [](uint8_t tac) {
+        const auto timaControlBits = 0b11 & tac;
+        return timaControlBits == 0b00   ? 9
+                                    : timaControlBits == 0b11 ? 7
+                                    : timaControlBits == 0b10 ? 5
+                                                              : 3;
+    };
 
-    return
-        (sysclkBefore & (0b1 << fallingEdgeBit)) && !(sysclkAfter & (0b1 << fallingEdgeBit));
+    const bool bitSetBefore = (sysclkBefore & (0b1 << getBitIdx(tacBefore)));
+    const bool bitSetAfter = (sysclkAfter & (0b1 << getBitIdx(tacAfter)));
+
+    return bitSetBefore && !bitSetAfter;
 }
 
 } // namespace ez

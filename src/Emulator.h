@@ -123,7 +123,7 @@ class Emulator {
     friend class Gui;
 
     Emulator(Cart& cart, EmuSettings = {});
-    void tick();
+    void tick(); // one T-cycle tick
     int getCyclesUntilNextInstruction() { return m_cyclesToWait; }
 
     uint16_t getPC() const { return m_reg.pc; }
@@ -133,6 +133,7 @@ class Emulator {
     }
 
     // todo, make this less greasy
+    int64_t getCycleCounter() const { return m_cycleCounter; };
     int& getLastWrittenAddr() { return m_lastWrittenAddr; }
     bool wantBreakpoint() {
         if(m_wantBreakpoint){
@@ -203,7 +204,7 @@ class Emulator {
 
     bool m_prefix = false; // was last instruction CB prefix
     bool m_interruptMasterEnable = false;
-    int m_pendingInterruptsEnableCount = 0;  // enable interrupts when reaches 0
+    int m_pendingInterruptEnableCycleCount = 0;  // enable interrupts when reaches 0
 
     bool m_wantBreakpoint = false;
 

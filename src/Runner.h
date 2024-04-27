@@ -18,7 +18,7 @@ class Runner {
 
     int m_ticksSinceLastDraw = 0;
     static constexpr auto TICKS_PER_DRAW =
-        int((std::round(16.6666ms / (2 * Emulator::MASTER_CLOCK_PERIOD))));
+        int((std::round(16.6666ms / Emulator::MASTER_CLOCK_PERIOD)));
     AppState& m_state;
 };
 } // namespace ez
