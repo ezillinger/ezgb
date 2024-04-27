@@ -134,6 +134,15 @@ class Emulator {
 
     // todo, make this less greasy
     int& getLastWrittenAddr() { return m_lastWrittenAddr; }
+    bool wantBreakpoint() {
+        if(m_wantBreakpoint){
+            if(m_cyclesToWait == 1){
+                m_wantBreakpoint = false;
+            }
+            return true;
+        }
+        return false;
+    }
 
     static constexpr auto MASTER_CLOCK_PERIOD = 239ns;
     static constexpr int MASTER_TICKS_PER_INSTRUCTION_TICK = 4;
@@ -195,7 +204,8 @@ class Emulator {
     bool m_prefix = false; // was last instruction CB prefix
     bool m_interruptMasterEnable = false;
     int m_pendingInterruptsEnableCount = 0;  // enable interrupts when reaches 0
-    int m_pendingInterruptsDisableCount = 0; // ^ disable
+
+    bool m_wantBreakpoint = false;
 
     void maybe_log_registers() const;
     void maybe_log_opcode(const OpCodeInfo& oc) const;

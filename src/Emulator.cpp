@@ -316,8 +316,11 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
         switch (oc) {
             case OpCode::PREFIX: m_prefix = true; break;
             // enable/disable interrupts after instruction after this one finishes
-            case OpCode::EI: m_pendingInterruptsEnableCount = 2; break;
-            case OpCode::DI: m_pendingInterruptsDisableCount = 2; break;
+            case OpCode::EI: m_pendingInterruptsEnableCount = 1; break;
+            case OpCode::DI:
+                m_interruptMasterEnable = false;
+                m_pendingInterruptsEnableCount = 0;
+                break;
 
             case OpCode::LD__C__A:    writeAddr(0xFF00 + m_reg.c, m_reg.a); break;
             case OpCode::LD_A__a16_:  m_reg.a = readAddr(u16); break;
@@ -431,8 +434,8 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             case OpCode::RETI: {
                 jumpAddr = readAddr16(m_reg.sp);
                 m_reg.sp += 2;
-                // todo, is this also delayed by 2?
-                m_pendingInterruptsEnableCount = 2;
+                // todo, is this also delayed?
+                m_pendingInterruptsEnableCount = 1;
                 break;
             }
             default: EZ_FAIL("not implemented: {}", +oc);
@@ -548,7 +551,7 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
 InstructionResult Emulator::handleInstructionBlock1(uint32_t pcData) {
 
     const auto oc = OpCode{checked_cast<uint8_t>(pcData & 0xFF)};
-    EZ_ASSERT(((+oc & 0b11000000) >> 6) == 1);
+    EZ_ASSERT(((+oc & 0b11000000) >> 6) == 0b01);
 
     const auto info = getOpCodeInfoUnprefixed(+oc);
 
@@ -799,11 +802,12 @@ void Emulator::tick() {
         return;
     }
 
-    m_cyclesToWait = std::max(m_cyclesToWait - 1, 0);
+    bool handledInstructionOrInterrupt = false;
 
     // prefix instructions are atomic
     if (m_cyclesToWait == 0 && !m_prefix) {
         tickInterrupts();
+        handledInstructionOrInterrupt = true;
     }
 
     if (m_cyclesToWait == 0 && !m_haltMode) {
@@ -818,21 +822,21 @@ void Emulator::tick() {
         } else {
             result = handleInstruction(pcData);
         }
+
+        m_reg.pc = result.m_newPC;
+        m_cyclesToWait = result.m_cycles;
+        assert(m_cyclesToWait > 0);
+        handledInstructionOrInterrupt = true;
+    }
+
+    if (!handledInstructionOrInterrupt) {
+        m_cyclesToWait = std::max(m_cyclesToWait - 1, 0);
         if (m_pendingInterruptsEnableCount > 0) {
             --m_pendingInterruptsEnableCount;
             if (m_pendingInterruptsEnableCount == 0) {
                 m_interruptMasterEnable = true;
             }
         }
-        if (m_pendingInterruptsDisableCount > 0) {
-            --m_pendingInterruptsDisableCount;
-            if (m_pendingInterruptsDisableCount == 0) {
-                m_interruptMasterEnable = false;
-            }
-        }
-        m_reg.pc = result.m_newPC;
-        m_cyclesToWait = result.m_cycles;
-        assert(m_cyclesToWait > 0);
     }
 
     m_io.tick();
@@ -854,7 +858,7 @@ void Emulator::tickInterrupts() {
         if (ioReg.m_ie.data & bitFlag && ioReg.m_if.data & bitFlag) {
             // todo, implement halt bug
             m_haltMode = false;
-            if(m_interruptMasterEnable){
+            if (m_interruptMasterEnable) {
                 if (m_settings.m_logEnable) {
                     log_info("Calling ISR {}", i);
                 }
@@ -904,10 +908,10 @@ AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
 }
 
 void Emulator::writeAddr(uint16_t addr, uint8_t data) {
-    if(addr == +IOAddr::TAC){
+    if (addr == +IOAddr::TAC) {
         log_warn("TAC set to {}", data);
     }
-    if(addr == +IOAddr::TIMA){
+    if (addr == +IOAddr::TIMA) {
         log_warn("TIMA set to {}", data);
     }
     m_lastWrittenAddr = addr;
@@ -920,8 +924,7 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
         case MemoryBank::VRAM:        m_ppu.writeAddr(addr, data); break;
         case MemoryBank::OAM:         m_ppu.writeAddr(addr, data); break;
         case MemoryBank::IO:          m_io.writeAddr(addr, data); break;
-        case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); 
-        break;
+        case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); break;
         default:                      EZ_FAIL("not implemented"); break;
     }
 }

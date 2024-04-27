@@ -79,9 +79,25 @@ namespace ez {
         EZ_ASSERT(io.getMemPtrRW(0xFF80) == io.m_reg.m_hram);
 
         io.writeAddr16(0xFF81, 0xABCD);
-        EZ_ENSURE(io.readAddr16(0xFF81) == 0xABCD);
+        EZ_ASSERT(io.readAddr16(0xFF81) == 0xABCD);
 
         EZ_ASSERT(io.getMemPtrRW(0xFFFF) == reinterpret_cast<uint8_t*>(&io.m_reg.m_ie));
+
+        io.writeAddr(+IOAddr::IF, 0b00010101);
+        EZ_ASSERT(io.readAddr(+IOAddr::IF) == 0b00010101);
+        EZ_ASSERT(io.m_reg.m_if.vblank);
+        EZ_ASSERT(!io.m_reg.m_if.lcd);
+        EZ_ASSERT(io.m_reg.m_if.timer);
+        EZ_ASSERT(!io.m_reg.m_if.serial);
+        EZ_ASSERT(io.m_reg.m_if.joypad);
+
+        io.writeAddr(+IOAddr::IE, 0b00010101);
+        EZ_ASSERT(io.readAddr(+IOAddr::IE) == 0b00010101);
+        EZ_ASSERT(io.m_reg.m_ie.vblank);
+        EZ_ASSERT(!io.m_reg.m_ie.lcd);
+        EZ_ASSERT(io.m_reg.m_ie.timer);
+        EZ_ASSERT(!io.m_reg.m_ie.serial);
+        EZ_ASSERT(io.m_reg.m_ie.joypad);
 
         return true;
     }

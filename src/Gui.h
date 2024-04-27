@@ -36,6 +36,8 @@ class Gui {
     bool m_showDemoWindow = false;
     bool m_followPC = true;
 
+    bool m_prevWasPaused = false;
+
     std::vector<OpLine> m_opCache;
     GLuint m_displayTexHandle = 0;
 };

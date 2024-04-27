@@ -31,20 +31,21 @@ RunResult ez::Runner::tick() {
 void Runner::tickEmuOnce() {
     bool shouldBreak = false;
     m_state.m_emu->tick();
+    shouldBreak |= m_state.m_emu->wantBreakpoint();
     const auto cyclesTillNext = m_state.m_emu->getCyclesUntilNextInstruction();
-    shouldBreak = m_state.m_emu->getPC() == m_state.m_debugSettings.m_breakOnPC;
+    shouldBreak |= m_state.m_emu->getPC() == m_state.m_debugSettings.m_breakOnPC;
     const auto currentOp = m_state.m_emu->getCurrentOpCode();
     shouldBreak |=
         currentOp.m_addr == (currentOp.m_prefixed ? m_state.m_debugSettings.m_breakOnOpCodePrefixed
                                                   : m_state.m_debugSettings.m_breakOnOpCode);
     if (m_state.m_emu->getLastWrittenAddr() == m_state.m_debugSettings.m_breakOnWriteAddr) {
         shouldBreak = true;
-        if (m_state.m_emu->getCyclesUntilNextInstruction() == 0) {
+        if (cyclesTillNext == 0) {
             m_state.m_emu->getLastWrittenAddr() = -2;
         }
     }
 
-    if (shouldBreak && cyclesTillNext == 0) {
+    if (shouldBreak && cyclesTillNext == 1) {
         log_info("Debug Break!");
         m_state.m_isPaused = true;
     }

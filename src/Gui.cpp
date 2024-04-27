@@ -248,11 +248,11 @@ void Gui::drawConsole() {
 }
 
 void Gui::drawInstructions() {
-
+    const auto justPaused = update(m_prevWasPaused, m_state.m_isPaused) && m_state.m_isPaused;
     auto& emu = *m_state.m_emu;
     if (ImGui::Begin("Instructions", nullptr)) {
         std::optional<int> scrollToLine;
-        if (ImGui::Button("Refresh") || m_opCache.empty()) {
+        if (ImGui::Button("Refresh") || m_opCache.empty() || justPaused ) {
             updateOpCache();
         }
         ImGui::SameLine();
