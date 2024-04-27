@@ -42,6 +42,7 @@ apply_hacks("cbprefixed")
 # we treat prefix as its own instruction
 for k,v in json_dict["cbprefixed"].items():
     v["bytes"] = v["bytes"] - 1
+    v["cycles"][0] = v["cycles"][0] - 4
 
 codeHeader = \
 """#pragma once
