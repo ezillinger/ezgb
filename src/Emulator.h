@@ -185,11 +185,13 @@ class Emulator {
     PPU m_ppu{m_io};
 
     int m_lastWrittenAddr = -2;
-    uint16_t m_cyclesToWait = 0;
+    int m_cyclesToWait = 0;
     int m_divCycleCounterM = 0;  // m cycles
     int m_timaCycleCounterM = 0; // m cycles
 
     bool m_stopMode = false;
+    bool m_haltMode = false;
+
     bool m_prefix = false; // was last instruction CB prefix
     bool m_interruptMasterEnable = false;
     int m_pendingInterruptsEnableCount = 0;  // enable interrupts when reaches 0

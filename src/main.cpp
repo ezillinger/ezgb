@@ -11,7 +11,7 @@ int main() {
     t.test_all();
 
     log_info("CurrentDir: {}", fs::current_path().c_str());
-    auto romStartsWith = "tetris";
+    auto romStartsWith = "02";
     auto romPath = "./roms/cpu_instrs.gb"s;
     for(auto& romFile : fs::directory_iterator("./roms/")){
         if(romFile.path().filename().string().starts_with(romStartsWith)){

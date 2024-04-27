@@ -104,7 +104,7 @@ struct alignas(uint8_t) LCDRegisters {
     uint8_t m_obp0 = 0;
     uint8_t m_obp1 = 0;
     uint8_t m_windowY = 0;
-    uint8_t m_windowXPlus7 = 0; 
+    uint8_t m_windowXPlus7 = 0;
 };
 static_assert(sizeof(LCDRegisters) == 12);
 

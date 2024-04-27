@@ -557,7 +557,7 @@ InstructionResult Emulator::handleInstructionBlock1(uint32_t pcData) {
 
     if (srcR8 == R8::HL_ADDR && dstR8 == R8::HL_ADDR) {
         // HALT
-        EZ_FAIL("not implemented");
+        m_haltMode = true;
     } else {
         writeR8(dstR8, readR8(srcR8));
     }
@@ -795,13 +795,15 @@ void Emulator::tick() {
             log_warn("Auto-unstopping");
             m_stopMode = false;
         }
+        // todo, recover from stop mode!
         return;
     }
+
     if (m_cyclesToWait == 0) {
         tickInterrupts();
     }
 
-    if (m_cyclesToWait == 0) {
+    if (m_cyclesToWait == 0 && !m_haltMode) {
         const auto word0 = readAddr16(m_reg.pc);
         const auto word1 = readAddr16(m_reg.pc + 2);
         const auto pcData = (uint32_t(word1) << 16) | (uint32_t(word0));
@@ -829,9 +831,15 @@ void Emulator::tick() {
         m_cyclesToWait = result.m_cycles;
         assert(m_cyclesToWait > 0);
     }
-    --m_cyclesToWait;
+    m_cyclesToWait = std::max(0, m_cyclesToWait - 1);
+    EZ_ASSERT(m_cyclesToWait >= 0);
 
-    tickTimers();
+    // todo, find out why my timers are running too fast
+    static auto hack_tick_times_half_speed = 0;
+    if(hack_tick_times_half_speed++ == 2){
+        tickTimers();
+        hack_tick_times_half_speed = 0;
+    }
 
     for (auto i = 0; i < 4; ++i) {
         m_ppu.tick();
@@ -872,31 +880,33 @@ void Emulator::tickTimers() {
 
 void Emulator::tickInterrupts() {
 
-    if (!m_interruptMasterEnable) {
-        return;
-    }
-
     auto& ioReg = m_io.getRegisters();
     for (auto i = 0; i < +Interrupts::NUM_INTERRUPTS; ++i) {
         const uint8_t bitFlag = 0b1 << i;
         if (ioReg.m_ie.data & bitFlag && ioReg.m_if.data & bitFlag) {
-            log_info("Calling ISR {}", i);
-            ioReg.m_if.data &= ~bitFlag;
-            m_interruptMasterEnable = false;
-            m_reg.sp -= 2;
-            writeAddr16(m_reg.sp, m_reg.pc);
-            EZ_ASSERT(m_cyclesToWait == 0);
-            m_cyclesToWait = 5;
-            switch (i) {
-                case +Interrupts::VBLANK: m_reg.pc = 0x40; break;
-                case +Interrupts::JOYPAD: m_reg.pc = 0x60; break;
-                case +Interrupts::SERIAL: m_reg.pc = 0x58; break;
-                case +Interrupts::LCD:    m_reg.pc = 0x48; break;
-                case +Interrupts::TIMER:  m_reg.pc = 0x50; break;
-                default:                  EZ_FAIL("Should never get here");
+            // todo, implement halt bug
+            m_haltMode = false;
+            if(m_interruptMasterEnable){
+                if (m_settings.m_logEnable) {
+                    log_info("Calling ISR {}", i);
+                }
+                ioReg.m_if.data &= ~bitFlag;
+                m_interruptMasterEnable = false;
+                m_reg.sp -= 2;
+                writeAddr16(m_reg.sp, m_reg.pc);
+                EZ_ASSERT(m_cyclesToWait == 0);
+                m_cyclesToWait = 5;
+                switch (i) {
+                    case +Interrupts::VBLANK: m_reg.pc = 0x40; break;
+                    case +Interrupts::JOYPAD: m_reg.pc = 0x60; break;
+                    case +Interrupts::SERIAL: m_reg.pc = 0x58; break;
+                    case +Interrupts::LCD:    m_reg.pc = 0x48; break;
+                    case +Interrupts::TIMER:  m_reg.pc = 0x50; break;
+                    default:                  EZ_FAIL("Should never get here");
+                }
+                // only one interrupt serviced per tick
+                break;
             }
-            // only one interrupt serviced per tick
-            break;
         }
     }
 }
@@ -936,7 +946,8 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
         case MemoryBank::VRAM:        m_ppu.writeAddr(addr, data); break;
         case MemoryBank::OAM:         m_ppu.writeAddr(addr, data); break;
         case MemoryBank::IO:          m_io.writeAddr(addr, data); break;
-        case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); break;
+        case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); 
+        break;
         default:                      EZ_FAIL("not implemented"); break;
     }
 }

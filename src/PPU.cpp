@@ -158,7 +158,6 @@ void PPU::tick() {
         statIRQ |= src;
     }
     if (update(m_statIRQ, statIRQ) && statIRQ) {
-        log_info("Stat IRQ fired!");
         m_io.setInterruptFlag(Interrupts::LCD);
     }
 }

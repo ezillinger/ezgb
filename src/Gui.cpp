@@ -174,6 +174,7 @@ void Gui::drawRegisters() {
                         .c_str());
 
         ImGui::Checkbox("Stop Mode", &m_state.m_emu->m_stopMode);
+        ImGui::Checkbox("Halt Mode", &m_state.m_emu->m_haltMode);
         auto brMapped = m_state.m_emu->m_io.isBootromMapped();
         ImGui::Checkbox("Bootrom Mapped", &brMapped);
         ImGui::Checkbox("IME", &m_state.m_emu->m_interruptMasterEnable);
