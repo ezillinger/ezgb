@@ -20,7 +20,8 @@ namespace ez {
 #define EZ_FAIL(PP_MESSAGE, ...)                                                                   \
     fail(PP_MESSAGE, ##__VA_ARGS__);                                                               \
     abort();
-#define EZ_ASSERT(statement) assert(statement)
+
+inline constexpr void ez_assert(bool cond) { assert(cond); }
 
 #ifndef NDEBUG
     #define EZ_ENSURE(statement) assert(statement)
@@ -32,7 +33,7 @@ namespace ez {
 
 template <typename TTo, typename TFrom> inline TTo checked_cast(const TFrom&& from) {
     const auto result = static_cast<TTo>(from);
-    EZ_ASSERT(static_cast<TFrom>(result) == from);
+    ez_assert(static_cast<TFrom>(result) == from);
     return result;
 }
 

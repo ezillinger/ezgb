@@ -8,8 +8,8 @@ Emulator::Emulator(Cart& cart, EmuSettings settings) : m_cart(cart), m_settings(
     const auto bootloaderPath = "./roms/dmg_boot.bin";
     log_info("Loading bootrom: {}", bootloaderPath);
     auto fp = fopen(bootloaderPath, "rb");
-    EZ_ASSERT(fp);
-    EZ_ASSERT(BOOTROM_BYTES == fread(m_bootrom.data(), 1, BOOTROM_BYTES, fp));
+    ez_assert(fp);
+    ez_assert(BOOTROM_BYTES == fread(m_bootrom.data(), 1, BOOTROM_BYTES, fp));
     fclose(fp);
 
     if (m_settings.m_skipBootROM) {
@@ -255,7 +255,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
 InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
 
     const auto oc = OpCode{checked_cast<uint8_t>(pcData & 0xFF)};
-    EZ_ASSERT(((+oc & 0b11000000) >> 6) == 3);
+    ez_assert(((+oc & 0b11000000) >> 6) == 3);
 
     auto info = getOpCodeInfoUnprefixed(+oc);
 
@@ -316,7 +316,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
         switch (oc) {
             case OpCode::PREFIX: m_prefix = true; break;
             // enable/disable interrupts after instruction after this one finishes
-            case OpCode::EI: m_pendingInterruptEnableCycleCount = 4; break;
+            case OpCode::EI: m_pendingInterruptEnableCycleCount = T_CYCLES_PER_M_CYCLE; break;
             case OpCode::DI:
                 m_interruptMasterEnable = false;
                 m_pendingInterruptEnableCycleCount = 0;
@@ -435,7 +435,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 jumpAddr = readAddr16(m_reg.sp);
                 m_reg.sp += 2;
                 // todo, is this also delayed?
-                m_pendingInterruptEnableCycleCount = 4;
+                m_pendingInterruptEnableCycleCount = T_CYCLES_PER_M_CYCLE;
                 break;
             }
             default: EZ_FAIL("not implemented: {}", +oc);
@@ -459,7 +459,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
 InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
 
     const auto oc = OpCode{checked_cast<uint8_t>(pcData & 0xFF)};
-    EZ_ASSERT(((+oc & 0b11000000) >> 6) == 2);
+    ez_assert(((+oc & 0b11000000) >> 6) == 2);
 
     const auto info = getOpCodeInfoUnprefixed(+oc);
 
@@ -551,7 +551,7 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
 InstructionResult Emulator::handleInstructionBlock1(uint32_t pcData) {
 
     const auto oc = OpCode{checked_cast<uint8_t>(pcData & 0xFF)};
-    EZ_ASSERT(((+oc & 0b11000000) >> 6) == 0b01);
+    ez_assert(((+oc & 0b11000000) >> 6) == 0b01);
 
     const auto info = getOpCodeInfoUnprefixed(+oc);
 
@@ -573,7 +573,7 @@ InstructionResult Emulator::handleInstructionBlock1(uint32_t pcData) {
 InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
 
     const auto oc = OpCode{checked_cast<uint8_t>(pcData & 0xFF)};
-    EZ_ASSERT(((+oc & 0b11000000) >> 6) == 0);
+    ez_assert(((+oc & 0b11000000) >> 6) == 0);
 
     const auto info = getOpCodeInfoUnprefixed(+oc);
 
@@ -804,10 +804,12 @@ void Emulator::tick() {
 
     bool handledInstructionOrInterrupt = false;
 
+    m_oamDmaCyclesRemaining = std::max(0, m_oamDmaCyclesRemaining - 1);
+
     // prefix instructions are atomic
     if (m_cyclesToWait == 0 && !m_prefix) {
         tickInterrupts();
-        handledInstructionOrInterrupt = true;
+        handledInstructionOrInterrupt = m_cyclesToWait != 0;
     }
 
     if (m_cyclesToWait == 0 && !m_haltMode) {
@@ -839,16 +841,12 @@ void Emulator::tick() {
         }
     }
 
-    tickDMA();
+    tickTimers();
     m_ppu.tick();
 
     m_cycleCounter++;
 
     return;
-}
-
-
-void Emulator::tickDMA() {
 }
 
 void Emulator::tickTimers() {
@@ -893,7 +891,7 @@ void Emulator::tickInterrupts() {
                 m_interruptMasterEnable = false;
                 m_reg.sp -= 2;
                 writeAddr16(m_reg.sp, m_reg.pc);
-                EZ_ASSERT(m_cyclesToWait == 0);
+                ez_assert(m_cyclesToWait == 0);
                 m_cyclesToWait = 20; // 5 m-cycles
                 switch (i) {
                     case +Interrupts::VBLANK: m_reg.pc = 0x40; break;
@@ -927,7 +925,7 @@ AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
         return {MemoryBank::OAM, 0xFEA0};
     } else if (addr >= 0xFEA0 && addr <= 0xFEFF) {
         return {MemoryBank::NOT_USEABLE, 0xFEA0};
-    } else if (IO_ADDRESS_RANGE.containsExclusive(addr)) {
+    } else if (IO_ADDR_RANGE.containsExclusive(addr)) {
         return {MemoryBank::IO, 0xFF00};
     } else {
         EZ_FAIL("not implemented");
@@ -982,7 +980,7 @@ uint8_t Emulator::readAddr(uint16_t addr) const {
 }
 void Emulator::writeIO(uint16_t addr, uint8_t val) {
 
-    EZ_ENSURE(IO_ADDRESS_RANGE.containsExclusive(addr));
+    EZ_ENSURE(IO_ADDR_RANGE.containsExclusive(addr));
     switch (addr) {
         case +IOAddr::SB: m_serialOutput.push_back(std::bit_cast<uint8_t>(val));
             m_ioReg.m_serialData = val;
@@ -1013,13 +1011,39 @@ void Emulator::writeIO(uint16_t addr, uint8_t val) {
             return;
         }
         case +IOAddr::DMA: {
-            m_oamDmaCyclesRemaining = 160 * 4; // 160 M-cycles
+            m_oamDmaCyclesRemaining = 160 * T_CYCLES_PER_M_CYCLE;
+            const uint16_t srcAddr = uint16_t(val) << 8;
+            const uint16_t dstAddr = PPU::OAM_ADDR_RANGE.m_min;
+            // todo, dont' do the copy instantaneously
+            for (auto offset = 0; offset < PPU::OAM_ADDR_RANGE.width(); ++offset) {
+                writeAddr(dstAddr + offset, readAddr(srcAddr + offset));
+            }
+            m_ioReg.m_lcd.m_dma = addr;
+            break;
         }
-        default: break;
+        case +IOAddr::LY: {
+            log_error("Write to LCD Y!");
+            break;
+        }
+        case +IOAddr::STAT: {
+            // ppu mode and ly==lyc are read only
+            m_ioReg.m_lcd.m_status.m_data = (val & ~0b111) | (m_ioReg.m_lcd.m_status.m_data & 0b111);
+            break;
+        }
+        case +IOAddr::LCDC: {
+            m_ioReg.m_lcd.m_control.m_data = val;
+            if(!m_ioReg.m_lcd.m_control.m_ppuEnable){
+                m_ppu.reset();
+            }
+            break;
+        }
+        default: {
+            const auto offset = addr - IO_ADDR_RANGE.m_min;
+            reinterpret_cast<uint8_t*>(&m_ioReg)[offset] = val;
+        }
+        break;
     }
-    const auto offset = addr - IO_ADDRESS_RANGE.m_min;
-    // todo, check which registers are allowed to be written by CPU
-    reinterpret_cast<uint8_t*>(&m_ioReg)[offset] = val;
+    
 }
 
 uint16_t Emulator::readAddr16(uint16_t addr) const { 
@@ -1050,17 +1074,17 @@ void Emulator::maybe_log_registers() const {
 
 const uint8_t* Emulator::getIOMemPtr(uint16_t addr) const {
 
-    EZ_ENSURE(IO_ADDRESS_RANGE.containsExclusive(addr));
+    EZ_ENSURE(IO_ADDR_RANGE.containsExclusive(addr));
     // todo, check which registers are allowed to be written by CPU
-    const auto offset = addr - IO_ADDRESS_RANGE.m_min;
+    const auto offset = addr - IO_ADDR_RANGE.m_min;
     return reinterpret_cast<const uint8_t*>(&m_ioReg) + offset;
 }
 
 
 
 uint8_t Emulator::readIO(uint16_t addr) const {
-    EZ_ENSURE(IO_ADDRESS_RANGE.containsExclusive(addr));
-    const auto offset = addr - IO_ADDRESS_RANGE.m_min;
+    EZ_ENSURE(IO_ADDR_RANGE.containsExclusive(addr));
+    const auto offset = addr - IO_ADDR_RANGE.m_min;
     return *(reinterpret_cast<const uint8_t*>(&m_ioReg) + offset);
 }
 

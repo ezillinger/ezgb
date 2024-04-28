@@ -27,9 +27,10 @@ namespace ez {
             0b00, 0b00, 0b00, 0b00, 0b11, 0b00, 0b00, 0b11, 0b01, 0b11, 0b11, 0b11, 0b11,
             0b00, 0b00, 0b01, 0b01, 0b01, 0b11, 0b01, 0b11, 0b00, 0b00, 0b11, 0b01, 0b11,
             0b01, 0b11, 0b10, 0b00, 0b00, 0b10, 0b11, 0b11, 0b11, 0b10, 0b00, 0b00};
-        auto renderedTile = PPU::renderTile(tile.data());
+        std::array<uint8_t, 64> output;
+        PPU::renderTile(tile.data(), output.data(), 8);
         for(auto i = 0; i < 64; ++i){
-            EZ_ASSERT(expected[i] == renderedTile[i]);
+            ez_assert(expected[i] == output[i]);
         }
 
         return true;
@@ -40,63 +41,63 @@ namespace ez {
 
         const auto last_addr = [](auto& arr) -> uint8_t* { return &arr[std::size(arr) - 1]; };
 
-        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::P1_JOYP) == &emu.m_ioReg.m_joypad);
+        ez_assert(emu.getIOMemPtr(+IOAddr::P1_JOYP) == &emu.m_ioReg.m_joypad);
 
-        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::SB) == &emu.m_ioReg.m_serialData);
-        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::SC) == &emu.m_ioReg.m_serialControl);
+        ez_assert(emu.getIOMemPtr(+IOAddr::SB) == &emu.m_ioReg.m_serialData);
+        ez_assert(emu.getIOMemPtr(+IOAddr::SC) == &emu.m_ioReg.m_serialControl);
 
-        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::DIV) == &emu.m_ioReg.m_timerDivider);
-        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::TIMA) == &emu.m_ioReg.m_tima);
-        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::TMA) == &emu.m_ioReg.m_tma);
-        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::TAC) == &emu.m_ioReg.m_tac);
+        ez_assert(emu.getIOMemPtr(+IOAddr::DIV) == &emu.m_ioReg.m_timerDivider);
+        ez_assert(emu.getIOMemPtr(+IOAddr::TIMA) == &emu.m_ioReg.m_tima);
+        ez_assert(emu.getIOMemPtr(+IOAddr::TMA) == &emu.m_ioReg.m_tma);
+        ez_assert(emu.getIOMemPtr(+IOAddr::TAC) == &emu.m_ioReg.m_tac);
 
-        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::IF) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_if));
+        ez_assert(emu.getIOMemPtr(+IOAddr::IF) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_if));
 
-        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::NR10) == emu.m_ioReg.m_audio);
-        EZ_ASSERT(emu.getIOMemPtr(0xFF26) == last_addr(emu.m_ioReg.m_audio));
+        ez_assert(emu.getIOMemPtr(+IOAddr::NR10) == emu.m_ioReg.m_audio);
+        ez_assert(emu.getIOMemPtr(0xFF26) == last_addr(emu.m_ioReg.m_audio));
 
-        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::WaveRAMBegin) == emu.m_ioReg.m_wavePattern);
-        EZ_ASSERT(emu.getIOMemPtr(0xFF3F) == last_addr(emu.m_ioReg.m_wavePattern));
+        ez_assert(emu.getIOMemPtr(+IOAddr::WaveRAMBegin) == emu.m_ioReg.m_wavePattern);
+        ez_assert(emu.getIOMemPtr(0xFF3F) == last_addr(emu.m_ioReg.m_wavePattern));
 
-        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::LCDC) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_lcd));
+        ez_assert(emu.getIOMemPtr(+IOAddr::LCDC) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_lcd));
         // todo, test individual LCD register layout
 
-        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::VBK) == &emu.m_ioReg.m_vramBankSelect);
-        EZ_ASSERT(emu.getIOMemPtr(0xFF50) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_bootromDisabled));
+        ez_assert(emu.getIOMemPtr(+IOAddr::VBK) == &emu.m_ioReg.m_vramBankSelect);
+        ez_assert(emu.getIOMemPtr(0xFF50) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_bootromDisabled));
 
-        EZ_ASSERT(emu.getIOMemPtr(0xFF51) == emu.m_ioReg.m_vramDMA);
-        EZ_ASSERT(emu.getIOMemPtr(0xFF55) == last_addr(emu.m_ioReg.m_vramDMA));
+        ez_assert(emu.getIOMemPtr(0xFF51) == emu.m_ioReg.m_vramDMA);
+        ez_assert(emu.getIOMemPtr(0xFF55) == last_addr(emu.m_ioReg.m_vramDMA));
 
-        EZ_ASSERT(emu.getIOMemPtr(0xFF68) == emu.m_ioReg.m_bgObjPalettes);
-        EZ_ASSERT(emu.getIOMemPtr(0xFF6B) == last_addr(emu.m_ioReg.m_bgObjPalettes));
+        ez_assert(emu.getIOMemPtr(0xFF68) == emu.m_ioReg.m_bgObjPalettes);
+        ez_assert(emu.getIOMemPtr(0xFF6B) == last_addr(emu.m_ioReg.m_bgObjPalettes));
 
-        EZ_ASSERT(emu.getIOMemPtr(0xFF70) == &emu.m_ioReg.m_wramBankSelect);
+        ez_assert(emu.getIOMemPtr(0xFF70) == &emu.m_ioReg.m_wramBankSelect);
 
-        EZ_ASSERT(emu.getIOMemPtr(0xFF76) == &emu.m_ioReg.m_pcm12);
-        EZ_ASSERT(emu.getIOMemPtr(0xFF77) == &emu.m_ioReg.m_pcm34);
+        ez_assert(emu.getIOMemPtr(0xFF76) == &emu.m_ioReg.m_pcm12);
+        ez_assert(emu.getIOMemPtr(0xFF77) == &emu.m_ioReg.m_pcm34);
 
-        EZ_ASSERT(emu.getIOMemPtr(0xFF80) == emu.m_ioReg.m_hram);
+        ez_assert(emu.getIOMemPtr(0xFF80) == emu.m_ioReg.m_hram);
 
         emu.writeAddr16(0xFF81, 0xABCD);
-        EZ_ASSERT(emu.readAddr16(0xFF81) == 0xABCD);
+        ez_assert(emu.readAddr16(0xFF81) == 0xABCD);
 
-        EZ_ASSERT(emu.getIOMemPtr(0xFFFF) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_ie));
+        ez_assert(emu.getIOMemPtr(0xFFFF) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_ie));
 
         emu.writeAddr(+IOAddr::IF, 0b00010101);
-        EZ_ASSERT(emu.readAddr(+IOAddr::IF) == 0b00010101);
-        EZ_ASSERT(emu.m_ioReg.m_if.vblank);
-        EZ_ASSERT(!emu.m_ioReg.m_if.lcd);
-        EZ_ASSERT(emu.m_ioReg.m_if.timer);
-        EZ_ASSERT(!emu.m_ioReg.m_if.serial);
-        EZ_ASSERT(emu.m_ioReg.m_if.joypad);
+        ez_assert(emu.readAddr(+IOAddr::IF) == 0b00010101);
+        ez_assert(emu.m_ioReg.m_if.vblank);
+        ez_assert(!emu.m_ioReg.m_if.lcd);
+        ez_assert(emu.m_ioReg.m_if.timer);
+        ez_assert(!emu.m_ioReg.m_if.serial);
+        ez_assert(emu.m_ioReg.m_if.joypad);
 
         emu.writeAddr(+IOAddr::IE, 0b00010101);
-        EZ_ASSERT(emu.readAddr(+IOAddr::IE) == 0b00010101);
-        EZ_ASSERT(emu.m_ioReg.m_ie.vblank);
-        EZ_ASSERT(!emu.m_ioReg.m_ie.lcd);
-        EZ_ASSERT(emu.m_ioReg.m_ie.timer);
-        EZ_ASSERT(!emu.m_ioReg.m_ie.serial);
-        EZ_ASSERT(emu.m_ioReg.m_ie.joypad);
+        ez_assert(emu.readAddr(+IOAddr::IE) == 0b00010101);
+        ez_assert(emu.m_ioReg.m_ie.vblank);
+        ez_assert(!emu.m_ioReg.m_ie.lcd);
+        ez_assert(emu.m_ioReg.m_ie.timer);
+        ez_assert(!emu.m_ioReg.m_ie.serial);
+        ez_assert(emu.m_ioReg.m_ie.joypad);
 
         return true;
     }
@@ -123,16 +124,16 @@ namespace ez {
     bool Tester::test_regs() { 
         auto emu = make_emulator();
         emu.m_reg.hl = 0xFFFF;
-        EZ_ASSERT(emu.m_reg.h == 0xFF);
-        EZ_ASSERT(emu.m_reg.l == 0xFF);
+        ez_assert(emu.m_reg.h == 0xFF);
+        ez_assert(emu.m_reg.l == 0xFF);
         
         emu.m_reg.hl = 0x0000;
-        EZ_ASSERT(emu.m_reg.h == 0x00);
-        EZ_ASSERT(emu.m_reg.l == 0x00);
+        ez_assert(emu.m_reg.h == 0x00);
+        ez_assert(emu.m_reg.l == 0x00);
 
         emu.m_reg.hl = 0xFF00;
-        EZ_ASSERT(emu.m_reg.h == 0xFF);
-        EZ_ASSERT(emu.m_reg.l == 0x00);
+        ez_assert(emu.m_reg.h == 0xFF);
+        ez_assert(emu.m_reg.l == 0x00);
 
         return true;
     }
@@ -145,11 +146,11 @@ namespace ez {
         auto offset = 0;
         cart.m_mbc1State.m_romBankSelect = 0;
         offset = cart.getROMPtr(0x7FFF) - baseAddr;
-        EZ_ASSERT(offset == 0x7FFF);
+        ez_assert(offset == 0x7FFF);
 
         cart.m_mbc1State.m_romBankSelect = 1;
         offset = cart.getROMPtr(0x7FFF) - baseAddr;
-        EZ_ASSERT(offset == 0x7FFF);
+        ez_assert(offset == 0x7FFF);
 
         return true;
     }
@@ -159,20 +160,20 @@ namespace ez {
         emu.m_reg.a = 0;
         for (auto flagSet : {Flag::ZERO, Flag::CARRY, Flag::HALF_CARRY, Flag::NEGATIVE}) {
             emu.setFlag(flagSet);
-            EZ_ASSERT(emu.m_reg.a == 0);
+            ez_assert(emu.m_reg.a == 0);
             for (auto flagCheck : {Flag::ZERO, Flag::CARRY, Flag::HALF_CARRY, Flag::NEGATIVE}) {
-                EZ_ASSERT(emu.getFlag(flagCheck) == (flagSet == flagCheck));
+                ez_assert(emu.getFlag(flagCheck) == (flagSet == flagCheck));
             }
             emu.clearFlag(flagSet);
-            EZ_ASSERT(emu.m_reg.a == 0);
+            ez_assert(emu.m_reg.a == 0);
         }
 
         emu.m_reg.f = 0;
         emu.writeR16Stack(R16Stack::AF, 0xFFFF);
         for (auto flagSet : {Flag::ZERO, Flag::CARRY, Flag::HALF_CARRY, Flag::NEGATIVE}) {
-            EZ_ASSERT(emu.getFlag(flagSet));
+            ez_assert(emu.getFlag(flagSet));
         }
-        EZ_ASSERT((emu.m_reg.f & 0x0F) == 0);
+        ez_assert((emu.m_reg.f & 0x0F) == 0);
 
         return true;
     }
@@ -185,10 +186,10 @@ namespace ez {
         emu.m_reg.sp = 0xFFFE;
         emu.m_reg.pc = 0xABCD;
         auto result = emu.handleInstruction(makeOpBytesU16(OpCode::CALL_a16, 0x1234));
-        EZ_ASSERT(result.m_newPC == 0x1234);
+        ez_assert(result.m_newPC == 0x1234);
         result = emu.handleInstruction(makeOpBytes(OpCode::RET));
-        EZ_ASSERT(result.m_newPC == 0xABCD + 3);
-        EZ_ASSERT(emu.m_reg.sp == 0xFFFE);
+        ez_assert(result.m_newPC == 0xABCD + 3);
+        ez_assert(emu.m_reg.sp == 0xFFFE);
 
         return true;
     }
@@ -199,17 +200,17 @@ namespace ez {
         auto makeOpBytes = [](OpCode oc) { return uint32_t(+oc); };
         emu.m_reg.bc = 0xABCD;
         emu.handleInstruction(makeOpBytes(OpCode::PUSH_BC));
-        EZ_ASSERT(emu.m_reg.bc == 0xABCD);
+        ez_assert(emu.m_reg.bc == 0xABCD);
         emu.m_reg.bc = 0x0000;
         emu.handleInstruction(makeOpBytes(OpCode::POP_BC));
-        EZ_ASSERT(emu.m_reg.bc == 0xABCD);
+        ez_assert(emu.m_reg.bc == 0xABCD);
 
 
         emu.m_reg.hl = 0xFEDB;
         emu.handleInstruction(makeOpBytes(OpCode::PUSH_HL));
         emu.m_reg.hl = 0x0000;
         emu.handleInstruction(makeOpBytes(OpCode::POP_HL));
-        EZ_ASSERT(emu.m_reg.hl == 0xFEDB);
+        ez_assert(emu.m_reg.hl == 0xFEDB);
 
         return true;
     }
@@ -217,42 +218,42 @@ namespace ez {
     bool Tester::test_inc_dec() { 
         auto emu = make_emulator();
 
-        EZ_ASSERT(emu.getFlag(Flag::ZERO) == false);
+        ez_assert(emu.getFlag(Flag::ZERO) == false);
         auto makeOpBytes = [](OpCode oc) { return uint32_t(+oc); };
-        EZ_ASSERT(emu.m_reg.a == 0);
+        ez_assert(emu.m_reg.a == 0);
         emu.handleInstruction(makeOpBytes(OpCode::INC_A));
 
-        EZ_ASSERT(emu.m_reg.a == 1);
-        EZ_ASSERT(emu.getFlag(Flag::ZERO) == false);
+        ez_assert(emu.m_reg.a == 1);
+        ez_assert(emu.getFlag(Flag::ZERO) == false);
         emu.handleInstruction(makeOpBytes(OpCode::INC_A));
-        EZ_ASSERT(emu.m_reg.a == 2);
-        EZ_ASSERT(emu.getFlag(Flag::ZERO) == false);
-        EZ_ASSERT(emu.getFlag(Flag::HALF_CARRY) == false);
-        EZ_ASSERT(emu.getFlag(Flag::NEGATIVE) == false);
+        ez_assert(emu.m_reg.a == 2);
+        ez_assert(emu.getFlag(Flag::ZERO) == false);
+        ez_assert(emu.getFlag(Flag::HALF_CARRY) == false);
+        ez_assert(emu.getFlag(Flag::NEGATIVE) == false);
 
 
         emu.handleInstruction(makeOpBytes(OpCode::DEC_A));
-        EZ_ASSERT(emu.m_reg.a == 1);
-        EZ_ASSERT(emu.getFlag(Flag::ZERO) == false);
+        ez_assert(emu.m_reg.a == 1);
+        ez_assert(emu.getFlag(Flag::ZERO) == false);
 
         emu.handleInstruction(makeOpBytes(OpCode::DEC_A));
-        EZ_ASSERT(emu.m_reg.a == 0);
-        EZ_ASSERT(emu.getFlag(Flag::ZERO) == true);
-        EZ_ASSERT(emu.getFlag(Flag::NEGATIVE) == true);
+        ez_assert(emu.m_reg.a == 0);
+        ez_assert(emu.getFlag(Flag::ZERO) == true);
+        ez_assert(emu.getFlag(Flag::NEGATIVE) == true);
 
         // dec wraparound
         emu.handleInstruction(makeOpBytes(OpCode::DEC_A));
-        EZ_ASSERT(emu.getFlag(Flag::ZERO) == false);
-        EZ_ASSERT(emu.getFlag(Flag::HALF_CARRY) == true);
-        EZ_ASSERT(emu.m_reg.a == 255);
+        ez_assert(emu.getFlag(Flag::ZERO) == false);
+        ez_assert(emu.getFlag(Flag::HALF_CARRY) == true);
+        ez_assert(emu.m_reg.a == 255);
 
         // inc wraparound
         emu.clearFlag(Flag::ZERO);
         emu.clearFlag(Flag::HALF_CARRY);
         emu.handleInstruction(makeOpBytes(OpCode::INC_A));
-        EZ_ASSERT(emu.m_reg.a == 0);
-        EZ_ASSERT(emu.getFlag(Flag::ZERO) == true);
-        EZ_ASSERT(emu.getFlag(Flag::HALF_CARRY) == true);
+        ez_assert(emu.m_reg.a == 0);
+        ez_assert(emu.getFlag(Flag::ZERO) == true);
+        ez_assert(emu.getFlag(Flag::HALF_CARRY) == true);
         
 
         return true;

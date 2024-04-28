@@ -71,7 +71,7 @@ struct AddrInfo {
 struct InstructionResult {
     InstructionResult() = default;
     InstructionResult(uint16_t newPC, int cycles) : m_newPC(newPC), m_cycles(cycles) {
-        EZ_ASSERT(cycles > 0);
+        ez_assert(cycles > 0);
     }
     uint16_t m_newPC = 0;
     int m_cycles = 0;
@@ -146,7 +146,7 @@ class Emulator {
     }
 
     static constexpr auto MASTER_CLOCK_PERIOD = 239ns;
-    static constexpr int MASTER_TICKS_PER_INSTRUCTION_TICK = 4;
+    static constexpr int T_CYCLES_PER_M_CYCLE = 4;
 
     const rgba8* getDisplayFramebuffer() const { return m_ppu.getDisplayFramebuffer(); };
 
@@ -158,7 +158,6 @@ class Emulator {
 
     void tickTimers();
     void tickInterrupts();
-    void tickDMA();
 
     AddrInfo getAddressInfo(uint16_t address) const;
 

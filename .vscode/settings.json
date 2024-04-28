@@ -3,7 +3,8 @@
         "complex": "cpp",
         "string_view": "cpp",
         "chrono": "cpp",
-        "array": "cpp"
+        "array": "cpp",
+        "ios": "cpp"
     },
     "lldb.displayFormat": "auto"
 }

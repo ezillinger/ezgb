@@ -19,17 +19,17 @@ Cart Cart::loadFromDisk(const fs::path& path) {
 Cart::Cart(const uint8_t* data, size_t len) : m_sizeBytes(len), m_data(data, data + len) {
     m_cartType = CartType(m_data[0x0147]);
     log_info("CartType: {}", +m_cartType);
-    EZ_ASSERT(m_cartType == CartType::ROM_ONLY || m_cartType == CartType::MBC1);
+    ez_assert(m_cartType == CartType::ROM_ONLY || isMBC1Type(m_cartType));
 }
 
 void Cart::writeAddr(uint16_t addr, uint8_t val) {
-    EZ_ASSERT(isValidAddr(addr));
+    ez_assert(isValidAddr(addr));
     if (m_cartType == CartType::ROM_ONLY) {
         log_warn("Can't write to ROM only cart!");
-    } else if (m_cartType == CartType::MBC1) {
+    } else if (isMBC1Type(m_cartType)) {
         if (addr <= 0x1FFF) {
             m_mbc1State.m_ramEnable = val;
-        } else if (addr >= 0x2000 && addr < 0x3FFF) {
+        } else if (addr >= 0x2000 && addr <= 0x3FFF) {
             m_mbc1State.m_romBankSelect = val & 0b00011111; // only 5 bits used
         } else if (addr >= 0x4000 && addr < 0x5FFF) {
             m_mbc1State.m_ramBankSelect = val;
@@ -48,15 +48,15 @@ void Cart::writeAddr(uint16_t addr, uint8_t val) {
 }
 
 uint8_t Cart::readAddr(uint16_t addr) const {
-    EZ_ASSERT(isValidAddr(addr));
+    ez_assert(isValidAddr(addr));
     if (m_cartType == CartType::ROM_ONLY) {
         return *getROMPtr(addr);
-    } else if (m_cartType == CartType::MBC1) {
+    } else if (isMBC1Type(m_cartType)) {
         if (RAM_RANGE.containsExclusive(addr)) { // RAM
             if (m_mbc1State.isRamEnabled()) {
                 return *getRAMPtr(addr);
             } else {
-                EZ_ASSERT(ROM_RANGE.containsExclusive(addr));
+                ez_assert(ROM_RANGE.containsExclusive(addr));
                 log_warn("Reading from disabled RAM!");
                 return 0xFF;
             }
@@ -69,14 +69,14 @@ uint8_t Cart::readAddr(uint16_t addr) const {
 }
 
 const uint8_t* Cart::getROMPtr(uint16_t addr) const {
-    EZ_ASSERT(isValidAddr(addr));
+    ez_assert(isValidAddr(addr));
     if (m_cartType == CartType::ROM_ONLY) {
         return m_data.data() + addr;
-    } else if (m_cartType == CartType::MBC1) {
+    } else if (isMBC1Type(m_cartType)) {
         if (RAM_RANGE.containsExclusive(addr)) {
             EZ_FAIL("This is a ROM address!");
         } else {
-            EZ_ASSERT(ROM_RANGE.containsExclusive(addr));
+            ez_assert(ROM_RANGE.containsExclusive(addr));
             if (addr <= 0x3FFF) { // bank 0
                 return m_data.data() + addr;
             } else {
@@ -89,6 +89,11 @@ const uint8_t* Cart::getROMPtr(uint16_t addr) const {
     } else {
         EZ_FAIL("NOT IMPLEMENTED");
     }
+}
+
+bool Cart::isMBC1Type(CartType type) {
+    return type == CartType::MBC1 || type == CartType::MBC1_RAM ||
+           type == CartType::MBC1_RAM_BATTERY;
 }
 
 } // namespace ez

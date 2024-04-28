@@ -74,24 +74,30 @@ enum class PPUMode {
 };
 
 struct alignas(uint8_t) LCDRegisters {
-    struct {
-        bool m_bgWindowEnable : 1 = false;
-        bool m_objEnable : 1 = false;
-        bool m_objSize : 1 = false;
-        bool m_bgTilemap : 1 = false;
-        bool m_bgWindowTileAddrMode : 1 = false;
-        bool m_windowEnable : 1 = false;
-        bool m_windowTilemap : 1 = false;
-        bool m_ppuEnable : 1 = false;
+    union {
+        struct {
+            bool m_bgWindowEnable : 1;
+            bool m_objEnable : 1;
+            bool m_objSize : 1;
+            bool m_bgTilemap : 1;
+            bool m_bgWindowTileAddrMode : 1;
+            bool m_windowEnable : 1;
+            bool m_windowTilemap : 1;
+            bool m_ppuEnable : 1;
+        };
+        uint8_t m_data = 0;
     } m_control;
     static_assert(sizeof(m_control) == 1);
-    struct {
-        uint8_t m_ppuMode : 2 = 2;
-        bool m_lyc_is_ly : 1 = false;
-        bool m_mode0InterruptSelect : 1 = false;
-        bool m_mode1InterruptSelect : 1 = false;
-        bool m_mode2InterruptSelect : 1 = false;
-        bool m_lycInterruptSelect : 1 = false;
+    union {
+        struct {
+            uint8_t m_ppuMode : 2;
+            bool m_lyc_is_ly : 1;
+            bool m_mode0InterruptSelect : 1;
+            bool m_mode1InterruptSelect : 1;
+            bool m_mode2InterruptSelect : 1;
+            bool m_lycInterruptSelect : 1;
+        };
+        uint8_t m_data = 0;
     } m_status;
     static_assert(sizeof(m_status) == 1);
     uint8_t m_scy = 0; // scy
@@ -129,8 +135,8 @@ struct alignas(uint8_t) IORegisters {
     uint8_t detail_padding0{};
     uint8_t m_timerDivider{};
     uint8_t m_tima{}; // timer ocunter
-    uint8_t m_tma{}; // timer modula
-    uint8_t m_tac{}; // timer control
+    uint8_t m_tma{};  // timer modula
+    uint8_t m_tac{};  // timer control
     uint8_t detail_padding1[7]{};
     InterruptControl m_if{}; // interrupt flag
     uint8_t m_audio[23]{};
@@ -153,9 +159,10 @@ struct alignas(uint8_t) IORegisters {
     InterruptControl m_ie{}; // interrupt enable
 };
 
-static constexpr iRange IO_ADDRESS_RANGE = {0xFF00, 0x10000};
-static constexpr iRange HRAM_RANGE = {0xFF80, 0xFFFF};
-static_assert(sizeof(IORegisters) == IO_ADDRESS_RANGE.width());
+static constexpr iRange IO_ADDR_RANGE = {0xFF00, 0x10000};
+static_assert(sizeof(IORegisters) == IO_ADDR_RANGE.width());
+
+static constexpr iRange HRAM_ADDR_RANGE = {0xFF80, 0xFFFF};
 
 enum class Interrupts {
     VBLANK = 0,
