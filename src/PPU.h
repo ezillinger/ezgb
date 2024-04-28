@@ -22,7 +22,7 @@ class PPU {
     static constexpr iRange VRAM_ADDR_RANGE = {0x8000, 0xA000};
     static constexpr iRange OAM_ADDR_RANGE = {0xFE00, 0xFEA0};
 
-    PPU(IO& io);
+    PPU(IORegisters& io);
 
     void tick();
 
@@ -52,7 +52,6 @@ class PPU {
     bool m_statIRQ = false;
     bool m_statIRQRisingEdge = false;
 
-    IO& m_io;
     IORegisters& m_reg;
 
     std::vector<uint8_t> m_bg = std::vector<uint8_t>(BG_DIM_XY * BG_DIM_XY);

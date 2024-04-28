@@ -37,67 +37,66 @@ namespace ez {
 
     bool Tester::test_io_reg() { 
         auto emu = make_emulator();
-        auto& io = emu.m_io;
 
         const auto last_addr = [](auto& arr) -> uint8_t* { return &arr[std::size(arr) - 1]; };
 
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::P1_JOYP) == &io.m_reg.m_joypad);
+        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::P1_JOYP) == &emu.m_ioReg.m_joypad);
 
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::SB) == &io.m_reg.m_serialData);
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::SC) == &io.m_reg.m_serialControl);
+        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::SB) == &emu.m_ioReg.m_serialData);
+        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::SC) == &emu.m_ioReg.m_serialControl);
 
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::DIV) == &io.m_reg.m_timerDivider);
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::TIMA) == &io.m_reg.m_tima);
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::TMA) == &io.m_reg.m_tma);
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::TAC) == &io.m_reg.m_tac);
+        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::DIV) == &emu.m_ioReg.m_timerDivider);
+        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::TIMA) == &emu.m_ioReg.m_tima);
+        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::TMA) == &emu.m_ioReg.m_tma);
+        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::TAC) == &emu.m_ioReg.m_tac);
 
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::IF) == reinterpret_cast<uint8_t*>(&io.m_reg.m_if));
+        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::IF) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_if));
 
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::NR10) == io.m_reg.m_audio);
-        EZ_ASSERT(io.getMemPtrRW(0xFF26) == last_addr(io.m_reg.m_audio));
+        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::NR10) == emu.m_ioReg.m_audio);
+        EZ_ASSERT(emu.getIOMemPtr(0xFF26) == last_addr(emu.m_ioReg.m_audio));
 
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::WaveRAMBegin) == io.m_reg.m_wavePattern);
-        EZ_ASSERT(io.getMemPtrRW(0xFF3F) == last_addr(io.m_reg.m_wavePattern));
+        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::WaveRAMBegin) == emu.m_ioReg.m_wavePattern);
+        EZ_ASSERT(emu.getIOMemPtr(0xFF3F) == last_addr(emu.m_ioReg.m_wavePattern));
 
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::LCDC) == reinterpret_cast<uint8_t*>(&io.m_reg.m_lcd));
+        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::LCDC) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_lcd));
         // todo, test individual LCD register layout
 
-        EZ_ASSERT(io.getMemPtrRW(+IOAddr::VBK) == &io.m_reg.m_vramBankSelect);
-        EZ_ASSERT(io.getMemPtrRW(0xFF50) == reinterpret_cast<uint8_t*>(&io.m_reg.m_bootromDisabled));
+        EZ_ASSERT(emu.getIOMemPtr(+IOAddr::VBK) == &emu.m_ioReg.m_vramBankSelect);
+        EZ_ASSERT(emu.getIOMemPtr(0xFF50) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_bootromDisabled));
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF51) == io.m_reg.m_vramDMA);
-        EZ_ASSERT(io.getMemPtrRW(0xFF55) == last_addr(io.m_reg.m_vramDMA));
+        EZ_ASSERT(emu.getIOMemPtr(0xFF51) == emu.m_ioReg.m_vramDMA);
+        EZ_ASSERT(emu.getIOMemPtr(0xFF55) == last_addr(emu.m_ioReg.m_vramDMA));
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF68) == io.m_reg.m_bgObjPalettes);
-        EZ_ASSERT(io.getMemPtrRW(0xFF6B) == last_addr(io.m_reg.m_bgObjPalettes));
+        EZ_ASSERT(emu.getIOMemPtr(0xFF68) == emu.m_ioReg.m_bgObjPalettes);
+        EZ_ASSERT(emu.getIOMemPtr(0xFF6B) == last_addr(emu.m_ioReg.m_bgObjPalettes));
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF70) == &io.m_reg.m_wramBankSelect);
+        EZ_ASSERT(emu.getIOMemPtr(0xFF70) == &emu.m_ioReg.m_wramBankSelect);
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF76) == &io.m_reg.m_pcm12);
-        EZ_ASSERT(io.getMemPtrRW(0xFF77) == &io.m_reg.m_pcm34);
+        EZ_ASSERT(emu.getIOMemPtr(0xFF76) == &emu.m_ioReg.m_pcm12);
+        EZ_ASSERT(emu.getIOMemPtr(0xFF77) == &emu.m_ioReg.m_pcm34);
 
-        EZ_ASSERT(io.getMemPtrRW(0xFF80) == io.m_reg.m_hram);
+        EZ_ASSERT(emu.getIOMemPtr(0xFF80) == emu.m_ioReg.m_hram);
 
         emu.writeAddr16(0xFF81, 0xABCD);
         EZ_ASSERT(emu.readAddr16(0xFF81) == 0xABCD);
 
-        EZ_ASSERT(io.getMemPtrRW(0xFFFF) == reinterpret_cast<uint8_t*>(&io.m_reg.m_ie));
+        EZ_ASSERT(emu.getIOMemPtr(0xFFFF) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_ie));
 
-        io.writeAddr(+IOAddr::IF, 0b00010101);
-        EZ_ASSERT(io.readAddr(+IOAddr::IF) == 0b00010101);
-        EZ_ASSERT(io.m_reg.m_if.vblank);
-        EZ_ASSERT(!io.m_reg.m_if.lcd);
-        EZ_ASSERT(io.m_reg.m_if.timer);
-        EZ_ASSERT(!io.m_reg.m_if.serial);
-        EZ_ASSERT(io.m_reg.m_if.joypad);
+        emu.writeAddr(+IOAddr::IF, 0b00010101);
+        EZ_ASSERT(emu.readAddr(+IOAddr::IF) == 0b00010101);
+        EZ_ASSERT(emu.m_ioReg.m_if.vblank);
+        EZ_ASSERT(!emu.m_ioReg.m_if.lcd);
+        EZ_ASSERT(emu.m_ioReg.m_if.timer);
+        EZ_ASSERT(!emu.m_ioReg.m_if.serial);
+        EZ_ASSERT(emu.m_ioReg.m_if.joypad);
 
-        io.writeAddr(+IOAddr::IE, 0b00010101);
-        EZ_ASSERT(io.readAddr(+IOAddr::IE) == 0b00010101);
-        EZ_ASSERT(io.m_reg.m_ie.vblank);
-        EZ_ASSERT(!io.m_reg.m_ie.lcd);
-        EZ_ASSERT(io.m_reg.m_ie.timer);
-        EZ_ASSERT(!io.m_reg.m_ie.serial);
-        EZ_ASSERT(io.m_reg.m_ie.joypad);
+        emu.writeAddr(+IOAddr::IE, 0b00010101);
+        EZ_ASSERT(emu.readAddr(+IOAddr::IE) == 0b00010101);
+        EZ_ASSERT(emu.m_ioReg.m_ie.vblank);
+        EZ_ASSERT(!emu.m_ioReg.m_ie.lcd);
+        EZ_ASSERT(emu.m_ioReg.m_ie.timer);
+        EZ_ASSERT(!emu.m_ioReg.m_ie.serial);
+        EZ_ASSERT(emu.m_ioReg.m_ie.joypad);
 
         return true;
     }

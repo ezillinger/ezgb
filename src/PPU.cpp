@@ -11,7 +11,7 @@
 
 namespace ez {
 
-PPU::PPU(IO& io) : m_io(io), m_reg(io.getRegisters()) {}
+PPU::PPU(IORegisters& ioReg) : m_reg(ioReg) {}
 
 void PPU::writeAddr(uint16_t addr, uint8_t data) {
     if (VRAM_ADDR_RANGE.containsExclusive(addr)) {
@@ -84,7 +84,7 @@ void PPU::tick() {
                 m_currentLineDotTickCount = 0;
                 if (m_reg.m_lcd.m_ly == 144) {
                     m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::VBLANK;
-                    m_io.setInterruptFlag(Interrupts::VBLANK);
+                    m_reg.m_if.vblank = true;
                     if (m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_mode1InterruptSelect) {
                         setStatIRQHigh(StatIRQSources::MODE_1);
                     }
@@ -115,7 +115,7 @@ void PPU::tick() {
         statIRQ |= src;
     }
     if (update(m_statIRQ, statIRQ) && statIRQ) {
-        m_io.setInterruptFlag(Interrupts::LCD);
+        m_reg.m_if.lcd = true;
     }
 }
 

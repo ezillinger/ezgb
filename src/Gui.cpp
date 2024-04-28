@@ -184,12 +184,12 @@ void Gui::drawRegisters() {
 
         ImGui::Checkbox("Stop Mode", &m_state.m_emu->m_stopMode);
         ImGui::Checkbox("Halt Mode", &m_state.m_emu->m_haltMode);
-        auto brMapped = m_state.m_emu->m_io.isBootromMapped();
+        auto brMapped = !m_state.m_emu->m_ioReg.m_bootromDisabled;
         ImGui::Checkbox("Bootrom Mapped", &brMapped);
         ImGui::Checkbox("IME", &m_state.m_emu->m_interruptMasterEnable);
 
         if (ImGui::CollapsingHeader("Timers", ImGuiTreeNodeFlags_DefaultOpen)) {
-            auto& ioReg = m_state.m_emu->m_io.getRegisters();
+            auto& ioReg = m_state.m_emu->m_ioReg;
             ImGui::LabelText("T-CYCLES", "{}"_format(m_state.m_emu->getCycleCounter()).c_str());
             ImGui::LabelText("DIV", "{}"_format(ioReg.m_timerDivider).c_str());
             ImGui::LabelText("TIMA Enabled",
@@ -198,7 +198,7 @@ void Gui::drawRegisters() {
             ImGui::LabelText("MODULO", "{}"_format(ioReg.m_tma).c_str());
         }
         if (ImGui::CollapsingHeader("Interrupts", ImGuiTreeNodeFlags_DefaultOpen)) {
-            auto& ioReg = m_state.m_emu->m_io.getRegisters();
+            auto& ioReg = m_state.m_emu->m_ioReg;
             ImGui::Text(
                 "IE/IF:\n VB      {} {}\n LCD     {} {}\n TIMER   {} {}\n SERIAL  {} {}\n JOY     {} {}"_format(
                     bool(ioReg.m_ie.vblank), bool(ioReg.m_if.vblank), bool(ioReg.m_ie.lcd),
@@ -252,7 +252,7 @@ void Gui::drawConsole() {
 
     auto& emu = *m_state.m_emu;
     if (ImGui::Begin("Serial Console", nullptr)) {
-        ImGui::TextWrapped(emu.m_io.getSerialOutput().c_str());
+        ImGui::TextWrapped(emu.m_serialOutput.c_str());
     }
     ImGui::End();
 }

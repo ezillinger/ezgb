@@ -150,9 +150,15 @@ class Emulator {
 
     const rgba8* getDisplayFramebuffer() const { return m_ppu.getDisplayFramebuffer(); };
 
+    // for testing only
+    const uint8_t* getIOMemPtr(uint16_t addr) const;
+
   private:
+
+
     void tickTimers();
     void tickInterrupts();
+    void tickDMA();
 
     AddrInfo getAddressInfo(uint16_t address) const;
 
@@ -161,6 +167,9 @@ class Emulator {
 
     uint8_t readAddr(uint16_t address) const;
     uint16_t readAddr16(uint16_t address) const;
+
+    void writeIO(uint16_t addr, uint8_t val);
+    uint8_t readIO(uint16_t addr) const;
 
     InstructionResult handleInstruction(uint32_t instruction);
     InstructionResult handleInstructionCB(uint32_t instruction);
@@ -191,8 +200,8 @@ class Emulator {
     bool getCond(Cond c) const;
 
     Reg m_reg{};
-    IO m_io{};
-    PPU m_ppu{m_io};
+    IORegisters m_ioReg;
+    PPU m_ppu{m_ioReg};
 
     int64_t m_cycleCounter = 0;
 
@@ -208,6 +217,11 @@ class Emulator {
 
     bool m_wantBreakpoint = false;
 
+    int16_t m_sysclk = 0; // t cycles
+    bool m_pendingTimaOverflow = false;
+
+    int m_oamDmaCyclesRemaining  = 0;
+
     void maybe_log_registers() const;
     void maybe_log_opcode(const OpCodeInfo& oc) const;
 
@@ -218,6 +232,8 @@ class Emulator {
     std::vector<uint8_t> m_bootrom = std::vector<uint8_t>(BOOTROM_BYTES, 0u);
     std::vector<uint8_t> m_ram = std::vector<uint8_t>(RAM_BYTES, 0u);
     std::vector<uint8_t> m_hram = std::vector<uint8_t>(HRAM_BYTES, 0u);
+
+    std::string m_serialOutput;
 
     Cart& m_cart;
     EmuSettings m_settings{};

@@ -16,7 +16,7 @@ Emulator::Emulator(Cart& cart, EmuSettings settings) : m_cart(cart), m_settings(
         // todo, bootrom does more stuff
         m_reg.pc = 0x100;
         m_reg.sp = 0xfffe;
-        m_io.setBootromMapped(false);
+        m_ioReg.m_bootromDisabled = true;
     }
 }
 
@@ -693,7 +693,7 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
                     log_warn("GBC Speed toggle ignored");
                 } else {
                     m_stopMode = true;
-                    m_io.getRegisters().m_timerDivider = 0;
+                    m_ioReg.m_timerDivider = 0;
                 }
                 break;
             }
@@ -839,7 +839,7 @@ void Emulator::tick() {
         }
     }
 
-    m_io.tick();
+    tickDMA();
     m_ppu.tick();
 
     m_cycleCounter++;
@@ -847,19 +847,49 @@ void Emulator::tick() {
     return;
 }
 
+
+void Emulator::tickDMA() {
+}
+
+void Emulator::tickTimers() {
+
+    auto sysclkBefore = m_sysclk;
+    m_sysclk++; // 4 t cycles per m cycle
+
+    m_ioReg.m_timerDivider = m_sysclk >> 8;
+
+    if (m_ioReg.m_tac & 0b100) {
+        static bool firstTime = true;
+        if (firstTime) {
+            log_warn("FIRST TIME TIMER ON");
+            firstTime = false;
+        }
+        if (m_pendingTimaOverflow) {
+            m_ioReg.m_if.timer = true;
+            m_ioReg.m_tima = m_ioReg.m_tma;
+            m_pendingTimaOverflow = false;
+        }
+        if (is_tima_increment(sysclkBefore, m_sysclk, m_ioReg.m_tac, m_ioReg.m_tac)) {
+            ++m_ioReg.m_tima;
+            if (m_ioReg.m_tima == 0) {
+                m_pendingTimaOverflow = true;
+            }
+        }
+    }
+}
+
 void Emulator::tickInterrupts() {
 
-    auto& ioReg = m_io.getRegisters();
     for (auto i = 0; i < +Interrupts::NUM_INTERRUPTS; ++i) {
         const uint8_t bitFlag = 0b1 << i;
-        if (ioReg.m_ie.data & bitFlag && ioReg.m_if.data & bitFlag) {
+        if (m_ioReg.m_ie.data & bitFlag && m_ioReg.m_if.data & bitFlag) {
             // todo, implement halt bug
             m_haltMode = false;
             if (m_interruptMasterEnable) {
                 if (m_settings.m_logEnable) {
                     log_info("Calling ISR {}", i);
                 }
-                ioReg.m_if.data &= ~bitFlag;
+                m_ioReg.m_if.data &= ~bitFlag;
                 m_interruptMasterEnable = false;
                 m_reg.sp -= 2;
                 writeAddr16(m_reg.sp, m_reg.pc);
@@ -897,7 +927,7 @@ AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
         return {MemoryBank::OAM, 0xFEA0};
     } else if (addr >= 0xFEA0 && addr <= 0xFEFF) {
         return {MemoryBank::NOT_USEABLE, 0xFEA0};
-    } else if (IO::ADDRESS_RANGE.containsExclusive(addr)) {
+    } else if (IO_ADDRESS_RANGE.containsExclusive(addr)) {
         return {MemoryBank::IO, 0xFF00};
     } else {
         EZ_FAIL("not implemented");
@@ -920,7 +950,7 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
         case MemoryBank::WRAM_1:      m_ram[addr - addrInfo.m_baseAddr] = data; break;
         case MemoryBank::VRAM:        m_ppu.writeAddr(addr, data); break;
         case MemoryBank::OAM:         m_ppu.writeAddr(addr, data); break;
-        case MemoryBank::IO:          m_io.writeAddr(addr, data); break;
+        case MemoryBank::IO:          writeIO(addr, data); break;
         case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); break;
         default:                      EZ_FAIL("not implemented"); break;
     }
@@ -936,7 +966,7 @@ uint8_t Emulator::readAddr(uint16_t addr) const {
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
         case MemoryBank::ROM:
-            if (addr < BOOTROM_BYTES && m_io.isBootromMapped()) {
+            if (addr < BOOTROM_BYTES && !m_ioReg.m_bootromDisabled) {
                 return m_bootrom[addr];
             }
             return m_cart.readAddr(addr);
@@ -945,10 +975,51 @@ uint8_t Emulator::readAddr(uint16_t addr) const {
         case MemoryBank::WRAM_1:      return m_ram[addr - addrInfo.m_baseAddr];
         case MemoryBank::VRAM:        return m_ppu.readAddr(addr);
         case MemoryBank::OAM:         return m_ppu.readAddr(addr);
-        case MemoryBank::IO:          return m_io.readAddr(addr);
+        case MemoryBank::IO:          return readIO(addr);
         case MemoryBank::NOT_USEABLE: log_warn("Read from unusable zone: {}", addr); return 0xFF;
         default:                      EZ_FAIL("not implemented"); break;
     }
+}
+void Emulator::writeIO(uint16_t addr, uint8_t val) {
+
+    EZ_ENSURE(IO_ADDRESS_RANGE.containsExclusive(addr));
+    switch (addr) {
+        case +IOAddr::SB: m_serialOutput.push_back(std::bit_cast<uint8_t>(val));
+            m_ioReg.m_serialData = val;
+            return;
+        case +IOAddr::DIV:
+            // todo, do we only reset top byte?
+            m_sysclk = 0; 
+            m_ioReg.m_timerDivider = 0;
+            if (is_tima_increment(m_sysclk, 0, m_ioReg.m_tac, m_ioReg.m_tac)) {
+                ++m_ioReg.m_tima;
+                if (m_ioReg.m_tima == 0) {
+                    m_pendingTimaOverflow = true;
+                }
+            }
+            return;
+        case +IOAddr::TAC:
+            if (is_tima_increment(m_sysclk, m_sysclk, m_ioReg.m_tac, val)) {
+                ++m_ioReg.m_tima;
+                if (m_ioReg.m_tima == 0) {
+                    m_pendingTimaOverflow = true;
+                }
+            }
+            m_ioReg.m_tac = val;
+            return;
+        case +IOAddr::TIMA: {
+            m_ioReg.m_tima = val;
+            m_pendingTimaOverflow = false;
+            return;
+        }
+        case +IOAddr::DMA: {
+            m_oamDmaCyclesRemaining = 160 * 4; // 160 M-cycles
+        }
+        default: break;
+    }
+    const auto offset = addr - IO_ADDRESS_RANGE.m_min;
+    // todo, check which registers are allowed to be written by CPU
+    reinterpret_cast<uint8_t*>(&m_ioReg)[offset] = val;
 }
 
 uint16_t Emulator::readAddr16(uint16_t addr) const { 
@@ -975,6 +1046,22 @@ void Emulator::maybe_log_registers() const {
         log_info("Flags: Z {} N {} H {} C {}", getFlag(Flag::ZERO), getFlag(Flag::NEGATIVE),
                  getFlag(Flag::HALF_CARRY), getFlag(Flag::CARRY));
     }
+}
+
+const uint8_t* Emulator::getIOMemPtr(uint16_t addr) const {
+
+    EZ_ENSURE(IO_ADDRESS_RANGE.containsExclusive(addr));
+    // todo, check which registers are allowed to be written by CPU
+    const auto offset = addr - IO_ADDRESS_RANGE.m_min;
+    return reinterpret_cast<const uint8_t*>(&m_ioReg) + offset;
+}
+
+
+
+uint8_t Emulator::readIO(uint16_t addr) const {
+    EZ_ENSURE(IO_ADDRESS_RANGE.containsExclusive(addr));
+    const auto offset = addr - IO_ADDRESS_RANGE.m_min;
+    return *(reinterpret_cast<const uint8_t*>(&m_ioReg) + offset);
 }
 
 } // namespace ez

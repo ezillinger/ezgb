@@ -2,7 +2,6 @@
 #include "Base.h"
 
 namespace ez {
-class Tester;
 
 // https://gbdev.io/pandocs/Hardware_Reg_List.html
 enum class IOAddr {
@@ -154,6 +153,10 @@ struct alignas(uint8_t) IORegisters {
     InterruptControl m_ie{}; // interrupt enable
 };
 
+static constexpr iRange IO_ADDRESS_RANGE = {0xFF00, 0x10000};
+static constexpr iRange HRAM_RANGE = {0xFF80, 0xFFFF};
+static_assert(sizeof(IORegisters) == IO_ADDRESS_RANGE.width());
+
 enum class Interrupts {
     VBLANK = 0,
     LCD = 1,
@@ -163,41 +166,4 @@ enum class Interrupts {
     NUM_INTERRUPTS
 };
 
-class IO {
-
-  public:
-    friend class Tester;
-    friend class PPU;
-
-    static constexpr iRange ADDRESS_RANGE = {0xFF00, 0x10000};
-    static constexpr iRange HRAM_RANGE = {0xFF80, 0xFFFF};
-
-    bool isBootromMapped() const { return !m_reg.m_bootromDisabled; };
-    void setBootromMapped(bool val) { m_reg.m_bootromDisabled = !val; }
-
-    void writeAddr(uint16_t addr, uint8_t val);
-    uint8_t readAddr(uint16_t address) const;
-
-    IORegisters& getRegisters() { return m_reg; }
-
-    const std::string& getSerialOutput() { return m_serialOutput; }
-
-    void setInterruptFlag(Interrupts f);
-
-    void tick();
-
-  private:
-    // for testing only
-    uint8_t* getMemPtrRW(uint16_t address);
-
-    void tickTimers();
-
-    int16_t m_sysclk = 0; // t cycles
-    bool m_pendingTimaOverflow = false;
-
-    IORegisters m_reg;
-    static_assert(sizeof(m_reg) == ADDRESS_RANGE.width());
-
-    std::string m_serialOutput;
-};
 } // namespace ez
