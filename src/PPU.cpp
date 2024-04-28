@@ -34,27 +34,6 @@ void PPU::writeAddr(uint16_t addr, uint8_t data) {
     }
 }
 
-void PPU::writeAddr16(uint16_t addr, uint16_t data) {
-    if (VRAM_ADDR_RANGE.containsExclusive(addr)) {
-        if (!isVramAvailToCPU()) {
-            log_warn("CPU write while VRAM inaccessible");
-            return;
-        }
-        const auto offset = addr - VRAM_ADDR_RANGE.m_min;
-        EZ_ENSURE(size_t(offset) < VRAM_ADDR_RANGE.width());
-        *reinterpret_cast<uint16_t*>(m_vram.data() + offset) = data;
-    } else {
-        EZ_ENSURE(OAM_ADDR_RANGE.containsExclusive(addr));
-        if (!isOamAvailToCPU()) {
-            log_warn("CPU write while OAM inaccessible");
-            return;
-        }
-        const auto offset = addr - OAM_ADDR_RANGE.m_min;
-        EZ_ENSURE(size_t(offset) < OAM_ADDR_RANGE.width());
-        *reinterpret_cast<uint16_t*>(m_oam.data() + offset) = data;
-    }
-}
-
 uint8_t PPU::readAddr(uint16_t addr) const {
     if (VRAM_ADDR_RANGE.containsExclusive(addr)) {
         if (!isVramAvailToCPU()) {
@@ -73,28 +52,6 @@ uint8_t PPU::readAddr(uint16_t addr) const {
         const auto offset = addr - OAM_ADDR_RANGE.m_min;
         EZ_ENSURE(size_t(offset) < OAM_ADDR_RANGE.width());
         return m_oam[offset];
-    }
-}
-
-uint16_t PPU::readAddr16(uint16_t addr) const {
-
-    if (VRAM_ADDR_RANGE.containsExclusive(addr)) {
-        if (!isVramAvailToCPU()) {
-            log_warn("CPU read while VRAM inaccessible");
-            return 0xFFFF;
-        }
-        const auto offset = addr - VRAM_ADDR_RANGE.m_min;
-        EZ_ENSURE(size_t(offset) < VRAM_ADDR_RANGE.width());
-        return *reinterpret_cast<const uint16_t*>(m_vram.data() + offset);
-    } else {
-        if (!isOamAvailToCPU()) {
-            log_warn("CPU read while OAM inaccessible");
-            return 0xFFFF;
-        }
-        EZ_ENSURE(OAM_ADDR_RANGE.containsExclusive(addr));
-        const auto offset = addr - OAM_ADDR_RANGE.m_min;
-        EZ_ENSURE(size_t(offset) < OAM_ADDR_RANGE.width());
-        return *reinterpret_cast<const uint16_t*>(m_oam.data() + offset);
     }
 }
 

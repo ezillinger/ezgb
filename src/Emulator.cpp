@@ -928,20 +928,8 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
 
 void Emulator::writeAddr16(uint16_t addr, uint16_t data) {
     m_lastWrittenAddr = addr;
-    const auto addrInfo = getAddressInfo(addr);
-    switch (addrInfo.m_bank) {
-        case MemoryBank::ROM:     m_cart.writeAddr16(addr, data); break;
-        case MemoryBank::EXT_RAM: m_cart.writeAddr(addr, data); break;
-        case MemoryBank::WRAM_0:  [[fallthrough]];
-        case MemoryBank::WRAM_1:
-            *reinterpret_cast<uint16_t*>(m_ram.data() + (addr - addrInfo.m_baseAddr)) = data;
-            break;
-        case MemoryBank::VRAM:        m_ppu.writeAddr16(addr, data); break;
-        case MemoryBank::OAM:         m_ppu.writeAddr16(addr, data); break;
-        case MemoryBank::IO:          m_io.writeAddr16(addr, data); break;
-        case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); break;
-        default:                      EZ_FAIL("not implemented"); break;
-    }
+    writeAddr(addr, uint8_t(data & 0x00FF));
+    writeAddr(addr + 1, uint8_t(data >> 8));
 }
 
 uint8_t Emulator::readAddr(uint16_t addr) const {
@@ -963,25 +951,11 @@ uint8_t Emulator::readAddr(uint16_t addr) const {
     }
 }
 
-uint16_t Emulator::readAddr16(uint16_t addr) const {
-    const auto addrInfo = getAddressInfo(addr);
-    switch (addrInfo.m_bank) {
-        case MemoryBank::ROM:
-            if (addr < BOOTROM_BYTES && m_io.isBootromMapped()) {
-                return *reinterpret_cast<const uint16_t*>(m_bootrom.data() + addr);
-            }
-            return m_cart.readAddr16(addr);
+uint16_t Emulator::readAddr16(uint16_t addr) const { 
+    const auto byte0 = readAddr(addr); 
+    const auto byte1 = readAddr(addr + 1);
 
-        case MemoryBank::EXT_RAM: return m_cart.readAddr16(addr);
-        case MemoryBank::WRAM_0:  [[fallthrough]];
-        case MemoryBank::WRAM_1:
-            return *reinterpret_cast<const uint16_t*>(m_ram.data() + addr - addrInfo.m_baseAddr);
-        case MemoryBank::VRAM:        return m_ppu.readAddr16(addr);
-        case MemoryBank::OAM:         return m_ppu.readAddr16(addr);
-        case MemoryBank::IO:          return m_io.readAddr16(addr);
-        case MemoryBank::NOT_USEABLE: log_warn("Read from unusable zone: {}", addr); return 0xFFFF;
-        default:                      EZ_FAIL("not implemented"); break;
-    }
+    return uint16_t(byte1) << 8 | uint16_t(byte0);
 }
 
 void Emulator::maybe_log_opcode(const OpCodeInfo& info) const {

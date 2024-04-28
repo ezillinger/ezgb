@@ -176,10 +176,7 @@ class IO {
     void setBootromMapped(bool val) { m_reg.m_bootromDisabled = !val; }
 
     void writeAddr(uint16_t addr, uint8_t val);
-    void writeAddr16(uint16_t addr, uint16_t val);
-
     uint8_t readAddr(uint16_t address) const;
-    uint16_t readAddr16(uint16_t address) const;
 
     IORegisters& getRegisters() { return m_reg; }
 

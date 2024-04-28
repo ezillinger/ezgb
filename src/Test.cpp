@@ -78,8 +78,8 @@ namespace ez {
 
         EZ_ASSERT(io.getMemPtrRW(0xFF80) == io.m_reg.m_hram);
 
-        io.writeAddr16(0xFF81, 0xABCD);
-        EZ_ASSERT(io.readAddr16(0xFF81) == 0xABCD);
+        emu.writeAddr16(0xFF81, 0xABCD);
+        EZ_ASSERT(emu.readAddr16(0xFF81) == 0xABCD);
 
         EZ_ASSERT(io.getMemPtrRW(0xFFFF) == reinterpret_cast<uint8_t*>(&io.m_reg.m_ie));
 

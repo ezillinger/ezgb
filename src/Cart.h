@@ -54,10 +54,8 @@ class Cart {
     static Cart loadFromDisk(const fs::path& path);
 
     uint8_t readAddr(uint16_t addr) const;
-    uint16_t readAddr16(uint16_t addr) const;
 
     void writeAddr(uint16_t addr, uint8_t val);
-    void writeAddr16(uint16_t addr, uint16_t val);
 
     static constexpr iRange ROM_RANGE = iRange{0x0000, 0x8000};
     static constexpr iRange RAM_RANGE = iRange{0xA000, 0xC000};

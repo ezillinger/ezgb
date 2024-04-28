@@ -46,10 +46,6 @@ void Cart::writeAddr(uint16_t addr, uint8_t val) {
         }
     }
 }
-void Cart::writeAddr16(uint16_t addr, uint16_t /*val*/) {
-    EZ_ASSERT(isValidAddr(addr));
-    EZ_FAIL("Please tell me carts don't support 16 bit writes");
-}
 
 uint8_t Cart::readAddr(uint16_t addr) const {
     EZ_ASSERT(isValidAddr(addr));
@@ -71,11 +67,6 @@ uint8_t Cart::readAddr(uint16_t addr) const {
         EZ_FAIL("Not implemented");
     }
 }
-
-uint16_t Cart::readAddr16(uint16_t addr) const {
-    EZ_ASSERT(isValidAddr(addr));
-    return *reinterpret_cast<const uint16_t*>(getROMPtr(addr));
-};
 
 const uint8_t* Cart::getROMPtr(uint16_t addr) const {
     EZ_ASSERT(isValidAddr(addr));
