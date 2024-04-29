@@ -159,6 +159,9 @@ struct alignas(uint8_t) IORegisters {
     InterruptControl m_ie{}; // interrupt enable
 };
 
+static constexpr iRange WRAM0_ADDR_RANGE = {0xC000, 0xD000};
+static constexpr iRange WRAM1_ADDR_RANGE = {0xD000, 0xE000};
+static constexpr iRange MIRROR_ADDR_RANGE = {0xE000, 0xFE00};
 static constexpr iRange IO_ADDR_RANGE = {0xFF00, 0x10000};
 static_assert(sizeof(IORegisters) == IO_ADDR_RANGE.width());
 

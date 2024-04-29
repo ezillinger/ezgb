@@ -913,10 +913,10 @@ AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
         return {MemoryBank::ROM, 0};
     } else if (Cart::RAM_RANGE.containsExclusive(addr)) {
         return {MemoryBank::EXT_RAM, Cart::RAM_RANGE.m_min};
-    } else if (addr >= 0xC000 && addr <= 0xCFFF) {
-        return {MemoryBank::WRAM_0, 0xC000};
-    } else if (addr >= 0xD000 && addr <= 0xDFFF) {
-        return {MemoryBank::WRAM_1, 0xC000};
+    } else if (WRAM0_ADDR_RANGE.containsExclusive(addr)) {
+        return {MemoryBank::WRAM_0, WRAM0_ADDR_RANGE.m_min};
+    } else if (WRAM1_ADDR_RANGE.containsExclusive(addr)) {
+        return {MemoryBank::WRAM_1, WRAM0_ADDR_RANGE.m_min}; // not a typo
     } else if (PPU::VRAM_ADDR_RANGE.containsExclusive(addr)) {
         return {MemoryBank::VRAM, PPU::VRAM_ADDR_RANGE.m_min};
     } else if (PPU::OAM_ADDR_RANGE.containsExclusive(addr)) {
@@ -926,7 +926,9 @@ AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
     } else if (addr >= 0xFEA0 && addr <= 0xFEFF) {
         return {MemoryBank::NOT_USEABLE, 0xFEA0};
     } else if (IO_ADDR_RANGE.containsExclusive(addr)) {
-        return {MemoryBank::IO, 0xFF00};
+        return {MemoryBank::IO, IO_ADDR_RANGE.m_min};
+    } else if (MIRROR_ADDR_RANGE.containsExclusive(addr)) {
+        return {MemoryBank::MIRROR, MIRROR_ADDR_RANGE.m_min};
     } else {
         EZ_FAIL("not implemented");
     }
@@ -946,6 +948,7 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
         case MemoryBank::EXT_RAM:     m_cart.writeAddr(addr, data); break;
         case MemoryBank::WRAM_0:      [[fallthrough]];
         case MemoryBank::WRAM_1:      m_ram[addr - addrInfo.m_baseAddr] = data; break;
+        case MemoryBank::MIRROR:      m_ram[(WRAM1_ADDR_RANGE.m_min - WRAM0_ADDR_RANGE.m_min) + (addr - addrInfo.m_baseAddr)] = data; break;
         case MemoryBank::VRAM:        m_ppu.writeAddr(addr, data); break;
         case MemoryBank::OAM:         m_ppu.writeAddr(addr, data); break;
         case MemoryBank::IO:          writeIO(addr, data); break;
@@ -971,6 +974,7 @@ uint8_t Emulator::readAddr(uint16_t addr) const {
         case MemoryBank::EXT_RAM:     return m_cart.readAddr(addr);
         case MemoryBank::WRAM_0:      [[fallthrough]];
         case MemoryBank::WRAM_1:      return m_ram[addr - addrInfo.m_baseAddr];
+        case MemoryBank::MIRROR:      return m_ram[(WRAM1_ADDR_RANGE.m_min - WRAM0_ADDR_RANGE.m_min) + (addr - addrInfo.m_baseAddr)];
         case MemoryBank::VRAM:        return m_ppu.readAddr(addr);
         case MemoryBank::OAM:         return m_ppu.readAddr(addr);
         case MemoryBank::IO:          return readIO(addr);

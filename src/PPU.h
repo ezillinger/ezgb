@@ -64,9 +64,13 @@ class PPU {
     static void renderTile(const uint8_t* tileBegin, uint8_t* dst, int rowPitch);
 
     std::vector<uint8_t> renderOAM();
-    void renderBGWindow(bool enable, bool tileMap, uint8_t* dst);
+    void renderBgWindowRow(int tileY, bool enable, bool tileMap, uint8_t* dst);
+
     void updateBG();
     void updateWindow();
+
+    void updateBgRow(int line);
+    void updateWindowRow(int line);
 
     int m_currentLineDotTickCount = 0;
 

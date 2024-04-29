@@ -172,9 +172,9 @@ void PPU::updateScanline() {
         ez_assert(sprites.size() <= 10);
     }
     // todo, don't draw the entire bg/window every line
-    updateBG();
-    updateWindow();
-    
+    updateBgRow(y);
+    updateWindowRow(y);
+
     std::array<uint8_t, TILE_DIM_XY * TILE_DIM_XY> renderedTile;
     for(auto x = 0; x < DISPLAY_WIDTH; ++x){
         auto bestSpriteX = INT32_MAX;
@@ -212,8 +212,15 @@ void PPU::updateScanline() {
                 ez_assert(spriteY < 16);
                 const auto spriteX = x - (sprite.m_xPosMinus8 - 8);
                 ez_assert(spriteX < 8);
-                const auto spriteTileIdxOffset = spriteY > 7 ? 1 : 0;
-                renderTile(m_vram.data() + (sprite.m_tileIdx + spriteTileIdxOffset)* BYTES_PER_TILE, renderedTile.data(),
+                auto tileIdx = sprite.m_tileIdx;
+                const bool isTopTile = spriteY < 8;
+                if(isTopTile){
+                    tileIdx &= 0xFE;
+                }
+                else{
+                    tileIdx |= 0x01;
+                }
+                renderTile(m_vram.data() + tileIdx* BYTES_PER_TILE, renderedTile.data(),
                            TILE_DIM_XY);
                 const auto spritePaletteIdx = renderedTile[spriteY * TILE_DIM_XY + spriteX];
                 useSpritePx = spritePaletteIdx != 0;
@@ -227,9 +234,28 @@ void PPU::updateScanline() {
     }
 }
 
-void PPU::renderBGWindow(bool enable, bool tileMap, uint8_t* dst) {
+void PPU::updateBgRow(int y) { 
+    const auto bgY = (y + m_reg.m_lcd.m_scy) % BG_DIM_XY;
+    const auto tileY = bgY / TILE_DIM_XY;
+
+    renderBgWindowRow(tileY, m_reg.m_lcd.m_control.m_bgWindowEnable, m_reg.m_lcd.m_control.m_bgTilemap,
+                m_bg.data());
+}
+
+void PPU::updateWindowRow(int y) { 
+
+    const auto windowTop = m_reg.m_lcd.m_windowY;
+    const auto windowY = y - windowTop;
+    const auto tileY = windowY / TILE_DIM_XY;
+
+    renderBgWindowRow(
+        tileY, m_reg.m_lcd.m_control.m_windowEnable && m_reg.m_lcd.m_control.m_bgWindowEnable,
+        m_reg.m_lcd.m_control.m_windowTilemap, m_window.data());
+}
+
+void PPU::renderBgWindowRow(int tileY, bool enable, bool tileMap, uint8_t* dst) {
     if (!enable) {
-        memset(dst, 0, BG_DIM_XY * BG_DIM_XY);
+        memset(dst + (tileY * BG_DIM_XY), 0, BG_DIM_XY * TILE_DIM_XY);
         return;
     }
 
@@ -247,29 +273,30 @@ void PPU::renderBGWindow(bool enable, bool tileMap, uint8_t* dst) {
         }
     };
     std::array<uint8_t, TILE_DIM_XY * TILE_DIM_XY> renderedTile;
-    for (auto tmy = 0; tmy < BYTES_PER_TILE; ++tmy) {
-        for (auto tmx = 0; tmx < BYTES_PER_TILE; ++tmx) {
-            const auto tileIdx = m_vram[tileMapOffset + (tmy * BYTES_PER_TILE) + tmx];
-            const auto tilePtr = getTilePtr(tileIdx);
-            renderTile(tilePtr, renderedTile.data(), 8);
-            for (auto ty = 0; ty < TILE_DIM_XY; ++ty) {
-                auto dstPtr = dst + ((tmy * TILE_DIM_XY + ty) * BG_DIM_XY) + tmx * TILE_DIM_XY;
-                for (auto tx = 0; tx < TILE_DIM_XY; ++tx) {
-                    dstPtr[tx] = renderedTile[ty * TILE_DIM_XY + tx];
-                }
+    for (auto tileX = 0; tileX < BYTES_PER_TILE; ++tileX) {
+        const auto tileIdx = m_vram[tileMapOffset + (tileY * BYTES_PER_TILE) + tileX];
+        const auto tilePtr = getTilePtr(tileIdx);
+        renderTile(tilePtr, renderedTile.data(), 8);
+        for (auto tilePxY = 0; tilePxY < TILE_DIM_XY; ++tilePxY) {
+            auto dstPtr = dst + ((tileY * TILE_DIM_XY + tilePxY) * BG_DIM_XY) + tileX * TILE_DIM_XY;
+            for (auto tilePxX = 0; tilePxX < TILE_DIM_XY; ++tilePxX) {
+                dstPtr[tilePxX] = renderedTile[tilePxY * TILE_DIM_XY + tilePxX];
             }
         }
     }
 }
 
 void PPU::updateWindow() {
-    renderBGWindow(m_reg.m_lcd.m_control.m_windowEnable && m_reg.m_lcd.m_control.m_bgWindowEnable,
-                   m_reg.m_lcd.m_control.m_windowTilemap, m_window.data());
+    for(int i = 0; i < 32; ++i){
+        renderBgWindowRow(i, m_reg.m_lcd.m_control.m_windowEnable && m_reg.m_lcd.m_control.m_bgWindowEnable, m_reg.m_lcd.m_control.m_windowTilemap, m_window.data());
+    }
 }
 
 void PPU::updateBG() {
-    renderBGWindow(m_reg.m_lcd.m_control.m_bgWindowEnable, m_reg.m_lcd.m_control.m_bgTilemap,
-                   m_bg.data());
+    for(int i = 0; i < 32; ++i){
+        renderBgWindowRow(i, m_reg.m_lcd.m_control.m_bgWindowEnable, m_reg.m_lcd.m_control.m_bgTilemap,
+                    m_bg.data());
+    }
 }
 
 bool PPU::isVramAvailToCPU() const {
