@@ -78,7 +78,7 @@ struct alignas(uint8_t) LCDRegisters {
         struct {
             bool m_bgWindowEnable : 1;
             bool m_objEnable : 1;
-            bool m_objSize : 1;
+            bool m_objSize : 1; // 8x8 if false, 8x16 if true
             bool m_bgTilemap : 1;
             bool m_bgWindowTileAddrMode : 1;
             bool m_windowEnable : 1;

@@ -18,7 +18,7 @@
 
 namespace ez {
 
-inline constexpr void ez_assert(bool cond) { assert(cond); }
+inline constexpr void ez_assert([[maybe_unused]] bool cond) { assert(cond); }
 
 #ifndef NDEBUG
     #define EZ_ENSURE(statement) assert(statement)
@@ -168,11 +168,11 @@ class Stopwatch {
 };
 
 // easy way to delete/default copy/move constructors
-#define EZ_DEFINE_COPY_MOVE(PP_CLASS, PP_COPY, PP_MOVE) \
-    PP_CLASS(const PP_CLASS&) = PP_COPY; \
-    void operator=(const PP_CLASS&) = PP_COPY; \
-    PP_CLASS(PP_CLASS&&) = PP_MOVE; \
-    void operator=(PP_CLASS&&) = PP_MOVE; 
+#define EZ_DEFINE_COPY_MOVE(PP_CLASS, PP_COPY, PP_MOVE)                                            \
+    PP_CLASS(const PP_CLASS&) = PP_COPY;                                                           \
+    void operator=(const PP_CLASS&) = PP_COPY;                                                     \
+    PP_CLASS(PP_CLASS&&) = PP_MOVE;                                                                \
+    void operator=(PP_CLASS&&) = PP_MOVE;
 
 struct rgba8 {
     uint8_t r = 0;

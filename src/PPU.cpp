@@ -205,7 +205,7 @@ void PPU::updateScanline() {
                 ez_assert(spriteX < 8);
                 auto tileIdx = sprite.m_tileIdx;
                 const bool isTopTile = spriteY < 8;
-                if(isTopTile){
+                if(isTopTile && m_reg.m_lcd.m_control.m_objSize){
                     tileIdx &= 0xFE;
                 }
                 else{
