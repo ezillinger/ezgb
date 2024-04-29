@@ -4398,7 +4398,7 @@ namespace ez {
                    };
 
         default:
-            EZ_FAIL("Unknown OpCode: {}", code);
+            fail("Unknown OpCode: {}", code);
         }
     }
 
@@ -8248,7 +8248,7 @@ namespace ez {
                    };
 
         default:
-            EZ_FAIL("Unknown OpCode: {}", code);
+            fail("Unknown OpCode: {}", code);
         }
     }
 

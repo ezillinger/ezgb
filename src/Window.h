@@ -15,7 +15,7 @@ namespace ez {
     public:
         Window(const char* title, int w = 1280, int h = 720);
         ~Window();
-        Window(const Window&) = delete;
+        EZ_DEFINE_COPY_MOVE(Window, delete, delete);
 
         template <typename TFunc> 
         inline bool run(TFunc&& func) { 

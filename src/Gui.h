@@ -8,6 +8,7 @@ class Gui {
   public:
     Gui(AppState& state);
     ~Gui();
+    EZ_DEFINE_COPY_MOVE(Gui, delete, delete);
 
     void handleKeyboard();
 

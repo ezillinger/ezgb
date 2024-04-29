@@ -4,23 +4,13 @@ namespace ez {
 
 const char* to_string(LogLevel level) {
 
-#define EZ_RED "\e[0;31m"
-#define EZ_GREEN "\e[0;32m"
-#define EZ_YELLOW "\e[0;33m"
-#define EZ_RESET "\e[0m"
-
     switch (level) {
-        case LogLevel::INFO:     return EZ_GREEN "[INFO]" EZ_RESET;
-        case LogLevel::WARN:     return EZ_YELLOW "[WARN]" EZ_RESET;
-        case LogLevel::ERROR:    return EZ_RED "[ERROR]" EZ_RESET;
-        case LogLevel::CRITICAL: return EZ_RED "[CRITICAL]" EZ_RESET;
+        case LogLevel::INFO:     return "\e[0;32m[INFO]\e[0m";
+        case LogLevel::WARN:     return "\e[0;33m[WARN]\e[0m";
+        case LogLevel::ERROR:    return "\e[0;31m[ERROR]\e[0m";
+        case LogLevel::CRITICAL: return "\e[0;31m[CRITICAL]\e[0m";
     }
     abort();
-
-#undef EZ_RED
-#undef EZ_GREEN
-#undef EZ_YELLOW
-#undef EZ_RESET 
 
 }
 

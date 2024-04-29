@@ -27,7 +27,7 @@ uint16_t Emulator::readR16Mem(R16Mem r16) const {
         case R16Mem::DE:  return m_reg.de;
         case R16Mem::HLI: return m_reg.hl;
         case R16Mem::HLD: return m_reg.hl;
-        default:          EZ_FAIL("not implemented");
+        default:          fail("not implemented");
     }
 }
 
@@ -37,7 +37,7 @@ bool Emulator::getCond(Cond c) const {
         case Cond::NZ: return !getFlag(Flag::ZERO);
         case Cond::C:  return getFlag(Flag::CARRY);
         case Cond::NC: return !getFlag(Flag::CARRY);
-        default:       EZ_FAIL("not implemented");
+        default:       fail("not implemented");
     }
 }
 
@@ -47,7 +47,7 @@ uint16_t Emulator::readR16(R16 r16) const {
         case R16::DE: return m_reg.de;
         case R16::HL: return m_reg.hl;
         case R16::SP: return m_reg.sp;
-        default:      EZ_FAIL("not implemented");
+        default:      fail("not implemented");
     }
 }
 
@@ -57,7 +57,7 @@ void Emulator::writeR16(R16 r16, uint16_t data) {
         case R16::DE: m_reg.de = data; break;
         case R16::HL: m_reg.hl = data; break;
         case R16::SP: m_reg.sp = data; break;
-        default:      EZ_FAIL("not implemented");
+        default:      fail("not implemented");
     }
 }
 
@@ -67,7 +67,7 @@ uint16_t Emulator::readR16Stack(R16Stack r16) const {
         case R16Stack::DE: return m_reg.de;
         case R16Stack::HL: return m_reg.hl;
         case R16Stack::AF: return m_reg.af;
-        default:           EZ_FAIL("not implemented");
+        default:           fail("not implemented");
     }
 }
 
@@ -81,7 +81,7 @@ void Emulator::writeR16Stack(R16Stack r16, uint16_t data) {
             m_reg.f &= 0xF0; // bottom bits of flags are always 0
             break;
         }
-        default: EZ_FAIL("not implemented");
+        default: fail("not implemented");
     }
 }
 
@@ -95,7 +95,7 @@ uint8_t Emulator::readR8(R8 r8) const {
         case R8::L:       return m_reg.l;
         case R8::HL_ADDR: return readAddr(m_reg.hl);
         case R8::A:       return m_reg.a;
-        default:          EZ_FAIL("not implemented");
+        default:          fail("not implemented");
     }
 }
 
@@ -109,7 +109,7 @@ void Emulator::writeR8(R8 r8, uint8_t data) {
         case R8::L:       m_reg.l = data; break;
         case R8::HL_ADDR: writeAddr(m_reg.hl, data); break;
         case R8::A:       m_reg.a = data; break;
-        default:          EZ_FAIL("not implemented");
+        default:          fail("not implemented");
     }
 }
 
@@ -233,10 +233,10 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
                     setFlag(Flag::CARRY, r8v & 0b1);
                     break;
                 }
-                default: EZ_FAIL("not implemented"); break;
+                default: fail("not implemented"); break;
             }
         } break;
-        default: EZ_FAIL("should never get here");
+        default: fail("should never get here");
     }
     if (branched) {
         assert(jumpAddr);
@@ -439,7 +439,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 m_pendingInterruptEnableCycleCount = T_CYCLES_PER_M_CYCLE;
                 break;
             }
-            default: EZ_FAIL("not implemented: {}", +oc);
+            default: fail("not implemented: {}", +oc);
         }
     }
     if (branched) {
@@ -540,7 +540,7 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
             setFlag(Flag::CARRY, m_reg.a < r8val);
             break;
         }
-        default: EZ_FAIL("not implemented");
+        default: fail("not implemented");
     }
 
     return InstructionResult{
@@ -746,7 +746,7 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
                 clearFlag(Flag::NEGATIVE);
                 break;
             }
-            default: EZ_FAIL("not implemented"); break;
+            default: fail("not implemented"); break;
         }
     }
 
@@ -778,7 +778,7 @@ InstructionResult Emulator::handleInstruction(uint32_t pcData) {
         case 0b01: return handleInstructionBlock1(pcData); break;
         case 0b10: return handleInstructionBlock2(pcData); break;
         case 0b11: return handleInstructionBlock3(pcData); break;
-        default:   EZ_FAIL("should never get here"); break;
+        default:   fail("should never get here"); break;
     }
 }
 
@@ -900,7 +900,7 @@ void Emulator::tickInterrupts() {
                     case +Interrupts::SERIAL: m_reg.pc = 0x58; break;
                     case +Interrupts::LCD:    m_reg.pc = 0x48; break;
                     case +Interrupts::TIMER:  m_reg.pc = 0x50; break;
-                    default:                  EZ_FAIL("Should never get here");
+                    default:                  fail("Should never get here");
                 }
                 // only one interrupt serviced per tick
                 break;
@@ -931,7 +931,7 @@ AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
     } else if (MIRROR_ADDR_RANGE.containsExclusive(addr)) {
         return {MemoryBank::MIRROR, MIRROR_ADDR_RANGE.m_min};
     } else {
-        EZ_FAIL("not implemented");
+        fail("not implemented");
     }
 }
 
@@ -954,7 +954,7 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
         case MemoryBank::OAM:         m_ppu.writeAddr(addr, data); break;
         case MemoryBank::IO:          writeIO(addr, data); break;
         case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); break;
-        default:                      EZ_FAIL("not implemented"); break;
+        default:                      fail("not implemented"); break;
     }
 }
 
@@ -980,7 +980,7 @@ uint8_t Emulator::readAddr(uint16_t addr) const {
         case MemoryBank::OAM:         return m_ppu.readAddr(addr);
         case MemoryBank::IO:          return readIO(addr);
         case MemoryBank::NOT_USEABLE: log_warn("Read from unusable zone: {}", addr); return 0xFF;
-        default:                      EZ_FAIL("not implemented"); break;
+        default:                      fail("not implemented"); break;
     }
 }
 void Emulator::writeIO(uint16_t addr, uint8_t val) {

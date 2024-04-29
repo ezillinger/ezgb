@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <cstring>
 #include <filesystem>
 #include <format>
 #include <iostream>
@@ -14,13 +15,8 @@
 #include <string>
 #include <string_view>
 #include <vector>
-#include <cstring>
 
 namespace ez {
-
-#define EZ_FAIL(PP_MESSAGE, ...)                                                                   \
-    fail(PP_MESSAGE, ##__VA_ARGS__);                                                               \
-    abort();
 
 inline constexpr void ez_assert(bool cond) { assert(cond); }
 
@@ -43,7 +39,12 @@ namespace chrono = std::chrono;
 using namespace std::literals::chrono_literals;
 using namespace std::literals;
 
-enum class LogLevel { INFO, WARN, ERROR, CRITICAL };
+enum class LogLevel {
+    INFO,
+    WARN,
+    ERROR,
+    CRITICAL
+};
 
 const char* to_string(LogLevel level);
 std::string to_string(const std::chrono::system_clock::time_point& tp);
@@ -57,7 +58,7 @@ template <LogLevel level, typename... TArgs> struct log {
             to_string(location),
             std::vformat(format, std::make_format_args(std::forward<const TArgs>(args)...)));
 
-        if constexpr (level == LogLevel::CRITICAL) {
+        if constexpr (level == LogLevel::CRITICAL || level == LogLevel::ERROR) {
             std::cout.flush();
         }
     }
@@ -65,17 +66,25 @@ template <LogLevel level, typename... TArgs> struct log {
 
 #ifdef EZ_CLANG
 
-template <typename... TArgs> struct log_info : log<LogLevel::INFO, TArgs...> { using log<LogLevel::INFO, TArgs...>::log; };
-template<typename... TArgs> log_info(std::string_view, TArgs...) -> log_info<TArgs...>;
+template <typename... TArgs> struct log_info : log<LogLevel::INFO, TArgs...> {
+    using log<LogLevel::INFO, TArgs...>::log;
+};
+template <typename... TArgs> log_info(std::string_view, TArgs...) -> log_info<TArgs...>;
 
-template <typename... TArgs> struct log_warn : log<LogLevel::WARN, TArgs...> { using log<LogLevel::WARN, TArgs...>::log; };
-template<typename... TArgs> log_warn(std::string_view, TArgs...) -> log_warn<TArgs...>;
+template <typename... TArgs> struct log_warn : log<LogLevel::WARN, TArgs...> {
+    using log<LogLevel::WARN, TArgs...>::log;
+};
+template <typename... TArgs> log_warn(std::string_view, TArgs...) -> log_warn<TArgs...>;
 
-template <typename... TArgs> struct log_error : log<LogLevel::ERROR, TArgs...> { using log<LogLevel::ERROR, TArgs...>::log; };
-template<typename... TArgs> log_error(std::string_view, TArgs...) -> log_error<TArgs...>;
+template <typename... TArgs> struct log_error : log<LogLevel::ERROR, TArgs...> {
+    using log<LogLevel::ERROR, TArgs...>::log;
+};
+template <typename... TArgs> log_error(std::string_view, TArgs...) -> log_error<TArgs...>;
 
-template <typename... TArgs> struct fail : log<LogLevel::CRITICAL, TArgs...> { using log<LogLevel::CRITICAL, TArgs...>::log; };
-template<typename... TArgs> fail(std::string_view, TArgs...) -> fail<TArgs...>;
+template <typename... TArgs> struct log_critical : log<LogLevel::CRITICAL, TArgs...> {
+    using log<LogLevel::CRITICAL, TArgs...>::log;
+};
+template <typename... TArgs> log_critical(std::string_view, TArgs...) -> log_critical<TArgs...>;
 
 #else
 template <LogLevel level, typename... TArgs>
@@ -83,8 +92,13 @@ log(std::string_view, TArgs&&...) -> log<level, TArgs...>;
 template <typename... TArgs> using log_info = log<LogLevel::INFO, TArgs...>;
 template <typename... TArgs> using log_warn = log<LogLevel::WARN, TArgs...>;
 template <typename... TArgs> using log_error = log<LogLevel::ERROR, TArgs...>;
-template <typename... TArgs> using fail = log<LogLevel::CRITICAL, TArgs...>;
+template <typename... TArgs> using log_critical = log<LogLevel::CRITICAL, TArgs...>;
 #endif
+
+template <typename... TArgs> [[noreturn]] void fail(TArgs... args) {
+    log_critical(std::forward<const TArgs&>(args)...);
+    abort();
+}
 
 // sets from == to, returns true if changes
 template <typename T> inline bool update(T& from, const T& to) {
@@ -152,6 +166,13 @@ class Stopwatch {
   private:
     chrono::steady_clock::time_point m_start = chrono::steady_clock::now();
 };
+
+// easy way to delete/default copy/move constructors
+#define EZ_DEFINE_COPY_MOVE(PP_CLASS, PP_COPY, PP_MOVE) \
+    PP_CLASS(const PP_CLASS&) = PP_COPY; \
+    void operator=(const PP_CLASS&) = PP_COPY; \
+    PP_CLASS(PP_CLASS&&) = PP_MOVE; \
+    void operator=(PP_CLASS&&) = PP_MOVE; 
 
 struct rgba8 {
     uint8_t r = 0;

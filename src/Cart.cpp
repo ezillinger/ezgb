@@ -42,7 +42,7 @@ void Cart::writeAddr(uint16_t addr, uint8_t val) {
             }
             *getRAMPtr(addr) = val;
         } else {
-            EZ_FAIL("Wat?");
+            fail("Wat?");
         }
     }
 }
@@ -64,7 +64,7 @@ uint8_t Cart::readAddr(uint16_t addr) const {
             return *getROMPtr(addr);
         }
     } else {
-        EZ_FAIL("Not implemented");
+        fail("Not implemented");
     }
 }
 
@@ -74,7 +74,7 @@ const uint8_t* Cart::getROMPtr(uint16_t addr) const {
         return m_data.data() + addr;
     } else if (isMBC1Type(m_cartType)) {
         if (RAM_RANGE.containsExclusive(addr)) {
-            EZ_FAIL("This is a ROM address!");
+            fail("This is a ROM address!");
         } else {
             ez_assert(ROM_RANGE.containsExclusive(addr));
             if (addr <= 0x3FFF) { // bank 0
@@ -87,7 +87,7 @@ const uint8_t* Cart::getROMPtr(uint16_t addr) const {
             }
         }
     } else {
-        EZ_FAIL("NOT IMPLEMENTED");
+        fail("NOT IMPLEMENTED");
     }
 }
 

@@ -9,7 +9,7 @@ namespace ez {
 Window::Window(const char* title, int width, int height) {
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
-        EZ_FAIL("Failed to init SDL: {}\n", SDL_GetError());
+        fail("Failed to init SDL: {}\n", SDL_GetError());
     }
 
     // Decide GL+GLSL versions
@@ -51,7 +51,7 @@ Window::Window(const char* title, int width, int height) {
     m_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED,
                                           SDL_WINDOWPOS_CENTERED, width, height, window_flags);
     if (m_window == nullptr) {
-        EZ_FAIL("Error: SDL_CreateWindow(): {}", SDL_GetError());
+        fail("Error: SDL_CreateWindow(): {}", SDL_GetError());
     }
 
     m_glContext = SDL_GL_CreateContext(m_window);
