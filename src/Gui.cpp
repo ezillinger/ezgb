@@ -2,14 +2,6 @@
 #include <filesystem>
 #include <imgui.h>
 
-#define EZ_GLC(_CALL)                                                                              \
-    do {                                                                                           \
-        _CALL;                                                                                     \
-        GLenum gl_err = glGetError();                                                              \
-        if (gl_err != 0)                                                                           \
-            fprintf(stderr, "GL error 0x%x returned from '%s'.\n", gl_err, #_CALL);                \
-    } while (0) // Call with error check
-
 namespace ez {
 
 Gui::Gui(AppState& state) : m_state(state) {
@@ -272,7 +264,7 @@ void Gui::drawInstructions() {
             const auto lb =
                 std::lower_bound(m_opCache.begin(), m_opCache.end(), m_state.m_emu->m_reg.pc,
                                  [](const OpLine& line, int addr) { return line.m_addr < addr; });
-            scrollToLine = lb - m_opCache.begin();
+            scrollToLine = int(lb - m_opCache.begin());
         }
         const auto numCols = 5;
         if (ImGui::BeginTable("Memory View Table", numCols, ImGuiTableFlags_ScrollY)) {

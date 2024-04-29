@@ -65,7 +65,7 @@ enum class MemoryBank {
 
 struct AddrInfo {
     MemoryBank m_bank = MemoryBank::INVALID;
-    uint16_t m_baseAddr = 0;
+    int m_baseAddr = 0;
 };
 
 struct InstructionResult {

@@ -25,7 +25,12 @@ const char* to_string(LogLevel level) {
 }
 
 static auto as_local(const std::chrono::system_clock::time_point& tp) {
+    #if EZ_CLANG
+    // todo, implement this
+    return tp;
+    #else
     return std::chrono::zoned_time{std::chrono::current_zone(), tp};
+    #endif
 }
 
 std::string to_string(const std::chrono::system_clock::time_point& tp) {

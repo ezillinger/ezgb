@@ -8262,7 +8262,9 @@ struct std::formatter<ez::OpCodeInfo> {
     constexpr auto parse(std::format_parse_context& context) { 
         return context.begin();
     }
-    auto format(const ez::OpCodeInfo& oc, std::format_context& context) const {  
+
+    template<typename TContext>
+    auto format(const ez::OpCodeInfo& oc, TContext& context) const {  
         return std::format_to(context.out(), "{} {} {} (A: {:#2x} L: {})", oc.m_mnemonic, oc.m_operandName1, 
                                                 oc.m_operandName2, oc.m_addr,
                                                 oc.m_size);

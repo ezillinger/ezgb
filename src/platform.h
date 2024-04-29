@@ -2,6 +2,7 @@
 
 #if defined(__clang__)
     #define EZ_CLANG 1
+    #pragma clang diagnostic ignored "-Wformat-security"
 #elif defined(__GNUC__) || defined(__GNUG__)
     #define EZ_GCC 1
 #elif defined(_MSC_VER)

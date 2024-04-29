@@ -1,5 +1,6 @@
 #include "Emulator.h"
 #include "MiscOps.h"
+#include "OpCodes.h"
 
 namespace ez {
 

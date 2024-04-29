@@ -14,6 +14,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <cstring>
 
 namespace ez {
 
@@ -49,12 +50,12 @@ std::string to_string(const std::chrono::system_clock::time_point& tp);
 std::string to_string(const std::source_location& source);
 
 template <LogLevel level, typename... TArgs> struct log {
-    log(std::string_view format, TArgs&&... args,
+    log(std::string_view format, const TArgs&... args,
         std::source_location location = std::source_location::current()) {
         std::cout << std::format(
             "{} {} {} | {}\n", to_string(level), to_string(std::chrono::system_clock::now()),
             to_string(location),
-            std::vformat(format, std::make_format_args(std::forward<TArgs>(args)...)));
+            std::vformat(format, std::make_format_args(std::forward<const TArgs>(args)...)));
 
         if constexpr (level == LogLevel::CRITICAL) {
             std::cout.flush();
@@ -62,12 +63,28 @@ template <LogLevel level, typename... TArgs> struct log {
     }
 };
 
+#ifdef EZ_CLANG
+
+template <typename... TArgs> struct log_info : log<LogLevel::INFO, TArgs...> { using log<LogLevel::INFO, TArgs...>::log; };
+template<typename... TArgs> log_info(std::string_view, TArgs...) -> log_info<TArgs...>;
+
+template <typename... TArgs> struct log_warn : log<LogLevel::WARN, TArgs...> { using log<LogLevel::WARN, TArgs...>::log; };
+template<typename... TArgs> log_warn(std::string_view, TArgs...) -> log_warn<TArgs...>;
+
+template <typename... TArgs> struct log_error : log<LogLevel::ERROR, TArgs...> { using log<LogLevel::ERROR, TArgs...>::log; };
+template<typename... TArgs> log_error(std::string_view, TArgs...) -> log_error<TArgs...>;
+
+template <typename... TArgs> struct fail : log<LogLevel::CRITICAL, TArgs...> { using log<LogLevel::CRITICAL, TArgs...>::log; };
+template<typename... TArgs> fail(std::string_view, TArgs...) -> fail<TArgs...>;
+
+#else
 template <LogLevel level, typename... TArgs>
 log(std::string_view, TArgs&&...) -> log<level, TArgs...>;
 template <typename... TArgs> using log_info = log<LogLevel::INFO, TArgs...>;
 template <typename... TArgs> using log_warn = log<LogLevel::WARN, TArgs...>;
 template <typename... TArgs> using log_error = log<LogLevel::ERROR, TArgs...>;
 template <typename... TArgs> using fail = log<LogLevel::CRITICAL, TArgs...>;
+#endif
 
 // sets from == to, returns true if changes
 template <typename T> inline bool update(T& from, const T& to) {
