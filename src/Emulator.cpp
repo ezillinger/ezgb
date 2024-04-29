@@ -14,9 +14,16 @@ Emulator::Emulator(Cart& cart, EmuSettings settings) : m_cart(cart), m_settings(
     fclose(fp);
 
     if (m_settings.m_skipBootROM) {
-        // todo, bootrom does more stuff
-        m_reg.pc = 0x100;
+        m_reg.a = 0x01;
+        m_reg.f = 0xB0;
+        m_reg.b = 0x00;
+        m_reg.c = 0x13;
+        m_reg.d = 0x00;
+        m_reg.e = 0xD8;
+        m_reg.h = 0x01;
+        m_reg.l = 0x4D;
         m_reg.sp = 0xfffe;
+        m_reg.pc = 0x100;
         m_ioReg.m_bootromDisabled = true;
     }
 }

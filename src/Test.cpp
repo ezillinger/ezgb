@@ -14,6 +14,7 @@ namespace ez {
     Emulator Tester::make_emulator() {
         m_cart = std::make_unique<Cart>(make_cart());
         auto emu = Emulator{ *m_cart };
+        emu.m_reg = {};
         emu.m_reg.sp = 0xFFFE;
         return emu;
     }
@@ -158,6 +159,7 @@ namespace ez {
     bool Tester::test_flags() { 
         auto emu = make_emulator();
         emu.m_reg.a = 0;
+        emu.m_reg.f = 0;
         for (auto flagSet : {Flag::ZERO, Flag::CARRY, Flag::HALF_CARRY, Flag::NEGATIVE}) {
             emu.setFlag(flagSet);
             ez_assert(emu.m_reg.a == 0);
