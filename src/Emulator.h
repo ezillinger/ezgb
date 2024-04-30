@@ -220,7 +220,7 @@ class Emulator {
     bool m_wantBreakpoint = false;
 
     int16_t m_sysclk = 0; // t cycles
-    bool m_pendingTimaOverflow = false;
+    int m_pendingTimaOverflowCycles = 0; // t cycles until TIMA overflow
 
     int m_oamDmaCyclesRemaining  = 0;
 

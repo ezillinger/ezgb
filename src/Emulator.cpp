@@ -5,8 +5,8 @@
 namespace ez {
 
 Emulator::Emulator(Cart& cart, EmuSettings settings) : m_cart(cart), m_settings(settings) {
-    const auto bootromPath = "./roms/bootix_dmg.bin";
-    //const auto bootloaderPath = "./roms/dmg_boot.bin";
+    //const auto bootromPath = "./roms/bootix_dmg.bin";
+    const auto bootromPath = "./roms/dmg_boot.bin";
     log_info("Loading bootrom: {}", bootromPath);
     auto fp = fopen(bootromPath, "rb");
     ez_assert(fp);
@@ -569,6 +569,9 @@ InstructionResult Emulator::handleInstructionBlock1(uint32_t pcData) {
     if (srcR8 == R8::HL_ADDR && dstR8 == R8::HL_ADDR) {
         // HALT
         m_haltMode = true;
+        if(m_settings.m_logEnable){
+            log_info("Enabling Halt Mode");
+        }
     } else {
         writeR8(dstR8, readR8(srcR8));
     }
@@ -839,20 +842,23 @@ void Emulator::tick() {
         handledInstructionOrInterrupt = true;
     }
 
-    if (!handledInstructionOrInterrupt) {
-        m_cyclesToWait = std::max(m_cyclesToWait - 1, 0);
-        if (m_pendingInterruptEnableCycleCount > 0) {
-            --m_pendingInterruptEnableCycleCount;
-            if (m_pendingInterruptEnableCycleCount == 0) {
-                m_interruptMasterEnable = true;
-            }
+    m_cyclesToWait = std::max(m_cyclesToWait - 1, 0);
+    if (m_pendingInterruptEnableCycleCount > 0) {
+        --m_pendingInterruptEnableCycleCount;
+        if (m_pendingInterruptEnableCycleCount == 0) {
+            m_interruptMasterEnable = true;
         }
+    }
+
+    if (handledInstructionOrInterrupt) {
+        assert((m_cyclesToWait + 1) % T_CYCLES_PER_M_CYCLE == 0);
+        assert(m_cycleCounter % T_CYCLES_PER_M_CYCLE == 0);
     }
 
     tickTimers();
     m_ppu.tick();
 
-    m_cycleCounter++;
+    ++m_cycleCounter;
 
     return;
 }
@@ -870,15 +876,17 @@ void Emulator::tickTimers() {
             log_warn("FIRST TIME TIMER ON");
             firstTime = false;
         }
-        if (m_pendingTimaOverflow) {
-            m_ioReg.m_if.timer = true;
-            m_ioReg.m_tima = m_ioReg.m_tma;
-            m_pendingTimaOverflow = false;
+        if (m_pendingTimaOverflowCycles > 0) {
+            --m_pendingTimaOverflowCycles;
+            if(m_pendingTimaOverflowCycles == 0){
+                m_ioReg.m_if.timer = true;
+                m_ioReg.m_tima = m_ioReg.m_tma;
+            }
         }
         if (is_tima_increment(sysclkBefore, m_sysclk, m_ioReg.m_tac, m_ioReg.m_tac)) {
             ++m_ioReg.m_tima;
             if (m_ioReg.m_tima == 0) {
-                m_pendingTimaOverflow = true;
+                m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE;
             }
         }
     }
@@ -1004,7 +1012,7 @@ void Emulator::writeIO(uint16_t addr, uint8_t val) {
             if (is_tima_increment(m_sysclk, 0, m_ioReg.m_tac, m_ioReg.m_tac)) {
                 ++m_ioReg.m_tima;
                 if (m_ioReg.m_tima == 0) {
-                    m_pendingTimaOverflow = true;
+                    m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE;
                 }
             }
             return;
@@ -1012,14 +1020,14 @@ void Emulator::writeIO(uint16_t addr, uint8_t val) {
             if (is_tima_increment(m_sysclk, m_sysclk, m_ioReg.m_tac, val)) {
                 ++m_ioReg.m_tima;
                 if (m_ioReg.m_tima == 0) {
-                    m_pendingTimaOverflow = true;
+                    m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE;
                 }
             }
             m_ioReg.m_tac = val;
             return;
         case +IOAddr::TIMA: {
             m_ioReg.m_tima = val;
-            m_pendingTimaOverflow = false;
+            m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE;
             return;
         }
         case +IOAddr::DMA: {
