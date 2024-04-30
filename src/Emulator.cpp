@@ -5,10 +5,10 @@
 namespace ez {
 
 Emulator::Emulator(Cart& cart, EmuSettings settings) : m_cart(cart), m_settings(settings) {
-    // const auto bootloaderPath = "./roms/bootix_dmg.bin";
-    const auto bootloaderPath = "./roms/dmg_boot.bin";
-    log_info("Loading bootrom: {}", bootloaderPath);
-    auto fp = fopen(bootloaderPath, "rb");
+    const auto bootromPath = "./roms/bootix_dmg.bin";
+    //const auto bootloaderPath = "./roms/dmg_boot.bin";
+    log_info("Loading bootrom: {}", bootromPath);
+    auto fp = fopen(bootromPath, "rb");
     ez_assert(fp);
     ez_assert(BOOTROM_BYTES == fread(m_bootrom.data(), 1, BOOTROM_BYTES, fp));
     fclose(fp);

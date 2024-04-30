@@ -7,15 +7,30 @@ namespace ez {
 Gui::Gui(AppState& state) : m_state(state) {
     updateRomList();
 
-    glGenTextures(1, &m_displayTexHandle);
-    glBindTexture(GL_TEXTURE_2D, m_displayTexHandle);
+    glGenTextures(m_texHandles.size(), m_texHandles.data());
+
+    glBindTexture(GL_TEXTURE_2D, m_texHandles[+Textures::DISPLAY]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, PPU::DISPLAY_WIDTH, PPU::DISPLAY_HEIGHT, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, state.m_emu->getDisplayFramebuffer());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_texDims[+Textures::DISPLAY].x,
+                 m_texDims[+Textures::DISPLAY].y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 state.m_emu->getDisplayFramebuffer());
+
+    glBindTexture(GL_TEXTURE_2D, m_texHandles[+Textures::BG]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_texDims[+Textures::BG].x, m_texDims[+Textures::BG].y,
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, state.m_emu->getBgDebugFramebuffer());
+
+    glBindTexture(GL_TEXTURE_2D, m_texHandles[+Textures::VRAM]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_texDims[+Textures::VRAM].x,
+                 m_texDims[+Textures::VRAM].y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 state.m_emu->getVramDebugFramebuffer());
 }
 
-Gui::~Gui() { glDeleteTextures(1, &m_displayTexHandle); }
+Gui::~Gui() { glDeleteTextures(m_texHandles.size(), m_texHandles.data()); }
 
 void Gui::updateRomList() {
     const auto romDir = "./roms/";
@@ -75,6 +90,7 @@ void Gui::drawGui() {
     drawConsole();
     drawInstructions();
     drawDisplay();
+    drawPPU();
 
     if (m_showDemoWindow) {
         ImGui::ShowDemoWindow();
@@ -184,8 +200,7 @@ void Gui::drawRegisters() {
             auto& ioReg = m_state.m_emu->m_ioReg;
             ImGui::LabelText("T-CYCLES", "{}"_format(m_state.m_emu->getCycleCounter()).c_str());
             ImGui::LabelText("DIV", "{}"_format(ioReg.m_timerDivider).c_str());
-            ImGui::LabelText("TIMA Enabled",
-                             "{}"_format(bool(ioReg.m_tac & 0b100)).c_str());
+            ImGui::LabelText("TIMA Enabled", "{}"_format(bool(ioReg.m_tac & 0b100)).c_str());
             ImGui::LabelText("TIMA", "{}"_format(ioReg.m_tima).c_str());
             ImGui::LabelText("MODULO", "{}"_format(ioReg.m_tma).c_str());
         }
@@ -254,7 +269,7 @@ void Gui::drawInstructions() {
     auto& emu = *m_state.m_emu;
     if (ImGui::Begin("Instructions", nullptr)) {
         std::optional<int> scrollToLine;
-        if (ImGui::Button("Refresh") || m_opCache.empty() || justPaused ) {
+        if (ImGui::Button("Refresh") || m_opCache.empty() || justPaused) {
             updateOpCache();
         }
         ImGui::SameLine();
@@ -339,8 +354,9 @@ void Gui::drawInstructions() {
                     ImGui::Text(operandText.c_str());
                     ImGui::TableNextColumn();
                     auto cycleText = ocLine.m_info.m_cyclesIfBranch
-                        ? "{}/{}"_format(ocLine.m_info.m_cycles, *ocLine.m_info.m_cyclesIfBranch)
-                               : "{}"_format(ocLine.m_info.m_cycles);
+                                         ? "{}/{}"_format(ocLine.m_info.m_cycles,
+                                                          *ocLine.m_info.m_cyclesIfBranch)
+                                         : "{}"_format(ocLine.m_info.m_cycles);
                     ImGui::Text(cycleText.c_str());
                 }
             }
@@ -357,12 +373,50 @@ void Gui::drawDisplay() {
 
     if (ImGui::Begin("Display", nullptr)) {
         // todo, use pixel buffer to upload
-        glBindTexture(GL_TEXTURE_2D, m_displayTexHandle);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, PPU::DISPLAY_WIDTH, PPU::DISPLAY_HEIGHT, 0, GL_RGBA,
-                    GL_UNSIGNED_BYTE, m_state.m_emu->getDisplayFramebuffer());
+        const auto dims = m_texDims[+Textures::DISPLAY];
+        const auto handle = m_texHandles[+Textures::DISPLAY];
+        glBindTexture(GL_TEXTURE_2D, handle);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dims.x, dims.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                     m_state.m_emu->getDisplayFramebuffer());
 
+        ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(handle)),
+                     ImGui::GetContentRegionAvail());
+    }
+    ImGui::End();
+}
 
-        ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(m_displayTexHandle)), ImGui::GetContentRegionAvail());
+void Gui::drawPPU() {
+
+    if (ImGui::Begin("PPU", nullptr)) {
+        if(ImGui::Button(m_ppuDisplayWindow ? "Show BG" : "Show Window")){
+            m_ppuDisplayWindow = !m_ppuDisplayWindow;
+        }
+        // todo, proportions
+        const auto dimAvail = ImGui::GetContentRegionAvail();
+        const auto imgDim = ImVec2{dimAvail.x, dimAvail.y / 2};
+        // todo, use pixel buffer to upload
+        {
+            const auto dims = m_texDims[+Textures::BG];
+            const auto handle = m_texHandles[+Textures::BG];
+            const auto data = m_ppuDisplayWindow ? m_state.m_emu->getWindowDebugFramebuffer()
+                                                 : m_state.m_emu->getBgDebugFramebuffer();
+            glBindTexture(GL_TEXTURE_2D, handle);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dims.x, dims.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                         data);
+
+            ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(handle)), imgDim);
+        }
+
+        // todo, use pixel buffer to upload
+        {
+            const auto dims = m_texDims[+Textures::VRAM];
+            const auto handle = m_texHandles[+Textures::VRAM];
+            glBindTexture(GL_TEXTURE_2D, handle);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dims.x, dims.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                         m_state.m_emu->getVramDebugFramebuffer());
+
+            ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(handle)), imgDim);
+        }
     }
     ImGui::End();
 }

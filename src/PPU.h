@@ -35,9 +35,12 @@ class PPU {
     static constexpr int DISPLAY_HEIGHT = 144;
     static constexpr int BG_DIM_XY = 256;
     static constexpr int TILE_DIM_XY = 8;
-    static constexpr int BYTES_PER_TILE = 32;
+    static constexpr int BYTES_PER_TILE = 16;
     static constexpr iRange VRAM_ADDR_RANGE = {0x8000, 0xA000};
     static constexpr iRange OAM_ADDR_RANGE = {0xFE00, 0xFEA0};
+
+    static constexpr int VRAM_DEBUG_FB_WIDTH = 16 * TILE_DIM_XY;
+    static constexpr int VRAM_DEBUG_FB_HEIGHT = 24 * TILE_DIM_XY;
     static constexpr int OAM_SPRITE_COUNT = OAM_ADDR_RANGE.width() / int(sizeof(ObjectAttribute));
 
     PPU(IORegisters& io);
@@ -48,6 +51,11 @@ class PPU {
     void writeAddr(uint16_t, uint8_t);
 
     const rgba8* getDisplayFramebuffer() const;
+
+    // for debug only
+    const rgba8* getWindowDebugFramebuffer();
+    const rgba8* getBgDebugFramebuffer();
+    const rgba8* getVramDebugFramebuffer();
 
     void reset();
 
@@ -66,9 +74,6 @@ class PPU {
     std::vector<uint8_t> renderOAM();
     void renderBgWindowRow(int tileY, bool enable, bool tileMap, uint8_t* dst);
 
-    void updateBG();
-    void updateWindow();
-
     void updateBgRow(int line);
     void updateWindowRow(int line);
 
@@ -85,7 +90,12 @@ class PPU {
 
     std::vector<uint8_t> m_vram = std::vector<uint8_t>(VRAM_ADDR_RANGE.width());
     std::vector<uint8_t> m_oam = std::vector<uint8_t>(OAM_ADDR_RANGE.width());
+
     std::vector<rgba8> m_display = std::vector<rgba8>(size_t(DISPLAY_WIDTH * DISPLAY_HEIGHT));
+
+    std::vector<rgba8> m_windowDebugFramebuffer = std::vector<rgba8>(size_t(BG_DIM_XY * BG_DIM_XY));
+    std::vector<rgba8> m_bgDebugFramebuffer = std::vector<rgba8>(size_t(BG_DIM_XY * BG_DIM_XY));
+    std::vector<rgba8> m_vramDebugFramebuffer = std::vector<rgba8>(VRAM_DEBUG_FB_HEIGHT * VRAM_DEBUG_FB_WIDTH);
 
     // whiter white than normal white
     const std::vector<rgba8> m_displayOff = std::vector<rgba8>(size_t(DISPLAY_WIDTH * DISPLAY_HEIGHT), rgba8{0xf2, 0xf4, 0xf9, 0xFF});

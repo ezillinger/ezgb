@@ -174,11 +174,19 @@ class Stopwatch {
     PP_CLASS(PP_CLASS&&) = PP_MOVE;                                                                \
     void operator=(PP_CLASS&&) = PP_MOVE;
 
-struct rgba8 {
-    uint8_t r = 0;
-    uint8_t g = 0;
-    uint8_t b = 0;
-    uint8_t a = 0;
-};
+// todo, make these not suck
+template<typename T> struct Vec2 { T x = T{0}; T y = T{0}; };
+template<typename T> struct Vec3 { T x = T{0}; T y = T{0}; T z = T{0};};
+template<typename T> struct Vec4 { T x = T{0}; T y = T{0}; T z = T{0}; T w = T{0};};
+
+using float2 = Vec2<float>;
+using int2 = Vec2<int>;
+
+using float3 = Vec3<float>;
+using int3 = Vec3<int>;
+
+using float4 = Vec4<float>;
+using int4 = Vec4<int>;
+using rgba8 = Vec4<uint8_t>;
 
 } // namespace ez

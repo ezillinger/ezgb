@@ -1,5 +1,5 @@
-#include "Base.h"
 #include "AppState.h"
+#include "Base.h"
 #include "Window.h"
 
 namespace ez {
@@ -16,13 +16,13 @@ class Gui {
     bool shouldExit() const { return m_shouldExit; };
 
   private:
-
     void drawToolbar();
     void drawRegisters();
     void drawSettings();
     void drawConsole();
     void drawInstructions();
     void drawDisplay();
+    void drawPPU();
 
     void updateRomList();
     void updateOpCache();
@@ -40,6 +40,21 @@ class Gui {
     bool m_prevWasPaused = false;
 
     std::vector<OpLine> m_opCache;
-    GLuint m_displayTexHandle = 0;
+
+    bool m_ppuDisplayWindow = false; // otherwise BG
+
+    // todo, RAII
+    enum class Textures {
+        DISPLAY,
+        BG,
+        VRAM
+    };
+    static constexpr auto numTextures = 3;
+    std::array<GLuint, numTextures> m_texHandles;
+    std::array<int2, numTextures> m_texDims{
+        int2{PPU::DISPLAY_WIDTH, PPU::DISPLAY_HEIGHT},            //
+        int2{PPU::BG_DIM_XY, PPU::BG_DIM_XY},                     //
+        int2{PPU::VRAM_DEBUG_FB_WIDTH, PPU::VRAM_DEBUG_FB_HEIGHT} //
+    };
 };
 } // namespace ez

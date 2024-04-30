@@ -19,9 +19,9 @@ Emulator Tester::make_emulator() {
 }
 
 bool Tester::test_ppu() {
-    const std::array<uint8_t, 16> tile{0x3C, 0x7E, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42,
+    const std::array<uint8_t, PPU::BYTES_PER_TILE> tile{0x3C, 0x7E, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42,
                                        0x7E, 0x5E, 0x7E, 0x0A, 0x7C, 0x56, 0x38, 0x7C};
-    const std::array<uint8_t, 64> expected{
+    const std::array<uint8_t, PPU::TILE_DIM_XY * PPU::TILE_DIM_XY> expected{
         0b00, 0b10, 0b11, 0b11, 0b11, 0b11, 0b10, 0b00, 0b00, 0b11, 0b00, 0b00, 0b00,
         0b00, 0b11, 0b00, 0b00, 0b11, 0b00, 0b00, 0b00, 0b00, 0b11, 0b00, 0b00, 0b11,
         0b00, 0b00, 0b00, 0b00, 0b11, 0b00, 0b00, 0b11, 0b01, 0b11, 0b11, 0b11, 0b11,
