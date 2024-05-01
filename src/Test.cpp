@@ -1,5 +1,6 @@
 #include "Test.h"
 #include "Base.h"
+#include "MiscOps.h"
 
 namespace ez {
 
@@ -16,6 +17,30 @@ Emulator Tester::make_emulator() {
     emu.m_reg = {};
     emu.m_reg.sp = 0xFFFE;
     return emu;
+}
+
+bool Tester::test_timer() {
+
+    auto tacs = std::array<uint8_t, 4>{ 0b100, 0b101, 0b110, 0b111};
+    auto multiples = std::array<int, 4>{1024, 16, 64, 256};
+
+    for(size_t test = 0; test < 4; ++test){
+        uint16_t sysclk = 0;
+        const auto multiple = multiples[test];
+        const auto tac = tacs[test];
+        for (int i = 0; i < UINT16_MAX / multiple; ++i) {
+            for (int j = 0; j < multiple; ++j) {
+                if(is_tima_increment(sysclk, sysclk + 1, tac, tac)){
+                    ez_assert(multiple - 1 == j);
+                } else {
+                    ez_assert(multiple - 1 != j);
+                }
+                ++sysclk;
+            }
+        }
+    }
+
+    return true;
 }
 
 bool Tester::test_ppu() {
@@ -87,18 +112,37 @@ bool Tester::test_io_reg() {
     emu.writeAddr(+IOAddr::IF, 0b00010101);
     ez_assert(emu.readAddr(+IOAddr::IF) == 0b00010101);
     ez_assert(emu.m_ioReg.m_if.vblank);
+    ez_assert(emu.m_ioReg.m_if.data & 0b1 << +Interrupts::VBLANK);
+
     ez_assert(!emu.m_ioReg.m_if.lcd);
+    ez_assert(!(emu.m_ioReg.m_if.data & 0b1 << +Interrupts::LCD));
+
     ez_assert(emu.m_ioReg.m_if.timer);
+    ez_assert(emu.m_ioReg.m_if.data & 0b1 << +Interrupts::TIMER);
+
     ez_assert(!emu.m_ioReg.m_if.serial);
+    ez_assert(!(emu.m_ioReg.m_if.data & 0b1 << +Interrupts::SERIAL));
+
     ez_assert(emu.m_ioReg.m_if.joypad);
+    ez_assert(emu.m_ioReg.m_if.data & 0b1 << +Interrupts::JOYPAD);
 
     emu.writeAddr(+IOAddr::IE, 0b00010101);
     ez_assert(emu.readAddr(+IOAddr::IE) == 0b00010101);
+
     ez_assert(emu.m_ioReg.m_ie.vblank);
+    ez_assert(emu.m_ioReg.m_ie.data & 0b1 << +Interrupts::VBLANK);
+
     ez_assert(!emu.m_ioReg.m_ie.lcd);
+    ez_assert(!(emu.m_ioReg.m_ie.data & 0b1 << +Interrupts::LCD));
+
     ez_assert(emu.m_ioReg.m_ie.timer);
+    ez_assert(emu.m_ioReg.m_ie.data & 0b1 << +Interrupts::TIMER);
+
     ez_assert(!emu.m_ioReg.m_ie.serial);
+    ez_assert(!(emu.m_ioReg.m_ie.data & 0b1 << +Interrupts::SERIAL));
+
     ez_assert(emu.m_ioReg.m_ie.joypad);
+    ez_assert(emu.m_ioReg.m_ie.data & 0b1 << +Interrupts::JOYPAD);
 
     return true;
 }
@@ -115,6 +159,7 @@ bool Tester::test_all() {
     success &= test_call_ret();
     success &= test_cart();
     success &= test_ppu();
+    success &= test_timer();
 
     if (success) {
         log_info("All tests passed!");

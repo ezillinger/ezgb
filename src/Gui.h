@@ -43,6 +43,8 @@ class Gui {
 
     bool m_ppuDisplayWindow = false; // otherwise BG
 
+    std::string m_lastRom = "";
+
     // todo, RAII
     enum class Textures {
         DISPLAY,

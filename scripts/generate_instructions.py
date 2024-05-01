@@ -161,7 +161,7 @@ def generate_switches():
     funcFooter = \
 """
         default:
-            EZ_FAIL("Unknown OpCode: {}", code);
+            fail("Unknown OpCode: {}", code);
         }
     }
 

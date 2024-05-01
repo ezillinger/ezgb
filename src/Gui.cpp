@@ -40,7 +40,8 @@ void Gui::updateRomList() {
             m_romsAvail.push_back(file.path());
         }
     }
-    std::sort(m_romsAvail.begin(), m_romsAvail.end());
+    std::sort(m_romsAvail.begin(), m_romsAvail.end(),
+              [](const auto& lhs, const auto& rhs) { return lhs.filename() < rhs.filename(); });
 }
 
 void Gui::updateOpCache() {
@@ -109,7 +110,8 @@ void Gui::drawToolbar() {
                 }
                 ImGui::Separator();
                 for (auto& romPath : m_romsAvail) {
-                    if (ImGui::MenuItem(romPath.c_str())) {
+                    if (ImGui::MenuItem(romPath.filename().c_str())) {
+                        m_lastRom = romPath.filename();
                         m_state.m_cart = std::make_unique<Cart>(Cart::loadFromDisk(romPath));
                         resetEmulator();
                     }
@@ -143,6 +145,8 @@ void Gui::drawToolbar() {
                 updateOpCache();
             }
         }
+
+        ImGui::Text("{}"_format(m_lastRom).c_str());
 
         static Stopwatch frameTimer{};
         const auto frameTime = frameTimer.elapsed();
@@ -199,6 +203,7 @@ void Gui::drawRegisters() {
         if (ImGui::CollapsingHeader("Timers", ImGuiTreeNodeFlags_DefaultOpen)) {
             auto& ioReg = m_state.m_emu->m_ioReg;
             ImGui::LabelText("T-CYCLES", "{}"_format(m_state.m_emu->getCycleCounter()).c_str());
+            ImGui::LabelText("SYSCLK", "{}"_format(m_state.m_emu->m_sysclk).c_str());
             ImGui::LabelText("DIV", "{}"_format(ioReg.m_timerDivider).c_str());
             ImGui::LabelText("TIMA Enabled", "{}"_format(bool(ioReg.m_tac & 0b100)).c_str());
             ImGui::LabelText("TIMA", "{}"_format(ioReg.m_tima).c_str());

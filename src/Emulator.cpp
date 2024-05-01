@@ -324,7 +324,11 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
         switch (oc) {
             case OpCode::PREFIX: m_prefix = true; break;
             // enable/disable interrupts after instruction after this one finishes
-            case OpCode::EI: m_pendingInterruptEnableCycleCount = T_CYCLES_PER_M_CYCLE; break;
+            case OpCode::EI: 
+            if(!m_pendingInterruptEnableCycleCount){
+                m_pendingInterruptEnableCycleCount = T_CYCLES_PER_M_CYCLE + 1; // hack so we get one instruction before interrupts enabled
+            }
+            break;
             case OpCode::DI:
                 m_interruptMasterEnable = false;
                 m_pendingInterruptEnableCycleCount = 0;
@@ -442,8 +446,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             case OpCode::RETI: {
                 jumpAddr = readAddr16(m_reg.sp);
                 m_reg.sp += 2;
-                // todo, is this also delayed?
-                m_pendingInterruptEnableCycleCount = T_CYCLES_PER_M_CYCLE;
+                m_pendingInterruptEnableCycleCount = T_CYCLES_PER_M_CYCLE + 1; // hack so we get one instruction before interrupts enabled
                 break;
             }
             default: fail("not implemented: {}", +oc);
@@ -569,6 +572,7 @@ InstructionResult Emulator::handleInstructionBlock1(uint32_t pcData) {
     if (srcR8 == R8::HL_ADDR && dstR8 == R8::HL_ADDR) {
         // HALT
         m_haltMode = true;
+        m_isInstructionAfterHaltMode = true;
         if(m_settings.m_logEnable){
             log_info("Enabling Halt Mode");
         }
@@ -817,13 +821,21 @@ void Emulator::tick() {
 
     m_oamDmaCyclesRemaining = std::max(0, m_oamDmaCyclesRemaining - 1);
 
+    tickTimers();
+
+    
+
     // prefix instructions are atomic
     if (m_cyclesToWait == 0 && !m_prefix) {
         tickInterrupts();
         handledInstructionOrInterrupt = m_cyclesToWait != 0;
     }
 
-    if (m_cyclesToWait == 0 && !m_haltMode) {
+    if(m_haltMode && m_cyclesToWait == 0){
+        m_cyclesToWait = T_CYCLES_PER_M_CYCLE;
+    }
+
+    if (m_cyclesToWait == 0) {
         const auto word0 = readAddr16(m_reg.pc);
         const auto word1 = readAddr16(m_reg.pc + 2);
         const auto pcData = (uint32_t(word1) << 16) | (uint32_t(word0));
@@ -835,17 +847,24 @@ void Emulator::tick() {
         } else {
             result = handleInstruction(pcData);
         }
-
-        m_reg.pc = result.m_newPC;
+        if(!m_haltBugTriggered){
+            m_reg.pc = result.m_newPC;
+        }
+        else{
+            log_warn("Halt bug triggered, skipping PC increment");
+        }
+        m_haltBugTriggered = false;
         m_cyclesToWait = result.m_cycles;
         assert(m_cyclesToWait > 0);
         handledInstructionOrInterrupt = true;
     }
 
     m_cyclesToWait = std::max(m_cyclesToWait - 1, 0);
+    
     if (m_pendingInterruptEnableCycleCount > 0) {
         --m_pendingInterruptEnableCycleCount;
         if (m_pendingInterruptEnableCycleCount == 0) {
+            //ez_assert(m_sysclk % 4 == 0);
             m_interruptMasterEnable = true;
         }
     }
@@ -855,7 +874,6 @@ void Emulator::tick() {
         assert(m_cycleCounter % T_CYCLES_PER_M_CYCLE == 0);
     }
 
-    tickTimers();
     m_ppu.tick();
 
     ++m_cycleCounter;
@@ -866,33 +884,32 @@ void Emulator::tick() {
 void Emulator::tickTimers() {
 
     auto sysclkBefore = m_sysclk;
-    m_sysclk++; // 4 t cycles per m cycle
+    ++m_sysclk;
 
     m_ioReg.m_timerDivider = m_sysclk >> 8;
 
-    if (m_ioReg.m_tac & 0b100) {
-        static bool firstTime = true;
-        if (firstTime) {
-            log_warn("FIRST TIME TIMER ON");
-            firstTime = false;
-        }
-        if (m_pendingTimaOverflowCycles > 0) {
-            --m_pendingTimaOverflowCycles;
-            if(m_pendingTimaOverflowCycles == 0){
-                m_ioReg.m_if.timer = true;
-                m_ioReg.m_tima = m_ioReg.m_tma;
-            }
-        }
-        if (is_tima_increment(sysclkBefore, m_sysclk, m_ioReg.m_tac, m_ioReg.m_tac)) {
-            ++m_ioReg.m_tima;
-            if (m_ioReg.m_tima == 0) {
-                m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE;
-            }
+    if (m_pendingTimaOverflowCycles > 0) {
+        --m_pendingTimaOverflowCycles;
+        if(m_pendingTimaOverflowCycles == 0){
+            //ez_assert((m_sysclk) % 4 == 0);
+            m_ioReg.m_if.timer = true;
+            m_ioReg.m_tima = m_ioReg.m_tma;
         }
     }
+    
+    if (is_tima_increment(sysclkBefore, m_sysclk, m_ioReg.m_tac, m_ioReg.m_tac)) {
+        ++m_ioReg.m_tima;
+        if (m_ioReg.m_tima == 0) {
+            m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE + 1;
+        }
+    }
+
+    
 }
 
 void Emulator::tickInterrupts() {
+
+    
 
     for (auto i = 0; i < +Interrupts::NUM_INTERRUPTS; ++i) {
         const uint8_t bitFlag = 0b1 << i;
@@ -920,8 +937,15 @@ void Emulator::tickInterrupts() {
                 // only one interrupt serviced per tick
                 break;
             }
+            else{
+                if(m_isInstructionAfterHaltMode){
+                    m_haltBugTriggered = true;
+                    log_warn("Halt bug triggered!");
+                }
+            }
         }
     }
+    m_isInstructionAfterHaltMode = false;
 }
 
 AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
@@ -955,7 +979,7 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
         log_warn("TAC set to {}", data);
     }
     if (addr == +IOAddr::TIMA) {
-        log_warn("TIMA set to {}", data);
+        log_warn( "TIMA set to {}", data);
     }
     m_lastWrittenAddr = addr;
     const auto addrInfo = getAddressInfo(addr);
@@ -1006,18 +1030,21 @@ void Emulator::writeIO(uint16_t addr, uint8_t val) {
             m_ioReg.m_serialData = val;
             return;
         case +IOAddr::DIV:
-            // todo, do we only reset top byte?
-            m_sysclk = 0; 
+        {
             m_ioReg.m_timerDivider = 0;
             if (is_tima_increment(m_sysclk, 0, m_ioReg.m_tac, m_ioReg.m_tac)) {
+                log_warn("TIMA incr from div write");
                 ++m_ioReg.m_tima;
                 if (m_ioReg.m_tima == 0) {
                     m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE;
                 }
             }
+            m_sysclk = 0;
             return;
+        }
         case +IOAddr::TAC:
             if (is_tima_increment(m_sysclk, m_sysclk, m_ioReg.m_tac, val)) {
+                log_warn("TIMA incr from TAC write");
                 ++m_ioReg.m_tima;
                 if (m_ioReg.m_tima == 0) {
                     m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE;
@@ -1027,7 +1054,11 @@ void Emulator::writeIO(uint16_t addr, uint8_t val) {
             return;
         case +IOAddr::TIMA: {
             m_ioReg.m_tima = val;
-            m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE;
+            // todo, verify overwriting value with modulo if same cycle
+            if(m_pendingTimaOverflowCycles == T_CYCLES_PER_M_CYCLE){
+                log_warn("TIMA written to on overflow tick");
+                m_pendingTimaOverflowCycles = 0;
+            }
             return;
         }
         case +IOAddr::DMA: {

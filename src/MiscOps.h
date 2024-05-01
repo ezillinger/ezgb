@@ -8,12 +8,8 @@ inline constexpr bool getFlagHC_ADD(uint8_t a, uint8_t b) {
 }
 inline constexpr bool getFlagC_ADD(uint8_t a, uint8_t b) { return int(a) + b > 0xFF; }
 
-inline constexpr bool getFlagHC_SUB(uint8_t a, uint8_t b) {
-    return ((a & 0xF) - (b & 0xF)) & 0x10;
-}
-inline constexpr bool getFlagC_SUB(uint8_t a, uint8_t b) { 
-    return a < b; 
-}
+inline constexpr bool getFlagHC_SUB(uint8_t a, uint8_t b) { return ((a & 0xF) - (b & 0xF)) & 0x10; }
+inline constexpr bool getFlagC_SUB(uint8_t a, uint8_t b) { return a < b; }
 
 inline constexpr bool getFlagHC_ADC(uint8_t a, uint8_t b, uint8_t carryBit) {
     ez_assert(carryBit <= 0b1);
@@ -33,17 +29,18 @@ inline constexpr bool getFlagC_SBC(uint8_t a, uint8_t b, uint8_t carryBit) {
     return a < (b + carryBit);
 }
 
-inline constexpr bool is_tima_increment(uint16_t sysclkBefore, uint16_t sysclkAfter, uint8_t tacBefore, uint8_t tacAfter){
+inline constexpr bool is_tima_increment(uint16_t sysclkBefore, uint16_t sysclkAfter,
+                                        uint8_t tacBefore, uint8_t tacAfter) {
     // if enable bit isn't set no increment
-    if(!(tacAfter & 0b100)){
+    if (!(tacAfter & 0b100)) {
         return false;
     }
     auto getBitIdx = [](uint8_t tac) {
         const auto timaControlBits = 0b11 & tac;
         return timaControlBits == 0b00   ? 9
-                                    : timaControlBits == 0b11 ? 7
-                                    : timaControlBits == 0b10 ? 5
-                                                              : 3;
+               : timaControlBits == 0b11 ? 7
+               : timaControlBits == 0b10 ? 5
+                                         : 3;
     };
 
     const bool bitSetBefore = (sysclkBefore & (0b1 << getBitIdx(tacBefore)));
@@ -52,7 +49,7 @@ inline constexpr bool is_tima_increment(uint16_t sysclkBefore, uint16_t sysclkAf
     return bitSetBefore && !bitSetAfter;
 }
 
-inline constexpr uint8_t samplePalette(uint8_t paletteIdx, uint8_t palette){
+inline constexpr uint8_t samplePalette(uint8_t paletteIdx, uint8_t palette) {
     ez_assert(paletteIdx < 4);
     return ((0b11 << (2 * paletteIdx)) & palette) >> (2 * paletteIdx);
 }

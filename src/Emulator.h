@@ -211,7 +211,10 @@ class Emulator {
     int m_cyclesToWait = 0;
 
     bool m_stopMode = false;
+
     bool m_haltMode = false;
+    bool m_isInstructionAfterHaltMode = false;
+    bool m_haltBugTriggered = false;
 
     bool m_prefix = false; // was last instruction CB prefix
     bool m_interruptMasterEnable = false;
@@ -219,7 +222,7 @@ class Emulator {
 
     bool m_wantBreakpoint = false;
 
-    int16_t m_sysclk = 0; // t cycles
+    uint16_t m_sysclk = 0; // t cycles
     int m_pendingTimaOverflowCycles = 0; // t cycles until TIMA overflow
 
     int m_oamDmaCyclesRemaining  = 0;

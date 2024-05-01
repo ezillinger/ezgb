@@ -21,6 +21,7 @@ class Tester {
     bool test_call_ret();
     bool test_cart();
     bool test_ppu();
+    bool test_timer();
 
     std::unique_ptr<Cart> m_cart;
 };
