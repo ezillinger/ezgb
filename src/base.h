@@ -15,6 +15,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <fstream>
 
 namespace ez {
 
@@ -188,5 +189,9 @@ using int3 = Vec3<int>;
 using float4 = Vec4<float>;
 using int4 = Vec4<int>;
 using rgba8 = Vec4<uint8_t>;
+
+inline void overwrite(std::string_view path, std::string_view content) { 
+    std::ofstream(path, std::ios::trunc) << content; 
+}
 
 } // namespace ez

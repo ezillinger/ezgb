@@ -5,7 +5,7 @@
 namespace ez {
 
 Emulator::Emulator(Cart& cart, EmuSettings settings) : m_cart(cart), m_settings(settings) {
-    //const auto bootromPath = "./roms/bootix_dmg.bin";
+    // const auto bootromPath = "./roms/bootix_dmg.bin";
     const auto bootromPath = "./roms/dmg_boot.bin";
     log_info("Loading bootrom: {}", bootromPath);
     auto fp = fopen(bootromPath, "rb");
@@ -324,19 +324,23 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
         switch (oc) {
             case OpCode::PREFIX: m_prefix = true; break;
             // enable/disable interrupts after instruction after this one finishes
-            case OpCode::EI: 
-            if(!m_pendingInterruptEnableCycleCount){
-                m_pendingInterruptEnableCycleCount = T_CYCLES_PER_M_CYCLE + 1; // hack so we get one instruction before interrupts enabled
-            }
-            break;
+            case OpCode::EI:
+                if (!m_pendingInterruptEnableCycleCount) {
+                    m_pendingInterruptEnableCycleCount = 2 * T_CYCLES_PER_M_CYCLE;
+                }
+                break;
             case OpCode::DI:
                 m_interruptMasterEnable = false;
                 m_pendingInterruptEnableCycleCount = 0;
                 break;
 
-            case OpCode::LD__C__A:    writeAddr(0xFF00 + m_reg.c, m_reg.a); break;
-            case OpCode::LD_A__a16_:  m_reg.a = readAddr(u16); break;
-            case OpCode::LDH__a8__A:  writeAddr(0xFF00 + u8, m_reg.a); break;
+            case OpCode::LD__C__A:   writeAddr(0xFF00 + m_reg.c, m_reg.a); break;
+            case OpCode::LD_A__a16_: m_reg.a = readAddr(u16); break;
+            case OpCode::LDH__a8__A: {
+                const uint16_t addr = u8 + uint16_t(0xFF00);
+                writeAddr(addr, m_reg.a);
+                break;
+            }
             case OpCode::LD__a16__A:  writeAddr(u16, m_reg.a); break;
             case OpCode::CALL_a16:    maybeDoCall(true, false); break;
             case OpCode::CALL_C_a16:  maybeDoCall(getFlag(Flag::CARRY), true); break;
@@ -357,7 +361,11 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
 
             } break;
             case OpCode::JP_a16:     jumpAddr = u16; break;
-            case OpCode::LDH_A__a8_: m_reg.a = readAddr(u8 + 0xFF00); break;
+            case OpCode::LDH_A__a8_: {
+                const uint16_t addr = u8 + uint16_t(0xFF00);
+                m_reg.a = readAddr(addr);
+                break;
+            }
             case OpCode::AND_A_u8:
                 m_reg.a &= u8;
                 clearFlags();
@@ -446,7 +454,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             case OpCode::RETI: {
                 jumpAddr = readAddr16(m_reg.sp);
                 m_reg.sp += 2;
-                m_pendingInterruptEnableCycleCount = T_CYCLES_PER_M_CYCLE + 1; // hack so we get one instruction before interrupts enabled
+                m_pendingInterruptEnableCycleCount = 2 * T_CYCLES_PER_M_CYCLE;
                 break;
             }
             default: fail("not implemented: {}", +oc);
@@ -573,7 +581,7 @@ InstructionResult Emulator::handleInstructionBlock1(uint32_t pcData) {
         // HALT
         m_haltMode = true;
         m_isInstructionAfterHaltMode = true;
-        if(m_settings.m_logEnable){
+        if (m_settings.m_logEnable) {
             log_info("Enabling Halt Mode");
         }
     } else {
@@ -806,24 +814,18 @@ void Emulator::clearFlag(Flag flag) { m_reg.f &= ~(0x1 << +flag); }
 
 void Emulator::clearFlags() { m_reg.f = 0x00; }
 
-void Emulator::tick() {
+void Emulator::tick(const JoypadState& input) {
+    m_inputState = input;
+
+    auto handledInstructionOrInterrupt = false;
 
     if (m_stopMode) {
-        if (m_settings.m_autoUnStop) {
-            log_warn("Auto-unstopping");
-            m_stopMode = false;
-        }
         // todo, recover from stop mode!
         return;
     }
 
-    bool handledInstructionOrInterrupt = false;
-
-    m_oamDmaCyclesRemaining = std::max(0, m_oamDmaCyclesRemaining - 1);
-
+    tickCountdowns();
     tickTimers();
-
-    
 
     // prefix instructions are atomic
     if (m_cyclesToWait == 0 && !m_prefix) {
@@ -831,7 +833,7 @@ void Emulator::tick() {
         handledInstructionOrInterrupt = m_cyclesToWait != 0;
     }
 
-    if(m_haltMode && m_cyclesToWait == 0){
+    if (m_haltMode && m_cyclesToWait == 0) {
         m_cyclesToWait = T_CYCLES_PER_M_CYCLE;
     }
 
@@ -847,30 +849,19 @@ void Emulator::tick() {
         } else {
             result = handleInstruction(pcData);
         }
-        if(!m_haltBugTriggered){
+        if (!m_haltBugTriggered) {
             m_reg.pc = result.m_newPC;
-        }
-        else{
+        } else {
             log_warn("Halt bug triggered, skipping PC increment");
         }
         m_haltBugTriggered = false;
         m_cyclesToWait = result.m_cycles;
-        assert(m_cyclesToWait > 0);
         handledInstructionOrInterrupt = true;
     }
 
-    m_cyclesToWait = std::max(m_cyclesToWait - 1, 0);
-    
-    if (m_pendingInterruptEnableCycleCount > 0) {
-        --m_pendingInterruptEnableCycleCount;
-        if (m_pendingInterruptEnableCycleCount == 0) {
-            //ez_assert(m_sysclk % 4 == 0);
-            m_interruptMasterEnable = true;
-        }
-    }
-
+    assert(m_cyclesToWait > 0);
     if (handledInstructionOrInterrupt) {
-        assert((m_cyclesToWait + 1) % T_CYCLES_PER_M_CYCLE == 0);
+        assert((m_cyclesToWait) % T_CYCLES_PER_M_CYCLE == 0);
         assert(m_cycleCounter % T_CYCLES_PER_M_CYCLE == 0);
     }
 
@@ -881,6 +872,29 @@ void Emulator::tick() {
     return;
 }
 
+void Emulator::tickCountdowns() {
+
+    m_cyclesToWait = std::max(m_cyclesToWait - 1, 0);
+    m_oamDmaCyclesRemaining = std::max(m_oamDmaCyclesRemaining - 1, 0);
+
+    if (m_pendingInterruptEnableCycleCount > 0) {
+        --m_pendingInterruptEnableCycleCount;
+        if (m_pendingInterruptEnableCycleCount == 0) {
+            // ez_assert(m_sysclk % 4 == 0);
+            m_interruptMasterEnable = true;
+        }
+    }
+
+    if (m_pendingTimaOverflowCycles >= 0) {
+        --m_pendingTimaOverflowCycles;
+        if (m_pendingTimaOverflowCycles == 0) {
+            // ez_assert((m_sysclk) % 4 == 0);
+            m_ioReg.m_if.timer = true;
+            m_ioReg.m_tima = m_ioReg.m_tma;
+        }
+    }
+}
+
 void Emulator::tickTimers() {
 
     auto sysclkBefore = m_sysclk;
@@ -888,28 +902,15 @@ void Emulator::tickTimers() {
 
     m_ioReg.m_timerDivider = m_sysclk >> 8;
 
-    if (m_pendingTimaOverflowCycles > 0) {
-        --m_pendingTimaOverflowCycles;
-        if(m_pendingTimaOverflowCycles == 0){
-            //ez_assert((m_sysclk) % 4 == 0);
-            m_ioReg.m_if.timer = true;
-            m_ioReg.m_tima = m_ioReg.m_tma;
-        }
-    }
-    
     if (is_tima_increment(sysclkBefore, m_sysclk, m_ioReg.m_tac, m_ioReg.m_tac)) {
         ++m_ioReg.m_tima;
         if (m_ioReg.m_tima == 0) {
             m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE + 1;
         }
     }
-
-    
 }
 
 void Emulator::tickInterrupts() {
-
-    
 
     for (auto i = 0; i < +Interrupts::NUM_INTERRUPTS; ++i) {
         const uint8_t bitFlag = 0b1 << i;
@@ -936,9 +937,8 @@ void Emulator::tickInterrupts() {
                 }
                 // only one interrupt serviced per tick
                 break;
-            }
-            else{
-                if(m_isInstructionAfterHaltMode){
+            } else {
+                if (m_isInstructionAfterHaltMode) {
                     m_haltBugTriggered = true;
                     log_warn("Halt bug triggered!");
                 }
@@ -979,16 +979,19 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
         log_warn("TAC set to {}", data);
     }
     if (addr == +IOAddr::TIMA) {
-        log_warn( "TIMA set to {}", data);
+        log_warn("TIMA set to {}", data);
     }
     m_lastWrittenAddr = addr;
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM:         m_cart.writeAddr(addr, data); break;
-        case MemoryBank::EXT_RAM:     m_cart.writeAddr(addr, data); break;
-        case MemoryBank::WRAM_0:      [[fallthrough]];
-        case MemoryBank::WRAM_1:      m_ram[addr - addrInfo.m_baseAddr] = data; break;
-        case MemoryBank::MIRROR:      m_ram[(WRAM1_ADDR_RANGE.m_min - WRAM0_ADDR_RANGE.m_min) + (addr - addrInfo.m_baseAddr)] = data; break;
+        case MemoryBank::ROM:     m_cart.writeAddr(addr, data); break;
+        case MemoryBank::EXT_RAM: m_cart.writeAddr(addr, data); break;
+        case MemoryBank::WRAM_0:  [[fallthrough]];
+        case MemoryBank::WRAM_1:  m_ram[addr - addrInfo.m_baseAddr] = data; break;
+        case MemoryBank::MIRROR:
+            m_ram[(WRAM1_ADDR_RANGE.m_min - WRAM0_ADDR_RANGE.m_min) +
+                  (addr - addrInfo.m_baseAddr)] = data;
+            break;
         case MemoryBank::VRAM:        m_ppu.writeAddr(addr, data); break;
         case MemoryBank::OAM:         m_ppu.writeAddr(addr, data); break;
         case MemoryBank::IO:          writeIO(addr, data); break;
@@ -1004,6 +1007,7 @@ void Emulator::writeAddr16(uint16_t addr, uint16_t data) {
 }
 
 uint8_t Emulator::readAddr(uint16_t addr) const {
+
     const auto addrInfo = getAddressInfo(addr);
     switch (addrInfo.m_bank) {
         case MemoryBank::ROM:
@@ -1011,10 +1015,12 @@ uint8_t Emulator::readAddr(uint16_t addr) const {
                 return m_bootrom[addr];
             }
             return m_cart.readAddr(addr);
-        case MemoryBank::EXT_RAM:     return m_cart.readAddr(addr);
-        case MemoryBank::WRAM_0:      [[fallthrough]];
-        case MemoryBank::WRAM_1:      return m_ram[addr - addrInfo.m_baseAddr];
-        case MemoryBank::MIRROR:      return m_ram[(WRAM1_ADDR_RANGE.m_min - WRAM0_ADDR_RANGE.m_min) + (addr - addrInfo.m_baseAddr)];
+        case MemoryBank::EXT_RAM: return m_cart.readAddr(addr);
+        case MemoryBank::WRAM_0:  [[fallthrough]];
+        case MemoryBank::WRAM_1:  return m_ram[addr - addrInfo.m_baseAddr];
+        case MemoryBank::MIRROR:
+            return m_ram[(WRAM1_ADDR_RANGE.m_min - WRAM0_ADDR_RANGE.m_min) +
+                         (addr - addrInfo.m_baseAddr)];
         case MemoryBank::VRAM:        return m_ppu.readAddr(addr);
         case MemoryBank::OAM:         return m_ppu.readAddr(addr);
         case MemoryBank::IO:          return readIO(addr);
@@ -1026,11 +1032,11 @@ void Emulator::writeIO(uint16_t addr, uint8_t val) {
 
     EZ_ENSURE(IO_ADDR_RANGE.containsExclusive(addr));
     switch (addr) {
-        case +IOAddr::SB: m_serialOutput.push_back(std::bit_cast<uint8_t>(val));
+        case +IOAddr::SB:
+            m_serialOutput.push_back(std::bit_cast<uint8_t>(val));
             m_ioReg.m_serialData = val;
             return;
-        case +IOAddr::DIV:
-        {
+        case +IOAddr::DIV: {
             m_ioReg.m_timerDivider = 0;
             if (is_tima_increment(m_sysclk, 0, m_ioReg.m_tac, m_ioReg.m_tac)) {
                 log_warn("TIMA incr from div write");
@@ -1055,7 +1061,7 @@ void Emulator::writeIO(uint16_t addr, uint8_t val) {
         case +IOAddr::TIMA: {
             m_ioReg.m_tima = val;
             // todo, verify overwriting value with modulo if same cycle
-            if(m_pendingTimaOverflowCycles == T_CYCLES_PER_M_CYCLE){
+            if (m_pendingTimaOverflowCycles == T_CYCLES_PER_M_CYCLE) {
                 log_warn("TIMA written to on overflow tick");
                 m_pendingTimaOverflowCycles = 0;
             }
@@ -1078,12 +1084,13 @@ void Emulator::writeIO(uint16_t addr, uint8_t val) {
         }
         case +IOAddr::STAT: {
             // ppu mode and ly==lyc are read only
-            m_ioReg.m_lcd.m_status.m_data = (val & ~0b111) | (m_ioReg.m_lcd.m_status.m_data & 0b111);
+            m_ioReg.m_lcd.m_status.m_data =
+                (val & ~0b111) | (m_ioReg.m_lcd.m_status.m_data & 0b111);
             break;
         }
         case +IOAddr::LCDC: {
             m_ioReg.m_lcd.m_control.m_data = val;
-            if(!m_ioReg.m_lcd.m_control.m_ppuEnable){
+            if (!m_ioReg.m_lcd.m_control.m_ppuEnable) {
                 m_ppu.reset();
             }
             break;
@@ -1091,14 +1098,12 @@ void Emulator::writeIO(uint16_t addr, uint8_t val) {
         default: {
             const auto offset = addr - IO_ADDR_RANGE.m_min;
             reinterpret_cast<uint8_t*>(&m_ioReg)[offset] = val;
-        }
-        break;
+        } break;
     }
-    
 }
 
-uint16_t Emulator::readAddr16(uint16_t addr) const { 
-    const auto byte0 = readAddr(addr); 
+uint16_t Emulator::readAddr16(uint16_t addr) const {
+    const auto byte0 = readAddr(addr);
     const auto byte1 = readAddr(addr + 1);
 
     return uint16_t(byte1) << 8 | uint16_t(byte0);
@@ -1131,12 +1136,47 @@ const uint8_t* Emulator::getIOMemPtr(uint16_t addr) const {
     return reinterpret_cast<const uint8_t*>(&m_ioReg) + offset;
 }
 
-
-
 uint8_t Emulator::readIO(uint16_t addr) const {
-    EZ_ENSURE(IO_ADDR_RANGE.containsExclusive(addr));
-    const auto offset = addr - IO_ADDR_RANGE.m_min;
-    return *(reinterpret_cast<const uint8_t*>(&m_ioReg) + offset);
+
+    switch (addr) {
+        case +IOAddr::P1_JOYP: {
+            auto byte = m_ioReg.m_joypad | 0x0F;
+            // all bits are 0 == true
+            if (!(byte & 0b00100000)) { // read buttons
+                if (m_inputState.m_a) {
+                    byte &= 0b1111'1110;
+                }
+                if (m_inputState.m_b) {
+                    byte &= 0b1111'1101;
+                }
+                if (m_inputState.m_select) {
+                    byte &= 0b1111'1011;
+                }
+                if (m_inputState.m_start) {
+                    byte &= 0b1111'0111;
+                }
+            }
+            if (!(byte & 0b00010000)) { // read d-pad
+                if (m_inputState.m_right) {
+                    byte &= 0b1111'1110;
+                }
+                if (m_inputState.m_left) {
+                    byte &= 0b1111'1101;
+                }
+                if (m_inputState.m_up) {
+                    byte &= 0b1111'1011;
+                }
+                if (m_inputState.m_down) {
+                    byte &= 0b1111'0111;
+                }
+            }
+            return byte;
+        }
+        default:
+            EZ_ENSURE(IO_ADDR_RANGE.containsExclusive(addr));
+            const auto offset = addr - IO_ADDR_RANGE.m_min;
+            return *(reinterpret_cast<const uint8_t*>(&m_ioReg) + offset);
+    }
 }
 
 } // namespace ez

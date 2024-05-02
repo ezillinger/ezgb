@@ -46,7 +46,6 @@ enum class Cond {
 
 struct EmuSettings {
     bool m_logEnable = false;
-    bool m_autoUnStop = false;
     bool m_skipBootROM = true;
 };
 
@@ -123,7 +122,7 @@ class Emulator {
     friend class Gui;
 
     Emulator(Cart& cart, EmuSettings = {});
-    void tick(); // one T-cycle tick
+    void tick(const JoypadState& input); // one T-cycle tick
     int getCyclesUntilNextInstruction() { return m_cyclesToWait; }
 
     uint16_t getPC() const { return m_reg.pc; }
@@ -158,7 +157,7 @@ class Emulator {
 
   private:
 
-
+    void tickCountdowns();
     void tickTimers();
     void tickInterrupts();
 
@@ -218,7 +217,7 @@ class Emulator {
 
     bool m_prefix = false; // was last instruction CB prefix
     bool m_interruptMasterEnable = false;
-    int m_pendingInterruptEnableCycleCount = 0;  // enable interrupts when reaches 0
+    int m_pendingInterruptEnableCycleCount = 0;  // enable interrupts when goes below 0
 
     bool m_wantBreakpoint = false;
 
@@ -242,5 +241,7 @@ class Emulator {
 
     Cart& m_cart;
     EmuSettings m_settings{};
+
+    JoypadState m_inputState{};
 };
 } // namespace ez

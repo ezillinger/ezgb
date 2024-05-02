@@ -2,12 +2,12 @@
 
 namespace ez {
 
-RunResult ez::Runner::tick() {
+RunResult ez::Runner::tick(const JoypadState& input) {
     auto ret = RunResult::CONTINUE;
     if (m_state.m_isPaused) {
         if (m_state.m_stepToNextInstr) {
             while (true) {
-                tickEmuOnce();
+                tickEmuOnce(input);
                 if (m_state.m_emu->getCyclesUntilNextInstruction() == 0) {
                     break;
                 }
@@ -15,12 +15,12 @@ RunResult ez::Runner::tick() {
             m_state.m_stepToNextInstr = false;
         }
         else if(m_state.m_stepOneCycle){
-            tickEmuOnce();
+            tickEmuOnce(input);
             m_state.m_stepOneCycle = false;
         }
         ret = RunResult::DRAW;
     } else {
-        tickEmuOnce();
+        tickEmuOnce(input);
         ++m_ticksSinceLastDraw;
         if (m_ticksSinceLastDraw == TICKS_PER_DRAW) {
             ret = RunResult::DRAW;
@@ -32,9 +32,9 @@ RunResult ez::Runner::tick() {
     return ret;
 }
 
-void Runner::tickEmuOnce() {
+void Runner::tickEmuOnce(const JoypadState& input) {
     bool shouldBreak = false;
-    m_state.m_emu->tick();
+    m_state.m_emu->tick(input);
     shouldBreak |= m_state.m_emu->wantBreakpoint();
     const auto cyclesTillNext = m_state.m_emu->getCyclesUntilNextInstruction();
     shouldBreak |= m_state.m_emu->getPC() == m_state.m_debugSettings.m_breakOnPC;

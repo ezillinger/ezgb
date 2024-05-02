@@ -33,8 +33,8 @@ int main() {
 
     while (true) {
         shouldExit |= window.run([&]() {
-            gui.handleKeyboard();
-            while (RunResult::CONTINUE == runner.tick()) {
+            const auto input = gui.handleKeyboard();
+            while (RunResult::CONTINUE == runner.tick(input)) {
                 // run emu logic
             }
 

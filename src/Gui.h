@@ -10,8 +10,7 @@ class Gui {
     ~Gui();
     EZ_DEFINE_COPY_MOVE(Gui, delete, delete);
 
-    void handleKeyboard();
-
+    JoypadState handleKeyboard();
     void drawGui();
     bool shouldExit() const { return m_shouldExit; };
 

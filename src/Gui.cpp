@@ -33,6 +33,7 @@ Gui::Gui(AppState& state) : m_state(state) {
 Gui::~Gui() { glDeleteTextures(m_texHandles.size(), m_texHandles.data()); }
 
 void Gui::updateRomList() {
+    m_romsAvail.clear();
     const auto romDir = "./roms/";
     for (auto& file : fs::recursive_directory_iterator(romDir)) {
         if (file.is_regular_file() && file.path().extension() == ".gb") {
@@ -63,7 +64,19 @@ void Gui::updateOpCache() {
     }
 }
 
-void Gui::handleKeyboard() {
+JoypadState Gui::handleKeyboard() {
+
+    auto inputState = JoypadState{};
+    inputState.m_a = ImGui::IsKeyDown(ImGuiKey_Z);
+    inputState.m_b = ImGui::IsKeyDown(ImGuiKey_X);
+
+    inputState.m_start = ImGui::IsKeyDown(ImGuiKey_A);
+    inputState.m_select = ImGui::IsKeyDown(ImGuiKey_S);
+
+    inputState.m_left = ImGui::IsKeyDown(ImGuiKey_LeftArrow);
+    inputState.m_right = ImGui::IsKeyDown(ImGuiKey_RightArrow);
+    inputState.m_up = ImGui::IsKeyDown(ImGuiKey_UpArrow);
+    inputState.m_down = ImGui::IsKeyDown(ImGuiKey_DownArrow);
 
     if (ImGui::IsKeyPressed(ImGuiKey_R)) {
         resetEmulator();
@@ -82,6 +95,8 @@ void Gui::handleKeyboard() {
         m_state.m_isPaused = !m_state.m_isPaused;
         updateOpCache();
     }
+
+    return inputState;
 }
 
 void Gui::drawGui() {
@@ -244,7 +259,6 @@ void Gui::drawSettings() {
     auto& emu = *m_state.m_emu;
     if (ImGui::Begin("Settings")) {
         ImGui::Checkbox("Skip Bootrom", &emu.m_settings.m_skipBootROM);
-        ImGui::Checkbox("Auto Un-Stop", &emu.m_settings.m_autoUnStop);
         ImGui::Checkbox("Log", &emu.m_settings.m_logEnable);
         ImGui::DragInt("PC Break Addr", &m_state.m_debugSettings.m_breakOnPC, 1.0f, -1, INT16_MAX,
                        "%04x");
@@ -287,7 +301,7 @@ void Gui::drawInstructions() {
             scrollToLine = int(lb - m_opCache.begin());
         }
         const auto numCols = 5;
-        if (ImGui::BeginTable("Memory View Table", numCols, ImGuiTableFlags_ScrollY)) {
+        if (ImGui::BeginTable("Memory View Table", numCols, ImGuiTableFlags_ScrollY | ImGuiTableFlags_Resizable)) {
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_None);
             ImGui::TableSetupColumn("OpCode", ImGuiTableColumnFlags_None);

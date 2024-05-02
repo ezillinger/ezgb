@@ -176,4 +176,15 @@ enum class Interrupts {
     NUM_INTERRUPTS
 };
 
+struct JoypadState {
+    bool m_a = false;
+    bool m_b = false;
+    bool m_start = false;
+    bool m_select = false;
+    bool m_left = false;
+    bool m_right = false;
+    bool m_up = false;
+    bool m_down = false;
+};
+
 } // namespace ez
