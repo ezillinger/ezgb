@@ -1,6 +1,7 @@
 #include "AppState.h"
 #include "Base.h"
 #include "Window.h"
+#include <imgui.h>
 
 namespace ez {
 
@@ -15,6 +16,10 @@ class Gui {
     bool shouldExit() const { return m_shouldExit; };
 
   private:
+    
+    void putNextWindow(const int2& posRowsCols, const int2& dimsRowsCols);
+    static ImGuiWindowFlags getWindowFlags();
+
     void drawToolbar();
     void drawRegisters();
     void drawSettings();

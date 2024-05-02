@@ -1,6 +1,5 @@
 #include "Gui.h"
 #include <filesystem>
-#include <imgui.h>
 
 namespace ez {
 
@@ -11,20 +10,20 @@ Gui::Gui(AppState& state) : m_state(state) {
 
     glBindTexture(GL_TEXTURE_2D, m_texHandles[+Textures::DISPLAY]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_texDims[+Textures::DISPLAY].x,
                  m_texDims[+Textures::DISPLAY].y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  state.m_emu->getDisplayFramebuffer());
 
     glBindTexture(GL_TEXTURE_2D, m_texHandles[+Textures::BG]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_texDims[+Textures::BG].x, m_texDims[+Textures::BG].y,
                  0, GL_RGBA, GL_UNSIGNED_BYTE, state.m_emu->getBgDebugFramebuffer());
 
     glBindTexture(GL_TEXTURE_2D, m_texHandles[+Textures::VRAM]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_texDims[+Textures::VRAM].x,
                  m_texDims[+Textures::VRAM].y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                  state.m_emu->getVramDebugFramebuffer());
@@ -175,7 +174,8 @@ void Gui::drawToolbar() {
 }
 
 void Gui::drawRegisters() {
-    if (ImGui::Begin("Registers")) {
+    putNextWindow({0, 0}, {1, 4});
+    if (ImGui::Begin("Registers", nullptr, ImGuiWindowFlags_NoMove)) {
         const auto drawReg8 = [](const char* label, uint8_t data) {
             auto copy = int(data);
             ImGui::DragInt(label, &copy, 1.0f, 0, 0, "%02x");
@@ -255,9 +255,29 @@ void Gui::resetEmulator() {
     clearCache();
 }
 
+void Gui::putNextWindow(const int2& pos, const int2& dims) {
+    auto gridSize = int2{4, 4};
+
+    const auto vpPos = ImGui::GetMainViewport()->WorkPos;
+    const auto vpSize = ImGui::GetMainViewport()->WorkSize;
+
+    auto cellDims = float2{vpSize.x / gridSize.x, vpSize.y / gridSize.y};
+
+    ez_assert(pos.x >= 0 && pos.x < gridSize.x);
+    ez_assert(pos.y >= 0 && pos.y < gridSize.y);
+    ez_assert(pos.x + dims.x <= gridSize.x);
+    ez_assert(pos.y + dims.y <= gridSize.y);
+
+    ImGui::SetNextWindowPos(ImVec2{vpPos.x + cellDims.x * pos.x, vpPos.y + cellDims.y * pos.y});
+    ImGui::SetNextWindowSize(ImVec2{cellDims.x * dims.x, cellDims.y * dims.y});
+}
+
+ImGuiWindowFlags Gui::getWindowFlags() { return ImGuiWindowFlags_NoTitleBar; }
+
 void Gui::drawSettings() {
     auto& emu = *m_state.m_emu;
-    if (ImGui::Begin("Settings")) {
+    putNextWindow({3, 3}, {1, 1});
+    if (ImGui::Begin("Settings", nullptr, getWindowFlags())) {
         ImGui::Checkbox("Skip Bootrom", &emu.m_settings.m_skipBootROM);
         ImGui::Checkbox("Log", &emu.m_settings.m_logEnable);
         ImGui::DragInt("PC Break Addr", &m_state.m_debugSettings.m_breakOnPC, 1.0f, -1, INT16_MAX,
@@ -277,7 +297,8 @@ void Gui::drawSettings() {
 void Gui::drawConsole() {
 
     auto& emu = *m_state.m_emu;
-    if (ImGui::Begin("Serial Console", nullptr)) {
+    putNextWindow({1, 3}, {2, 1});
+    if (ImGui::Begin("Serial Console", nullptr, getWindowFlags())) {
         ImGui::TextWrapped(emu.m_serialOutput.c_str());
     }
     ImGui::End();
@@ -286,7 +307,8 @@ void Gui::drawConsole() {
 void Gui::drawInstructions() {
     const auto justPaused = update(m_prevWasPaused, m_state.m_isPaused) && m_state.m_isPaused;
     auto& emu = *m_state.m_emu;
-    if (ImGui::Begin("Instructions", nullptr)) {
+    putNextWindow({3, 0}, {1, 3});
+    if (ImGui::Begin("Instructions", nullptr, getWindowFlags())) {
         std::optional<int> scrollToLine;
         if (ImGui::Button("Refresh") || m_opCache.empty() || justPaused) {
             updateOpCache();
@@ -301,7 +323,8 @@ void Gui::drawInstructions() {
             scrollToLine = int(lb - m_opCache.begin());
         }
         const auto numCols = 5;
-        if (ImGui::BeginTable("Memory View Table", numCols, ImGuiTableFlags_ScrollY | ImGuiTableFlags_Resizable)) {
+        if (ImGui::BeginTable("Memory View Table", numCols,
+                              ImGuiTableFlags_ScrollY | ImGuiTableFlags_Resizable)) {
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_None);
             ImGui::TableSetupColumn("OpCode", ImGuiTableColumnFlags_None);
@@ -389,8 +412,8 @@ void Gui::drawInstructions() {
 }
 
 void Gui::drawDisplay() {
-
-    if (ImGui::Begin("Display", nullptr)) {
+    putNextWindow({1, 0}, {2, 2});
+    if (ImGui::Begin("Display", nullptr, getWindowFlags())) {
         // todo, use pixel buffer to upload
         const auto dims = m_texDims[+Textures::DISPLAY];
         const auto handle = m_texHandles[+Textures::DISPLAY];
@@ -405,14 +428,11 @@ void Gui::drawDisplay() {
 }
 
 void Gui::drawPPU() {
-
-    if (ImGui::Begin("PPU", nullptr)) {
-        if(ImGui::Button(m_ppuDisplayWindow ? "Show BG" : "Show Window")){
-            m_ppuDisplayWindow = !m_ppuDisplayWindow;
-        }
+    putNextWindow({1, 2}, {2, 1});
+    if (ImGui::Begin("PPU", nullptr, getWindowFlags())) {
         // todo, proportions
         const auto dimAvail = ImGui::GetContentRegionAvail();
-        const auto imgDim = ImVec2{dimAvail.x, dimAvail.y / 2};
+        const auto imgDim = ImVec2{dimAvail.x / 2, dimAvail.y};
         // todo, use pixel buffer to upload
         {
             const auto dims = m_texDims[+Textures::BG];
@@ -424,8 +444,12 @@ void Gui::drawPPU() {
                          data);
 
             ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(handle)), imgDim);
+            ImGui::SetItemTooltip("Click to switch between Window and BG");
+            if (ImGui::IsItemClicked()) {
+                m_ppuDisplayWindow = !m_ppuDisplayWindow;
+            }
         }
-
+        ImGui::SameLine();
         // todo, use pixel buffer to upload
         {
             const auto dims = m_texDims[+Textures::VRAM];
