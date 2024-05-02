@@ -56,7 +56,6 @@ uint8_t Cart::readAddr(uint16_t addr) const {
             if (m_mbc1State.isRamEnabled()) {
                 return *getRAMPtr(addr);
             } else {
-                ez_assert(ROM_RANGE.containsExclusive(addr));
                 log_warn("Reading from disabled RAM!");
                 return 0xFF;
             }

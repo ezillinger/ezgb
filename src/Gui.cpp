@@ -142,6 +142,7 @@ void Gui::drawToolbar() {
             ImGui::EndMenu();
         }
         if (m_state.m_isPaused) {
+            ImGui::Dummy(ImVec2(ImGui::GetWindowWidth() * 0.3f, 0));
             if (ImGui::Button("Play")) {
                 m_state.m_isPaused = false;
             }
@@ -154,6 +155,7 @@ void Gui::drawToolbar() {
                 updateOpCache();
             }
         } else {
+            ImGui::Dummy(ImVec2(ImGui::GetWindowWidth() * 0.35f, 0));
             if (ImGui::Button("Pause")) {
                 m_state.m_isPaused = true;
                 updateOpCache();
@@ -175,7 +177,7 @@ void Gui::drawToolbar() {
 
 void Gui::drawRegisters() {
     putNextWindow({0, 0}, {1, 4});
-    if (ImGui::Begin("Registers", nullptr, ImGuiWindowFlags_NoMove)) {
+    if (ImGui::Begin("Registers", nullptr, getWindowFlags())) {
         const auto drawReg8 = [](const char* label, uint8_t data) {
             auto copy = int(data);
             ImGui::DragInt(label, &copy, 1.0f, 0, 0, "%02x");
