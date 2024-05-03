@@ -5,10 +5,10 @@ namespace ez {
 const char* to_string(LogLevel level) {
 
     switch (level) {
-        case LogLevel::INFO:     return "\e[0;32m[INFO]\e[0m";
-        case LogLevel::WARN:     return "\e[0;33m[WARN]\e[0m";
-        case LogLevel::ERROR:    return "\e[0;31m[ERROR]\e[0m";
-        case LogLevel::CRITICAL: return "\e[0;31m[CRITICAL]\e[0m";
+        case LogLevel::INFO:     return "\33[0;32m[INFO]\33[0m";
+        case LogLevel::WARN:     return "\33[0;33m[WARN]\33[0m";
+        case LogLevel::ERROR:    return "\33[0;31m[ERROR]\33[0m";
+        case LogLevel::CRITICAL: return "\33[0;31m[CRITICAL]\33[0m";
     }
     abort();
 

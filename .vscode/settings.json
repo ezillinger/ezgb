@@ -5,7 +5,8 @@
         "chrono": "cpp",
         "array": "cpp",
         "ios": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "filesystem": "cpp"
     },
     "lldb.displayFormat": "auto"
 }

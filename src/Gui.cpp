@@ -16,7 +16,7 @@ void Gui::updateRomList() {
     const auto romDir = "./roms/";
     for (auto& file : fs::recursive_directory_iterator(romDir)) {
         if (file.is_regular_file() && file.path().extension() == ".gb") {
-            log_info("Found rom: {}", file.path().c_str());
+            log_info("Found rom: {}", file.path().string().c_str());
             m_romsAvail.push_back(file.path());
         }
     }
@@ -30,7 +30,7 @@ void Gui::updateOpCache() {
     for (const auto& range : {iRange{0, 0x8000}, iRange{0xC000, 0xE000}}) {
         auto isPrefixedOffset = -1; // when 0 the instr is prefixed
         for (int lastOpSize, addr = range.m_min; addr < range.m_max; addr += lastOpSize) {
-            auto opByte = m_state.m_emu->readAddr(addr);
+            auto opByte = m_state.m_emu->readAddr(uint16_t(addr));
             if (opByte == +OpCode::PREFIX) {
                 isPrefixedOffset = 1;
             }
@@ -104,8 +104,8 @@ void Gui::drawToolbar() {
                 }
                 ImGui::Separator();
                 for (auto& romPath : m_romsAvail) {
-                    if (ImGui::MenuItem(romPath.filename().c_str())) {
-                        m_lastRom = romPath.filename();
+                    if (ImGui::MenuItem(romPath.filename().string().c_str())) {
+                        m_lastRom = romPath.filename().string();
                         m_state.m_cart = std::make_unique<Cart>(Cart::loadFromDisk(romPath));
                         resetEmulator();
                     }
@@ -322,7 +322,7 @@ void Gui::drawInstructions() {
             ImGui::TableSetupColumn("Cycles", ImGuiTableColumnFlags_None);
             ImGui::TableHeadersRow();
             ImGuiListClipper clipper;
-            clipper.Begin(m_opCache.size());
+            clipper.Begin(int(m_opCache.size()));
 
             while (clipper.Step()) {
                 for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++) {
@@ -352,34 +352,34 @@ void Gui::drawInstructions() {
                     };
                     auto operandText = std::string();
                     if (hasOperand("u16")) {
-                        const auto u16 = m_state.m_emu->readAddr16(ocLine.m_addr + 1);
+                        const auto u16 = m_state.m_emu->readAddr16(uint16_t(ocLine.m_addr + 1));
                         operandText += "u16={:04x} "_format(u16);
                     }
                     if (hasOperand("a16") || hasOperand("(a16)")) {
-                        const auto u16 = m_state.m_emu->readAddr16(ocLine.m_addr + 1);
+                        const auto u16 = m_state.m_emu->readAddr16(uint16_t(ocLine.m_addr + 1));
                         operandText += "a16={:04x} "_format(u16);
                     }
                     if (hasOperand("a8") || hasOperand("(a8)")) {
-                        const auto a8 = 0xFF00 + m_state.m_emu->readAddr(ocLine.m_addr + 1);
+                        const uint16_t a8 = 0xFF00 + m_state.m_emu->readAddr(uint16_t(ocLine.m_addr + 1));
                         operandText += "a8={:04x} "_format(a8);
                     }
                     if (hasOperand("(a16)")) {
-                        const auto u16 = m_state.m_emu->readAddr16(ocLine.m_addr + 1);
+                        const auto u16 = m_state.m_emu->readAddr16(uint16_t(ocLine.m_addr + 1));
                         const auto a16deref = m_state.m_emu->readAddr(u16);
                         operandText += "(a16)={:02x} "_format(a16deref);
                     }
                     if (hasOperand("(a8)")) {
-                        const auto a8 = 0xFF00 + m_state.m_emu->readAddr(ocLine.m_addr + 1);
+                        const uint16_t a8 = 0xFF00 + m_state.m_emu->readAddr(uint16_t(ocLine.m_addr + 1));
                         const auto a8deref = m_state.m_emu->readAddr(a8);
                         operandText += "(a8)={:02x} "_format(a8deref);
                     }
                     if (hasOperand("i8")) {
                         const auto i8 =
-                            static_cast<int8_t>(m_state.m_emu->readAddr(ocLine.m_addr + 1));
+                            static_cast<int8_t>(m_state.m_emu->readAddr(uint16_t(ocLine.m_addr + 1)));
                         operandText += "i8={:02x} "_format(i8);
                     }
                     if (hasOperand("u8")) {
-                        const auto u8 = m_state.m_emu->readAddr(ocLine.m_addr + 1);
+                        const auto u8 = m_state.m_emu->readAddr(uint16_t(ocLine.m_addr + 1));
                         operandText += "u8={:02x} "_format(u8);
                     }
                     ImGui::Text(operandText.c_str());

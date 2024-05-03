@@ -1,20 +1,21 @@
 #include "Base.h"
 #include "Gui.h"
+#include "Runner.h"
 #include "Test.h"
 #include "Window.h"
-#include "Runner.h"
 
-int main() {
+int main(int, char**) {
     using namespace ez;
 
     auto t = Tester{};
     t.test_all();
 
-    log_info("CurrentDir: {}", fs::current_path().c_str());
+    log_info("CurrentDir: {}", fs::current_path().string().c_str());
     auto romStartsWith = "Kirby";
     auto romPath = "./roms/cpu_instrs.gb"s;
-    for(auto& romFile : fs::recursive_directory_iterator("./roms/")){
-        if(romFile.path().filename().string().starts_with(romStartsWith) && romFile.path().extension() == ".gb"){
+    for (auto& romFile : fs::recursive_directory_iterator("./roms/")) {
+        if (romFile.path().filename().string().starts_with(romStartsWith) &&
+            romFile.path().extension() == ".gb") {
             romPath = romFile.path().string();
             break;
         }
@@ -28,8 +29,6 @@ int main() {
     auto gui = Gui(state);
     auto runner = Runner(state);
     bool shouldExit = false;
-
-    
 
     while (true) {
         shouldExit |= window.run([&]() {
@@ -48,3 +47,7 @@ int main() {
 
     return 0;
 }
+
+#if EZ_MSVC
+int APIENTRY WinMain(HINSTANCE, HINSTANCE, LPSTR, int) { return main(__argc, __argv); }
+#endif

@@ -158,7 +158,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
                 {
                     auto r8v = readR8(r8);
                     const auto topBit = r8v & 0b1000'0000;
-                    const auto result = (r8v << 1) | (topBit ? 0b1 : 0b0);
+                    const uint8_t result = (r8v << 1) | (topBit ? 0b1 : 0b0);
                     writeR8(r8, result);
                     clearFlags();
                     setFlag(Flag::CARRY, topBit);
@@ -169,7 +169,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
                 {
                     const auto r8v = readR8(r8);
                     const auto bottomBit = r8v & 0b1;
-                    const auto result = (r8v >> 1) | (bottomBit ? 0b1000'0000 : 0b0);
+                    const uint8_t result = (r8v >> 1) | (bottomBit ? 0b1000'0000 : 0b0);
                     writeR8(r8, result);
                     clearFlags();
                     setFlag(Flag::CARRY, bottomBit);
@@ -179,7 +179,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
                 case 0b00010: { // rl r8
                     auto r8val = readR8(r8);
                     const auto setCarry = bool(0b1000'0000 & r8val);
-                    const auto lastBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+                    const uint8_t lastBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
                     r8val = (r8val << 1) | lastBit;
                     writeR8(r8, r8val);
                     clearFlags();
@@ -190,7 +190,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
                 {
                     auto r8val = readR8(r8);
                     const auto setCarry = bool(0b1 & r8val);
-                    const auto firstBit = getFlag(Flag::CARRY) ? 0b1000'0000 : 0b0;
+                    const uint8_t firstBit = getFlag(Flag::CARRY) ? 0b1000'0000 : 0b0;
                     r8val = (r8val >> 1) | firstBit;
                     writeR8(r8, r8val);
                     clearFlags();
@@ -211,8 +211,8 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
                 case 0b00101: // sra r8
                 {
                     const auto r8val = readR8(r8);
-                    const auto signBit = 0b1000'0000 & r8val;
-                    const auto lowBit = 0b1 & r8val;
+                    const uint8_t signBit = 0b1000'0000 & r8val;
+                    const uint8_t lowBit = 0b1 & r8val;
                     const uint8_t result = (r8val >> 1) | signBit;
                     writeR8(r8, result);
                     clearFlags();
@@ -286,7 +286,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
         if (condition) {
             // todo, verify timing - different values on different sources
             m_reg.sp -= 2;
-            writeAddr16(m_reg.sp, m_reg.pc + info.m_size);
+            writeAddr16(m_reg.sp, m_reg.pc + uint16_t(info.m_size));
             jumpAddr = u16;
             if (setBranched) {
                 branched = true;
@@ -307,13 +307,13 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
     const auto last3bits = +oc & 0b111;
     const auto last4bits = +oc & 0b1111;
     if (last3bits == 0b111) { // rst tgt3
-        const auto tgt3 = ((+oc & 0b00111000) >> 3) * 8;
+        const auto tgt3 = ((+oc & 0b0011'1000) >> 3) * 8;
         if (oc == OpCode::RST_08h) {
             assert(tgt3 == 0x08);
         }
         m_reg.sp -= 2;
-        writeAddr16(m_reg.sp, m_reg.pc + info.m_size);
-        jumpAddr = tgt3;
+        writeAddr16(m_reg.sp, m_reg.pc + uint16_t(info.m_size));
+        jumpAddr = uint16_t(tgt3);
     } else if (last4bits == 0b0101) { // push r16stack
         m_reg.sp -= sizeof(uint16_t);
         writeAddr16(m_reg.sp, readR16Stack(r16stack));
@@ -397,7 +397,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 break;
             }
             case OpCode::ADC_A_u8: {
-                const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+                const uint8_t carryBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
                 const uint8_t result = m_reg.a + u8 + carryBit;
                 clearFlag(Flag::NEGATIVE);
                 setFlag(Flag::ZERO, result == 0);
@@ -438,7 +438,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 break;
             }
             case OpCode::SBC_A_u8: {
-                const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0;
+                const uint8_t carryBit = getFlag(Flag::CARRY) ? 0b1 : 0;
                 const uint8_t result = m_reg.a - u8 - carryBit;
                 setFlag(Flag::NEGATIVE);
                 setFlag(Flag::ZERO, result == 0);
@@ -500,7 +500,7 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
         case 0b10001: // adc a, r8
         {
             const auto r8v = readR8(r8);
-            const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+            const uint8_t carryBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
             const uint8_t result = m_reg.a + r8v + carryBit;
             clearFlag(Flag::NEGATIVE);
             setFlag(Flag::ZERO, result == 0);
@@ -522,7 +522,7 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
         }
         case 0b10011: // sbc a, r8
         {
-            const auto carryBit = getFlag(Flag::CARRY) ? 0b1 : 0;
+            const uint8_t carryBit = getFlag(Flag::CARRY) ? 0b1 : 0;
             const auto r8v = readR8(r8);
             const uint8_t result = m_reg.a - r8v - carryBit;
             setFlag(Flag::NEGATIVE);
@@ -682,7 +682,7 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
             case OpCode::NOP: break;
             case OpCode::RLA: {
                 const auto set_carry = bool(0b1000'0000 & m_reg.a);
-                const auto last_bit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+                const uint8_t last_bit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
                 m_reg.a = (m_reg.a << 1) | last_bit;
                 clearFlags();
                 setFlag(Flag::CARRY, set_carry);
@@ -690,7 +690,7 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
             case OpCode::LD__a16__SP: writeAddr16(u16, m_reg.sp); break;
             case OpCode::RRA:         {
                 const auto setCarry = bool(0b1 & m_reg.a);
-                const auto firstBit = getFlag(Flag::CARRY) ? 0b1000'0000 : 0b0;
+                const uint8_t firstBit = getFlag(Flag::CARRY) ? 0b1000'0000 : 0b0;
                 m_reg.a = (m_reg.a >> 1) | firstBit;
                 clearFlags();
                 setFlag(Flag::CARRY, setCarry);
@@ -825,6 +825,8 @@ void Emulator::tick(const JoypadState& input) {
     }
 
     tickCountdowns();
+    m_executedInstructionThisCycle = m_cyclesToWait == 0;
+
     tickTimers();
 
     // prefix instructions are atomic
@@ -989,8 +991,7 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
         case MemoryBank::WRAM_0:  [[fallthrough]];
         case MemoryBank::WRAM_1:  m_ram[addr - addrInfo.m_baseAddr] = data; break;
         case MemoryBank::MIRROR:
-            m_ram[(WRAM1_ADDR_RANGE.m_min - WRAM0_ADDR_RANGE.m_min) +
-                  (addr - addrInfo.m_baseAddr)] = data;
+            m_ram[addr - addrInfo.m_baseAddr] = data;
             break;
         case MemoryBank::VRAM:        m_ppu.writeAddr(addr, data); break;
         case MemoryBank::OAM:         m_ppu.writeAddr(addr, data); break;
@@ -1015,12 +1016,10 @@ uint8_t Emulator::readAddr(uint16_t addr) const {
                 return m_bootrom[addr];
             }
             return m_cart.readAddr(addr);
-        case MemoryBank::EXT_RAM: return m_cart.readAddr(addr);
-        case MemoryBank::WRAM_0:  [[fallthrough]];
-        case MemoryBank::WRAM_1:  return m_ram[addr - addrInfo.m_baseAddr];
-        case MemoryBank::MIRROR:
-            return m_ram[(WRAM1_ADDR_RANGE.m_min - WRAM0_ADDR_RANGE.m_min) +
-                         (addr - addrInfo.m_baseAddr)];
+        case MemoryBank::EXT_RAM:     return m_cart.readAddr(addr);
+        case MemoryBank::WRAM_0:      [[fallthrough]];
+        case MemoryBank::WRAM_1:      return m_ram[addr - addrInfo.m_baseAddr];
+        case MemoryBank::MIRROR:      return m_ram[addr - addrInfo.m_baseAddr];
         case MemoryBank::VRAM:        return m_ppu.readAddr(addr);
         case MemoryBank::OAM:         return m_ppu.readAddr(addr);
         case MemoryBank::IO:          return readIO(addr);
@@ -1070,12 +1069,12 @@ void Emulator::writeIO(uint16_t addr, uint8_t val) {
         case +IOAddr::DMA: {
             m_oamDmaCyclesRemaining = 160 * T_CYCLES_PER_M_CYCLE;
             const uint16_t srcAddr = uint16_t(val) << 8;
-            const uint16_t dstAddr = PPU::OAM_ADDR_RANGE.m_min;
+            const uint16_t dstAddr = uint16_t(PPU::OAM_ADDR_RANGE.m_min);
             // todo, dont' do the copy instantaneously
             for (auto offset = 0; offset < PPU::OAM_ADDR_RANGE.width(); ++offset) {
-                writeAddr(dstAddr + offset, readAddr(srcAddr + offset));
+                writeAddr(dstAddr + uint16_t(offset), readAddr(srcAddr + uint16_t(offset)));
             }
-            m_ioReg.m_lcd.m_dma = addr;
+            m_ioReg.m_lcd.m_dma = val;
             break;
         }
         case +IOAddr::LY: {
@@ -1140,7 +1139,7 @@ uint8_t Emulator::readIO(uint16_t addr) const {
 
     switch (addr) {
         case +IOAddr::P1_JOYP: {
-            auto byte = m_ioReg.m_joypad | 0x0F;
+            uint8_t byte = m_ioReg.m_joypad | 0x0F;
             // all bits are 0 == true
             if (!(byte & 0b00100000)) { // read buttons
                 if (m_inputState.m_a) {

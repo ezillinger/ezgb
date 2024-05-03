@@ -173,9 +173,9 @@ void PPU::renderTile(const uint8_t* tileBegin, uint8_t* dst, int rowPitch) {
         const auto byte0 = tileBegin[(y * 2)];
         const auto byte1 = tileBegin[(y * 2) + 1];
         for (auto x = 0; x < TILE_DIM_XY; ++x) {
-            const auto bit0 = byte0 & (0b1000'0000 >> x) ? 0b1 : 0;
-            const auto bit1 = byte1 & (0b1000'0000 >> x) ? 0b1 : 0;
-            const auto px = bit1 << 1 | bit0;
+            const uint8_t bit0 = byte0 & (0b1000'0000 >> x) ? 0b1 : 0;
+            const uint8_t bit1 = byte1 & (0b1000'0000 >> x) ? 0b1 : 0;
+            const uint8_t px = bit1 << 1 | bit0;
             ez_assert(px < 4);
             dst[y * rowPitch + x] = px;
         }
@@ -232,7 +232,7 @@ void PPU::updateScanline() {
 
         auto bgPaletteIdx = inWindow ? m_window[wY * BG_WINDOW_DIM_XY + wX] : m_bg[bgY * BG_WINDOW_DIM_XY + bgX];
         const auto bgColorIdx = samplePalette(bgPaletteIdx, m_reg.m_lcd.m_bgp);
-        auto spritePaletteIdx = 0;
+        uint8_t spritePaletteIdx = 0;
         auto spritePriority = false;
         auto spritePalette = false;
         for (const auto& spritePair : spritesAndOamIdxOnLine) {
@@ -363,7 +363,7 @@ rgba8 PPU::getBGColor(const uint8_t paletteIdx) const {
     ez_assert(paletteIdx < 4);
 
     const auto bgp = m_reg.m_lcd.m_bgp;
-    const auto colorIdx = ((0b11 << (2 * paletteIdx)) & bgp) >> (2 * paletteIdx);
+    const uint8_t colorIdx = ((0b11 << (2 * paletteIdx)) & bgp) >> (2 * paletteIdx);
     return getColor(colorIdx);
 }
 

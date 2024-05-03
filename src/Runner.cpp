@@ -8,7 +8,7 @@ RunResult ez::Runner::tick(const JoypadState& input) {
         if (m_state.m_stepToNextInstr) {
             while (true) {
                 tickEmuOnce(input);
-                if (m_state.m_emu->getCyclesUntilNextInstruction() == 0) {
+                if (m_state.m_emu->executedInstructionThisCycle()) {
                     break;
                 }
             }
@@ -36,7 +36,6 @@ void Runner::tickEmuOnce(const JoypadState& input) {
     bool shouldBreak = false;
     m_state.m_emu->tick(input);
     shouldBreak |= m_state.m_emu->wantBreakpoint();
-    const auto cyclesTillNext = m_state.m_emu->getCyclesUntilNextInstruction();
     shouldBreak |= m_state.m_emu->getPC() == m_state.m_debugSettings.m_breakOnPC;
     const auto currentOp = m_state.m_emu->getCurrentOpCode();
     shouldBreak |=
@@ -44,12 +43,12 @@ void Runner::tickEmuOnce(const JoypadState& input) {
                                                   : m_state.m_debugSettings.m_breakOnOpCode);
     if (m_state.m_emu->getLastWrittenAddr() == m_state.m_debugSettings.m_breakOnWriteAddr) {
         shouldBreak = true;
-        if (cyclesTillNext == 0) {
+        if (m_state.m_emu->executedInstructionThisCycle()) {
             m_state.m_emu->getLastWrittenAddr() = -2;
         }
     }
 
-    if (shouldBreak && cyclesTillNext == 1) {
+    if (shouldBreak && m_state.m_emu->executedInstructionThisCycle()) {
         log_info("Debug Break!");
         m_state.m_isPaused = true;
     }

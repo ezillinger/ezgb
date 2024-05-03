@@ -4,7 +4,7 @@
 namespace ez {
 
 // https://gbdev.io/pandocs/Hardware_Reg_List.html
-enum class IOAddr {
+enum class IOAddr : uint16_t {
     P1_JOYP = 0xFF00,      // Joypad	Mixed	All
     SB = 0xFF01,           // Serial transfer data	R/W	All
     SC = 0xFF02,           // Serial transfer control	R/W	Mixed

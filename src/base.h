@@ -17,6 +17,7 @@
 #include <vector>
 #include <fstream>
 #include <span>
+#include <array>
 
 namespace ez {
 

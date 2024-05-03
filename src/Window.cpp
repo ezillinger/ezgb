@@ -95,7 +95,7 @@ Window::Window(const char* title, int width, int height) {
     ImFont* defaultFont = nullptr;
     for (const auto& fontPath : std::filesystem::directory_iterator("./data/fonts")) {
         if(fontPath.path().extension() == ".ttf"){
-            auto fontPtr = io.Fonts->AddFontFromFileTTF(fontPath.path().c_str(), 15.0f);
+            auto fontPtr = io.Fonts->AddFontFromFileTTF(fontPath.path().string().c_str(), 15.0f);
             if(fontPath.path().string().find("Cousine") != std::string::npos){
                 defaultFont = fontPtr;
             }

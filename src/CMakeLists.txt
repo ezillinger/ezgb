@@ -2,16 +2,8 @@ file(GLOB SOURCES
     ./*.cpp
 )
 
-file(GLOB IMGUI_SOURCES
-    ./libs/imgui/*.cpp
-    ./libs/imgui/backends/imgui_impl_sdl2.cpp
-    ./libs/imgui/backends/imgui_impl_opengl3.cpp
-    ./libs/imgui/misc/freetype/imgui_freetype.cpp
-)
-
 add_executable(CoronaBoy 
               ${SOURCES}
-              ${IMGUI_SOURCES}
 )
 
 target_compile_definitions(CoronaBoy PRIVATE IMGUI_USER_CONFIG="../../ImGuiConfig.h")
@@ -24,6 +16,13 @@ target_include_directories(CoronaBoy PRIVATE
 if(MSVC)
   target_compile_options(CoronaBoy PRIVATE /W4 /WX)
   target_compile_features(CoronaBoy PRIVATE cxx_std_20)
+  set_target_properties(CoronaBoy PROPERTIES WIN32_EXECUTABLE TRUE)
+
+   add_custom_command(
+        TARGET CoronaBoy POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:SDL2::SDL2>" "$<TARGET_FILE_DIR:CoronaBoy>"
+        VERBATIM
+    )
 else()
     # Clang and GCC compatible stuff here
   target_compile_options(CoronaBoy PRIVATE 
@@ -47,8 +46,14 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   endif()
 
 
-
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(Freetype REQUIRED)
-target_link_libraries(CoronaBoy SDL2::SDL2 OpenGL::GL Freetype::Freetype)
+
+target_link_libraries(CoronaBoy SDL2::SDL2 OpenGL::GL)
+
+if(EZ_USE_FREETYPE)
+  find_package(Freetype REQUIRED)
+  target_link_libraries(CoronaBoy Freetype::Freetype)
+  target_include_directories(CoronaBoy PRIVATE ./libs/imgui/misc/freetype)
+  target_sources(CoronaBoy PRIVATE ./libs/imgui/misc/freetype/imgui_freetype.cpp)
+endif()

@@ -123,7 +123,7 @@ class Emulator {
 
     Emulator(Cart& cart, EmuSettings = {});
     void tick(const JoypadState& input); // one T-cycle tick
-    int getCyclesUntilNextInstruction() { return m_cyclesToWait; }
+    bool executedInstructionThisCycle() { return m_executedInstructionThisCycle; }
 
     uint16_t getPC() const { return m_reg.pc; }
     OpCodeInfo getCurrentOpCode() const {
@@ -208,6 +208,7 @@ class Emulator {
 
     int m_lastWrittenAddr = -2;
     int m_cyclesToWait = 0;
+    bool m_executedInstructionThisCycle = false;
 
     bool m_stopMode = false;
 

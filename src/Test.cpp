@@ -126,8 +126,8 @@ bool Tester::test_io_reg() {
     ez_assert(emu.m_ioReg.m_if.joypad);
     ez_assert(emu.m_ioReg.m_if.data & 0b1 << +Interrupts::JOYPAD);
 
-    emu.writeAddr(+IOAddr::IE, 0b00010101);
-    ez_assert(emu.readAddr(+IOAddr::IE) == 0b00010101);
+    emu.writeAddr(+IOAddr::IE, 0b0001'0101);
+    ez_assert(emu.readAddr(+IOAddr::IE) == 0b0001'0101);
 
     ez_assert(emu.m_ioReg.m_ie.vblank);
     ez_assert(emu.m_ioReg.m_ie.data & 0b1 << +Interrupts::VBLANK);
@@ -189,7 +189,7 @@ bool Tester::test_cart() {
     const auto baseAddr = cart.m_data.data();
     cart.m_cartType = CartType::MBC1;
 
-    auto offset = 0;
+    intptr_t offset = 0;
     cart.m_mbc1State.m_romBankSelect = 0;
     offset = cart.getROMPtr(0x7FFF) - baseAddr;
     ez_assert(offset == 0x7FFF);
