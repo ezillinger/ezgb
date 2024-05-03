@@ -167,12 +167,12 @@ def generate_switches():
 
 """
 
-    code = funcHeaderTemplate.format("getOpCodeInfoUnprefixed")
+    code = funcHeaderTemplate.format("get_opcode_info")
     for k, oc in json_dict["unprefixed"].items():
         code += generate_switch_case(False, oc)
     code += funcFooter
 
-    code += funcHeaderTemplate.format("getOpCodeInfoPrefixed")
+    code += funcHeaderTemplate.format("get_opcode_info_prefixed")
     for k, oc in json_dict["cbprefixed"].items():
         code += generate_switch_case(True, oc)
     code += funcFooter

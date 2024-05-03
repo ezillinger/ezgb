@@ -42,7 +42,7 @@ struct MBC1State {
     uint8_t m_romRamModeSelect = 0;
     std::vector<uint8_t> m_ram = std::vector<uint8_t>(RAM_SIZE);
 
-    bool isRamEnabled() const { return (m_ramEnable & 0x0A) == 0x0A; }
+    bool is_ram_enabled() const { return (m_ramEnable & 0x0A) == 0x0A; }
 };
 
 class Cart {
@@ -51,30 +51,30 @@ class Cart {
     friend class Gui;
 
     Cart(const uint8_t* data, size_t len);
-    static Cart loadFromDisk(const fs::path& path);
+    static Cart load_from_disk(const fs::path& path);
 
-    uint8_t readAddr(uint16_t addr) const;
+    uint8_t read_addr(uint16_t addr) const;
 
-    void writeAddr(uint16_t addr, uint8_t val);
+    void write_addr(uint16_t addr, uint8_t val);
 
     static constexpr iRange ROM_RANGE = iRange{0x0000, 0x8000};
     static constexpr iRange RAM_RANGE = iRange{0xA000, 0xC000};
 
-    static constexpr bool isValidAddr(uint16_t addr) {
+    static constexpr bool is_valid_addr(uint16_t addr) {
         return ROM_RANGE.containsExclusive(addr) || RAM_RANGE.containsExclusive(addr);
     }
 
   private:
-    const uint8_t* getROMPtr(uint16_t addr) const;
+    const uint8_t* get_rom_ptr(uint16_t addr) const;
     // todo, add RAM bank switching
-    uint8_t* getRAMPtr(uint16_t addr) {
+    uint8_t* get_ram_ptr(uint16_t addr) {
         return m_mbc1State.m_ram.data() + (addr - RAM_RANGE.m_min);
     }
-    const uint8_t* getRAMPtr(uint16_t addr) const {
+    const uint8_t* get_ram_ptr(uint16_t addr) const {
         return m_mbc1State.m_ram.data() + (addr - RAM_RANGE.m_min);
     }
 
-    static bool isMBC1Type(CartType type);
+    static bool is_mbc_type(CartType type);
 
     CartType m_cartType = CartType::ROM_ONLY;
     size_t m_sizeBytes = 0ull;

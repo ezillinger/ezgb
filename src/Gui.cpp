@@ -4,14 +4,14 @@
 namespace ez {
 
 Gui::Gui(AppState& state) : m_state(state) {
-    updateRomList();
+    update_rom_list();
 
-    configureImGui();
+    configure_ImGui();
 }
 
 Gui::~Gui() {}
 
-void Gui::updateRomList() {
+void Gui::update_rom_list() {
     m_romsAvail.clear();
     const auto romDir = "./roms/";
     for (auto& file : fs::recursive_directory_iterator(romDir)) {
@@ -24,18 +24,18 @@ void Gui::updateRomList() {
               [](const auto& lhs, const auto& rhs) { return lhs.filename() < rhs.filename(); });
 }
 
-void Gui::updateOpCache() {
+void Gui::update_op_cache() {
     m_opCache.clear();
     // cart and wram
     for (const auto& range : {iRange{0, 0x8000}, iRange{0xC000, 0xE000}}) {
         auto isPrefixedOffset = -1; // when 0 the instr is prefixed
         for (int lastOpSize, addr = range.m_min; addr < range.m_max; addr += lastOpSize) {
-            auto opByte = m_state.m_emu->readAddr(uint16_t(addr));
+            auto opByte = m_state.m_emu->read_addr(uint16_t(addr));
             if (opByte == +OpCode::PREFIX) {
                 isPrefixedOffset = 1;
             }
-            const auto info = isPrefixedOffset == 0 ? getOpCodeInfoPrefixed(opByte)
-                                                    : getOpCodeInfoUnprefixed(opByte);
+            const auto info = isPrefixedOffset == 0 ? get_opcode_info_prefixed(opByte)
+                                                    : get_opcode_info(opByte);
             m_opCache.emplace_back(addr, info);
             lastOpSize = info.m_size;
             --isPrefixedOffset;
@@ -43,9 +43,9 @@ void Gui::updateOpCache() {
     }
 }
 
-JoypadState Gui::handleKeyboard() {
+InputState Gui::handle_keyboard() {
 
-    auto inputState = JoypadState{};
+    auto inputState = InputState{};
     inputState.m_a = ImGui::IsKeyDown(ImGuiKey_Z);
     inputState.m_b = ImGui::IsKeyDown(ImGuiKey_X);
 
@@ -58,7 +58,7 @@ JoypadState Gui::handleKeyboard() {
     inputState.m_down = ImGui::IsKeyDown(ImGuiKey_DownArrow);
 
     if (ImGui::IsKeyPressed(ImGuiKey_R)) {
-        resetEmulator();
+        reset_emulator();
     }
     if (ImGui::IsKeyPressed(ImGuiKey_N)) {
         if (m_state.m_isPaused) {
@@ -72,42 +72,42 @@ JoypadState Gui::handleKeyboard() {
     }
     if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
         m_state.m_isPaused = !m_state.m_isPaused;
-        updateOpCache();
+        update_op_cache();
     }
 
     return inputState;
 }
 
-void Gui::drawGui() {
-    drawToolbar();
-    drawRegisters();
-    drawSettings();
-    drawConsole();
-    drawInstructions();
-    drawDisplay();
-    drawPPU();
+void Gui::draw() {
+    draw_toolbar();
+    draw_registers();
+    draw_settings();
+    draw_console();
+    draw_instructions();
+    draw_display();
+    draw_ppu();
 
     if (m_showDemoWindow) {
         ImGui::ShowDemoWindow();
     }
 }
 
-void Gui::drawToolbar() {
+void Gui::draw_toolbar() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Reset")) {
-                resetEmulator();
+                reset_emulator();
             }
             if (ImGui::BeginMenu("Load ROM...")) {
                 if (ImGui::MenuItem("Refresh")) {
-                    updateRomList();
+                    update_rom_list();
                 }
                 ImGui::Separator();
                 for (auto& romPath : m_romsAvail) {
                     if (ImGui::MenuItem(romPath.filename().string().c_str())) {
                         m_lastRom = romPath.filename().string();
-                        m_state.m_cart = std::make_unique<Cart>(Cart::loadFromDisk(romPath));
-                        resetEmulator();
+                        m_state.m_cart = std::make_unique<Cart>(Cart::load_from_disk(romPath));
+                        reset_emulator();
                     }
                 }
                 ImGui::EndMenu();
@@ -128,17 +128,17 @@ void Gui::drawToolbar() {
             }
             if (ImGui::Button("Next Instr")) {
                 m_state.m_stepToNextInstr = true;
-                updateOpCache();
+                update_op_cache();
             }
             if (ImGui::Button("Step")) {
                 m_state.m_stepOneCycle = true;
-                updateOpCache();
+                update_op_cache();
             }
         } else {
             ImGui::Dummy(ImVec2(ImGui::GetWindowWidth() * 0.35f, 0));
             if (ImGui::Button("Pause")) {
                 m_state.m_isPaused = true;
-                updateOpCache();
+                update_op_cache();
             }
         }
 
@@ -155,8 +155,8 @@ void Gui::drawToolbar() {
     }
 }
 
-void Gui::drawRegisters() {
-    putNextWindow({0, 0}, {1, 4});
+void Gui::draw_registers() {
+    put_next_window({0, 0}, {1, 4});
     if (ImGui::Begin("Registers", nullptr, getWindowFlags())) {
         const auto drawReg8 = [](const char* label, uint8_t data) {
             auto copy = int(data);
@@ -187,8 +187,8 @@ void Gui::drawRegisters() {
         drawReg8("L", emu.m_reg.l);
         drawReg16("HL", emu.m_reg.hl);
         ImGui::Text("Flags:\n Z {}\n N {}\n H {}\n C {}"_format(
-                        emu.getFlag(Flag::ZERO), emu.getFlag(Flag::NEGATIVE),
-                        emu.getFlag(Flag::HALF_CARRY), emu.getFlag(Flag::CARRY))
+                        emu.get_flag(Flag::ZERO), emu.get_flag(Flag::NEGATIVE),
+                        emu.get_flag(Flag::HALF_CARRY), emu.get_flag(Flag::CARRY))
                         .c_str());
 
         ImGui::Checkbox("Stop Mode", &m_state.m_emu->m_stopMode);
@@ -199,7 +199,7 @@ void Gui::drawRegisters() {
 
         if (ImGui::CollapsingHeader("Timers", ImGuiTreeNodeFlags_DefaultOpen)) {
             auto& ioReg = m_state.m_emu->m_ioReg;
-            ImGui::LabelText("T-CYCLES", "{}"_format(m_state.m_emu->getCycleCounter()).c_str());
+            ImGui::LabelText("T-CYCLES", "{}"_format(m_state.m_emu->get_cycle_counter()).c_str());
             ImGui::LabelText("SYSCLK", "{}"_format(m_state.m_emu->m_sysclk).c_str());
             ImGui::LabelText("DIV", "{}"_format(ioReg.m_timerDivider).c_str());
             ImGui::LabelText("TIMA Enabled", "{}"_format(bool(ioReg.m_tac & 0b100)).c_str());
@@ -229,20 +229,20 @@ void Gui::drawRegisters() {
     ImGui::End();
 }
 
-void Gui::clearCache() { m_opCache.clear(); }
+void Gui::clear_cache() { m_opCache.clear(); }
 
-void Gui::resetEmulator() {
+void Gui::reset_emulator() {
     const auto settingsCopy = m_state.m_emu->m_settings;
     m_state.m_emu = std::make_unique<Emulator>(*m_state.m_cart, settingsCopy);
-    clearCache();
+    clear_cache();
 }
 
-void Gui::configureImGui() {
+void Gui::configure_ImGui() {
     auto& style = ImGui::GetStyle();
     style.ScrollbarSize *= 1.25f;
 }
 
-void Gui::putNextWindow(const float2& pos, const float2& dims) {
+void Gui::put_next_window(const float2& pos, const float2& dims) {
     auto gridSize = float2{4, 4};
 
     const auto vpPos = ImGui::GetMainViewport()->WorkPos;
@@ -263,9 +263,9 @@ ImGuiWindowFlags Gui::getWindowFlags() {
     return ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar;
 }
 
-void Gui::drawSettings() {
+void Gui::draw_settings() {
     auto& emu = *m_state.m_emu;
-    putNextWindow({3, 3}, {1, 1});
+    put_next_window({3, 3}, {1, 1});
     if (ImGui::Begin("Settings", nullptr, getWindowFlags())) {
         ImGui::Checkbox("Skip Bootrom", &emu.m_settings.m_skipBootROM);
         ImGui::Checkbox("Log", &emu.m_settings.m_logEnable);
@@ -283,24 +283,24 @@ void Gui::drawSettings() {
     ImGui::End();
 }
 
-void Gui::drawConsole() {
+void Gui::draw_console() {
 
     auto& emu = *m_state.m_emu;
-    putNextWindow({1, 3.5f}, {2, 0.5f});
+    put_next_window({1, 3.5f}, {2, 0.5f});
     if (ImGui::Begin("Serial Console", nullptr, getWindowFlags())) {
         ImGui::TextWrapped(emu.m_serialOutput.c_str());
     }
     ImGui::End();
 }
 
-void Gui::drawInstructions() {
+void Gui::draw_instructions() {
     const auto justPaused = update(m_prevWasPaused, m_state.m_isPaused) && m_state.m_isPaused;
     auto& emu = *m_state.m_emu;
-    putNextWindow({3, 0}, {1, 3});
+    put_next_window({3, 0}, {1, 3});
     if (ImGui::Begin("Instructions", nullptr, getWindowFlags())) {
         std::optional<int> scrollToLine;
         if (ImGui::Button("Refresh") || m_opCache.empty() || justPaused) {
-            updateOpCache();
+            update_op_cache();
         }
         ImGui::SameLine();
         ImGui::Checkbox("Follow PC", &m_followPC);
@@ -360,26 +360,26 @@ void Gui::drawInstructions() {
                         operandText += "a16={:04x} "_format(u16);
                     }
                     if (hasOperand("a8") || hasOperand("(a8)")) {
-                        const uint16_t a8 = 0xFF00 + m_state.m_emu->readAddr(uint16_t(ocLine.m_addr + 1));
+                        const uint16_t a8 = 0xFF00 + m_state.m_emu->read_addr(uint16_t(ocLine.m_addr + 1));
                         operandText += "a8={:04x} "_format(a8);
                     }
                     if (hasOperand("(a16)")) {
                         const auto u16 = m_state.m_emu->readAddr16(uint16_t(ocLine.m_addr + 1));
-                        const auto a16deref = m_state.m_emu->readAddr(u16);
+                        const auto a16deref = m_state.m_emu->read_addr(u16);
                         operandText += "(a16)={:02x} "_format(a16deref);
                     }
                     if (hasOperand("(a8)")) {
-                        const uint16_t a8 = 0xFF00 + m_state.m_emu->readAddr(uint16_t(ocLine.m_addr + 1));
-                        const auto a8deref = m_state.m_emu->readAddr(a8);
+                        const uint16_t a8 = 0xFF00 + m_state.m_emu->read_addr(uint16_t(ocLine.m_addr + 1));
+                        const auto a8deref = m_state.m_emu->read_addr(a8);
                         operandText += "(a8)={:02x} "_format(a8deref);
                     }
                     if (hasOperand("i8")) {
                         const auto i8 =
-                            static_cast<int8_t>(m_state.m_emu->readAddr(uint16_t(ocLine.m_addr + 1)));
+                            static_cast<int8_t>(m_state.m_emu->read_addr(uint16_t(ocLine.m_addr + 1)));
                         operandText += "i8={:02x} "_format(i8);
                     }
                     if (hasOperand("u8")) {
-                        const auto u8 = m_state.m_emu->readAddr(uint16_t(ocLine.m_addr + 1));
+                        const auto u8 = m_state.m_emu->read_addr(uint16_t(ocLine.m_addr + 1));
                         operandText += "u8={:02x} "_format(u8);
                     }
                     ImGui::Text(operandText.c_str());
@@ -400,12 +400,12 @@ void Gui::drawInstructions() {
     ImGui::End();
 }
 
-void Gui::drawDisplay() {
-    putNextWindow({1, 0}, {2, 2});
+void Gui::draw_display() {
+    put_next_window({1, 0}, {2, 2});
     if (ImGui::Begin("Display", nullptr, getWindowFlags())) {
         // todo, use pixel buffer to upload
         const auto dims = m_displayTex.dim();
-        m_displayTex.update(m_state.m_emu->getDisplayFramebuffer());
+        m_displayTex.update(m_state.m_emu->get_display_framebuffer());
 
         const auto vpDim = ImGui::GetContentRegionAvail();
         const auto imageAr = float(dims.x) / dims.y;
@@ -423,14 +423,14 @@ void Gui::drawDisplay() {
     ImGui::End();
 }
 
-void Gui::drawPPU() {
-    putNextWindow({1, 2}, {2, 1.5});
+void Gui::draw_ppu() {
+    put_next_window({1, 2}, {2, 1.5});
     if (ImGui::Begin("PPU", nullptr, getWindowFlags())) {
         const auto dimAvail = ImGui::GetContentRegionAvail();
         const auto imgDim = ImVec2{dimAvail.x / 2, dimAvail.y};
         {
-            const auto data = m_ppuDisplayWindow ? m_state.m_emu->getWindowDebugFramebuffer()
-                                                 : m_state.m_emu->getBgDebugFramebuffer();
+            const auto data = m_ppuDisplayWindow ? m_state.m_emu->get_window_dbg_framebuffer()
+                                                 : m_state.m_emu->get_bg_dbg_framebuffer();
             m_bgWindowTex.update(data);
 
             imguiImage(m_bgWindowTex, imgDim);
@@ -442,7 +442,7 @@ void Gui::drawPPU() {
         ImGui::SameLine();
         // todo, use pixel buffer to upload
         {
-            m_vramTex.update(m_state.m_emu->getVramDebugFramebuffer());
+            m_vramTex.update(m_state.m_emu->get_vram_dbg_framebuffer());
             imguiImage(m_vramTex, imgDim);
         }
     }

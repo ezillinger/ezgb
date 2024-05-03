@@ -11,10 +11,10 @@ enum class RunResult { CONTINUE, DRAW };
 class Runner {
   public:
     Runner(AppState& state): m_state(state) {};
-    RunResult tick(const JoypadState& input);
+    RunResult tick(const InputState& input);
 
   private:
-    void tickEmuOnce(const JoypadState& input); 
+    void tick_emu_once(const InputState& input); 
 
     int m_ticksSinceLastDraw = 0;
     static constexpr auto TICKS_PER_DRAW =

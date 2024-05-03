@@ -3,28 +3,28 @@
 
 namespace ez {
 
-inline constexpr bool getFlagHC_ADD(uint8_t a, uint8_t b) {
+inline constexpr bool get_flag_hc_add(uint8_t a, uint8_t b) {
     return (((a & 0x0F) + (b & 0x0F)) & 0x10) == 0x10;
 }
-inline constexpr bool getFlagC_ADD(uint8_t a, uint8_t b) { return int(a) + b > 0xFF; }
+inline constexpr bool get_flag_c_add(uint8_t a, uint8_t b) { return int(a) + b > 0xFF; }
 
-inline constexpr bool getFlagHC_SUB(uint8_t a, uint8_t b) { return ((a & 0xF) - (b & 0xF)) & 0x10; }
-inline constexpr bool getFlagC_SUB(uint8_t a, uint8_t b) { return a < b; }
+inline constexpr bool get_flag_hc_sub(uint8_t a, uint8_t b) { return ((a & 0xF) - (b & 0xF)) & 0x10; }
+inline constexpr bool get_flag_c_sub(uint8_t a, uint8_t b) { return a < b; }
 
-inline constexpr bool getFlagHC_ADC(uint8_t a, uint8_t b, uint8_t carryBit) {
+inline constexpr bool get_flag_hc_adc(uint8_t a, uint8_t b, uint8_t carryBit) {
     ez_assert(carryBit <= 0b1);
     return ((a & b) | ((a ^ b) & ~(a + b + carryBit))) & 0b1000;
 }
-inline constexpr bool getFlagC_ADC(uint8_t a, uint8_t b, uint8_t carryBit) {
+inline constexpr bool get_flag_c_adc(uint8_t a, uint8_t b, uint8_t carryBit) {
     ez_assert(carryBit <= 0b1);
     return (int(a) + b + carryBit) > 0xFF;
 }
 
-inline constexpr bool getFlagHC_SBC(uint8_t a, uint8_t b, uint8_t carryBit) {
+inline constexpr bool get_flag_hc_sbc(uint8_t a, uint8_t b, uint8_t carryBit) {
     ez_assert(carryBit <= 0b1);
     return ((a & 0xF) - (b & 0xF) - (carryBit)) & 0x10;
 }
-inline constexpr bool getFlagC_SBC(uint8_t a, uint8_t b, uint8_t carryBit) {
+inline constexpr bool get_flag_c_sbc(uint8_t a, uint8_t b, uint8_t carryBit) {
     ez_assert(carryBit <= 0b1);
     return a < (b + carryBit);
 }
@@ -49,7 +49,7 @@ inline constexpr bool is_tima_increment(uint16_t sysclkBefore, uint16_t sysclkAf
     return bitSetBefore && !bitSetAfter;
 }
 
-inline constexpr uint8_t samplePalette(uint8_t paletteIdx, uint8_t palette) {
+inline constexpr uint8_t sample_palette(uint8_t paletteIdx, uint8_t palette) {
     ez_assert(paletteIdx < 4);
     return ((0b11 << (2 * paletteIdx)) & palette) >> (2 * paletteIdx);
 }

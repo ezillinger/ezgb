@@ -122,21 +122,21 @@ class Emulator {
     friend class Gui;
 
     Emulator(Cart& cart, EmuSettings = {});
-    void tick(const JoypadState& input); // one T-cycle tick
-    bool executedInstructionThisCycle() { return m_executedInstructionThisCycle; }
+    void tick(const InputState& input); // one T-cycle tick
+    bool executed_instr_this_cycle() { return m_executedInstructionThisCycle; }
 
-    uint16_t getPC() const { return m_reg.pc; }
-    OpCodeInfo getCurrentOpCode() const {
-        const auto opByte = readAddr(m_reg.pc);
-        return m_prefix ? getOpCodeInfoPrefixed(opByte) : getOpCodeInfoUnprefixed(opByte);
+    uint16_t get_pc() const { return m_reg.pc; }
+    OpCodeInfo get_current_opcode() const {
+        const auto opByte = read_addr(m_reg.pc);
+        return m_prefix ? get_opcode_info_prefixed(opByte) : get_opcode_info(opByte);
     }
 
     // todo, make this less greasy
-    int64_t getCycleCounter() const { return m_cycleCounter; };
-    int& getLastWrittenAddr() { return m_lastWrittenAddr; }
-    bool wantBreakpoint() {
-        if(m_wantBreakpoint){
-            if(m_cyclesToWait == 1){
+    int64_t get_cycle_counter() const { return m_cycleCounter; };
+    int& get_last_written_addr() { return m_lastWrittenAddr; }
+    bool want_breakpoint() {
+        if (m_wantBreakpoint) {
+            if (m_cyclesToWait == 1) {
                 m_wantBreakpoint = false;
             }
             return true;
@@ -147,58 +147,61 @@ class Emulator {
     static constexpr auto MASTER_CLOCK_PERIOD = 239ns;
     static constexpr int T_CYCLES_PER_M_CYCLE = 4;
 
-    std::span<const rgba8> getDisplayFramebuffer() const { return m_ppu.getDisplayFramebuffer(); };
-    std::span<const rgba8> getWindowDebugFramebuffer() { return m_ppu.getWindowDebugFramebuffer(); };
-    std::span<const rgba8> getBgDebugFramebuffer() { return m_ppu.getBgDebugFramebuffer(); };
-    std::span<const rgba8> getVramDebugFramebuffer() { return m_ppu.getVramDebugFramebuffer(); };
+    std::span<const rgba8> get_display_framebuffer() const {
+        return m_ppu.get_display_framebuffer();
+    };
+    std::span<const rgba8> get_window_dbg_framebuffer() {
+        return m_ppu.get_window_dbg_framebuffer();
+    };
+    std::span<const rgba8> get_bg_dbg_framebuffer() { return m_ppu.get_bg_dbg_framebuffer(); };
+    std::span<const rgba8> get_vram_dbg_framebuffer() { return m_ppu.get_vram_dbg_framebuffer(); };
 
     // for testing only
-    const uint8_t* getIOMemPtr(uint16_t addr) const;
+    const uint8_t* dbg_get_io_ptr(uint16_t addr) const;
 
   protected:
+    void tick_countdowns();
+    void tick_timers();
+    void tick_interrupts();
 
-    void tickCountdowns();
-    void tickTimers();
-    void tickInterrupts();
+    AddrInfo get_addr_info(uint16_t address) const;
 
-    AddrInfo getAddressInfo(uint16_t address) const;
+    void write_addr(uint16_t address, uint8_t val);
+    void write_addr_16(uint16_t address, uint16_t val);
 
-    void writeAddr(uint16_t address, uint8_t val);
-    void writeAddr16(uint16_t address, uint16_t val);
-
-    uint8_t readAddr(uint16_t address) const;
+    uint8_t read_addr(uint16_t address) const;
     uint16_t readAddr16(uint16_t address) const;
 
-    void writeIO(uint16_t addr, uint8_t val);
-    uint8_t readIO(uint16_t addr) const;
+    void write_io(uint16_t addr, uint8_t val);
+    uint8_t read_io(uint16_t addr) const;
 
-    InstructionResult handleInstruction(uint32_t instruction);
-    InstructionResult handleInstructionCB(uint32_t instruction);
+    InstructionResult handle_instr(uint32_t instruction);
+    InstructionResult handle_instr_prefixed(uint32_t instruction);
 
-    InstructionResult handleInstructionBlock0(uint32_t pcdata);
-    InstructionResult handleInstructionBlock1(uint32_t pcdata);
-    InstructionResult handleInstructionBlock2(uint32_t pcdata);
-    InstructionResult handleInstructionBlock3(uint32_t pcdata);
+    InstructionResult handle_instr_b0(uint32_t pcdata);
+    InstructionResult handle_instr_b1(uint32_t pcdata);
+    InstructionResult handle_instr_b2(uint32_t pcdata);
+    InstructionResult handle_instr_b3(uint32_t pcdata);
 
-    bool getFlag(Flag flag) const;
-    void setFlag(Flag flag);
-    void setFlag(Flag flag, bool value);
-    void clearFlag(Flag flag);
-    void clearFlags();
+    bool get_flag(Flag flag) const;
+    void set_flag(Flag flag);
+    void set_flag(Flag flag, bool value);
+    void clear_flag(Flag flag);
+    void clear_all_flags();
 
-    void writeR8(R8 ra, uint8_t data);
-    uint8_t readR8(R8 ra) const;
+    void write_R8(R8 ra, uint8_t data);
+    uint8_t read_R8(R8 ra) const;
 
-    uint16_t readR16(R16 ra) const;
-    void writeR16(R16 ra, uint16_t data);
+    uint16_t read_R16(R16 ra) const;
+    void write_R16(R16 ra, uint16_t data);
 
-    uint16_t readR16Mem(R16Mem ra) const;
-    void writeR16Mem(R16Mem ra, uint16_t data);
+    uint16_t read_R16Mem(R16Mem ra) const;
+    void write_R16Mem(R16Mem ra, uint16_t data);
 
-    uint16_t readR16Stack(R16Stack ra) const;
-    void writeR16Stack(R16Stack ra, uint16_t data);
+    uint16_t read_R16Stack(R16Stack ra) const;
+    void write_R16Stack(R16Stack ra, uint16_t data);
 
-    bool getCond(Cond c) const;
+    bool get_Cond(Cond c) const;
 
     Reg m_reg{};
     IORegisters m_ioReg;
@@ -218,14 +221,14 @@ class Emulator {
 
     bool m_prefix = false; // was last instruction CB prefix
     bool m_interruptMasterEnable = false;
-    int m_pendingInterruptEnableCycleCount = 0;  // enable interrupts when goes below 0
+    int m_pendingInterruptEnableCycleCount = 0; // enable interrupts when goes below 0
 
     bool m_wantBreakpoint = false;
 
-    uint16_t m_sysclk = 0; // t cycles
+    uint16_t m_sysclk = 0;               // t cycles
     int m_pendingTimaOverflowCycles = 0; // t cycles until TIMA overflow
 
-    int m_oamDmaCyclesRemaining  = 0;
+    int m_oamDmaCyclesRemaining = 0;
 
     void maybe_log_registers() const;
     void maybe_log_opcode(const OpCodeInfo& oc) const;
@@ -243,6 +246,6 @@ class Emulator {
     Cart& m_cart;
     EmuSettings m_settings{};
 
-    JoypadState m_inputState{};
+    InputState m_inputState{};
 };
 } // namespace ez

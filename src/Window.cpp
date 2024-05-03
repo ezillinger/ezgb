@@ -1,8 +1,8 @@
 #include "Window.h"
 
-#include "libs/imgui/imgui.h"
 #include "libs/imgui/backends/imgui_impl_opengl3.h"
 #include "libs/imgui/backends/imgui_impl_sdl2.h"
+#include "libs/imgui/imgui.h"
 
 namespace ez {
 
@@ -48,8 +48,8 @@ Window::Window(const char* title, int width, int height) {
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_WindowFlags window_flags =
         (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    m_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED,
-                                          SDL_WINDOWPOS_CENTERED, width, height, window_flags);
+    m_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width,
+                                height, window_flags);
     if (m_window == nullptr) {
         fail("Error: SDL_CreateWindow(): {}", SDL_GetError());
     }
@@ -94,17 +94,17 @@ Window::Window(const char* title, int width, int height) {
     // io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
     ImFont* defaultFont = nullptr;
     for (const auto& fontPath : std::filesystem::directory_iterator("./data/fonts")) {
-        if(fontPath.path().extension() == ".ttf"){
+        if (fontPath.path().extension() == ".ttf") {
             auto fontPtr = io.Fonts->AddFontFromFileTTF(fontPath.path().string().c_str(), 15.0f);
-            if(fontPath.path().string().find("Cousine") != std::string::npos){
+            if (fontPath.path().string().find("Cousine") != std::string::npos) {
                 defaultFont = fontPtr;
             }
         }
-        if(defaultFont){
+        if (defaultFont) {
             io.FontDefault = defaultFont;
         }
-        //io.Fonts->AddFontFromFileTTF("./data/fonts/ProggyClean.ttf", 15.0f);
-        //io.Fonts->AddFontFromFileTTF("./data/fonts/Roboto-Medium.ttf", 15.0f);
+        // io.Fonts->AddFontFromFileTTF("./data/fonts/ProggyClean.ttf", 15.0f);
+        // io.Fonts->AddFontFromFileTTF("./data/fonts/Roboto-Medium.ttf", 15.0f);
     }
     // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
     // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
@@ -112,7 +112,7 @@ Window::Window(const char* title, int width, int height) {
     // nullptr, io.Fonts->GetGlyphRangesJapanese()); IM_ASSERT(font != nullptr);
 }
 
-Window::~Window() { 
+Window::~Window() {
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
@@ -123,39 +123,42 @@ Window::~Window() {
     SDL_Quit();
 }
 
-void Window::beginFrame() {
-        // Poll and handle events (inputs, window resize, etc.)
-        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT)
-                m_shouldExit = true;
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(m_window))
-                m_shouldExit = true;
-        }
+void Window::begin_frame() {
+    // Poll and handle events (inputs, window resize, etc.)
+    // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui
+    // wants to use your inputs.
+    // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main
+    // application, or clear/overwrite your copy of the mouse data.
+    // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main
+    // application, or clear/overwrite your copy of the keyboard data. Generally you may always pass
+    // all inputs to dear imgui, and hide them from your application based on those two flags.
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        ImGui_ImplSDL2_ProcessEvent(&event);
+        if (event.type == SDL_QUIT)
+            m_shouldExit = true;
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE &&
+            event.window.windowID == SDL_GetWindowID(m_window))
+            m_shouldExit = true;
+    }
 
-        // Start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame();
-        ImGui::NewFrame();
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
 }
 
-void Window::endFrame() {
-         // Rendering
-        ImGui::Render();
-        auto& io = ImGui::GetIO();
-        glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        const auto clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        SDL_GL_SwapWindow(m_window);
-
+void Window::end_frame() {
+    // Rendering
+    ImGui::Render();
+    auto& io = ImGui::GetIO();
+    glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+    const auto clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w,
+                 clear_color.z * clear_color.w, clear_color.w);
+    glClear(GL_COLOR_BUFFER_BIT);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    SDL_GL_SwapWindow(m_window);
 }
 
 } // namespace ez

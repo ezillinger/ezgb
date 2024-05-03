@@ -8,30 +8,28 @@
     #include <SDL_opengl.h>
 #endif
 
-
-
 namespace ez {
-    class Window {
-    public:
-        Window(const char* title, int w = 1280, int h = 720);
-        ~Window();
-        EZ_DECLARE_COPY_MOVE(Window, delete, delete);
+class Window {
+  public:
+    Window(const char* title, int w = 1280, int h = 720);
+    ~Window();
+    EZ_DECLARE_COPY_MOVE(Window, delete, delete);
 
-        template <typename TFunc> 
-        inline bool run(TFunc&& func) { 
-            beginFrame();
-            func();
-            endFrame();
-            return m_shouldExit;
-        }
+    template <typename TFunc>
+    inline bool run(TFunc&& func) {
+        begin_frame();
+        func();
+        end_frame();
+        return m_shouldExit;
+    }
 
-      protected:
-        void beginFrame();
-        void endFrame();
+  protected:
+    void begin_frame();
+    void end_frame();
 
-        bool m_shouldExit = false;
+    bool m_shouldExit = false;
 
-        SDL_Window* m_window = nullptr;
-        SDL_GLContext m_glContext{};
-    };
+    SDL_Window* m_window = nullptr;
+    SDL_GLContext m_glContext{};
+};
 } // namespace ez

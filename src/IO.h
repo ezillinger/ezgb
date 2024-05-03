@@ -91,7 +91,7 @@ struct alignas(uint8_t) LCDRegisters {
     union {
         struct {
             uint8_t m_ppuMode : 2;
-            bool m_lyc_is_ly : 1;
+            bool m_lycIsLy : 1;
             bool m_mode0InterruptSelect : 1;
             bool m_mode1InterruptSelect : 1;
             bool m_mode2InterruptSelect : 1;
@@ -176,7 +176,7 @@ enum class Interrupts {
     NUM_INTERRUPTS
 };
 
-struct JoypadState {
+struct InputState {
     bool m_a = false;
     bool m_b = false;
     bool m_start = false;

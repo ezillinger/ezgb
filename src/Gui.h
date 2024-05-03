@@ -14,30 +14,30 @@ class Gui {
     ~Gui();
     EZ_DECLARE_COPY_MOVE(Gui, delete, delete);
 
-    JoypadState handleKeyboard();
-    void drawGui();
-    bool shouldExit() const { return m_shouldExit; };
+    InputState handle_keyboard();
+    void draw();
+    bool should_exit() const { return m_shouldExit; };
 
   private:
 
-    void configureImGui();
+    void configure_ImGui();
 
-    void putNextWindow(const float2& posRowsCols, const float2& dimsRowsCols);
+    void put_next_window(const float2& posRowsCols, const float2& dimsRowsCols);
     static ImGuiWindowFlags getWindowFlags();
 
-    void drawToolbar();
-    void drawRegisters();
-    void drawSettings();
-    void drawConsole();
-    void drawInstructions();
-    void drawDisplay();
-    void drawPPU();
+    void draw_toolbar();
+    void draw_registers();
+    void draw_settings();
+    void draw_console();
+    void draw_instructions();
+    void draw_display();
+    void draw_ppu();
 
-    void updateRomList();
-    void updateOpCache();
+    void update_rom_list();
+    void update_op_cache();
 
-    void clearCache();
-    void resetEmulator();
+    void clear_cache();
+    void reset_emulator();
 
     AppState& m_state;
     std::vector<fs::path> m_romsAvail;

@@ -28,7 +28,7 @@ Emulator::Emulator(Cart& cart, EmuSettings settings) : m_cart(cart), m_settings(
     }
 }
 
-uint16_t Emulator::readR16Mem(R16Mem r16) const {
+uint16_t Emulator::read_R16Mem(R16Mem r16) const {
     switch (r16) {
         case R16Mem::BC:  return m_reg.bc;
         case R16Mem::DE:  return m_reg.de;
@@ -38,17 +38,17 @@ uint16_t Emulator::readR16Mem(R16Mem r16) const {
     }
 }
 
-bool Emulator::getCond(Cond c) const {
+bool Emulator::get_Cond(Cond c) const {
     switch (c) {
-        case Cond::Z:  return getFlag(Flag::ZERO);
-        case Cond::NZ: return !getFlag(Flag::ZERO);
-        case Cond::C:  return getFlag(Flag::CARRY);
-        case Cond::NC: return !getFlag(Flag::CARRY);
+        case Cond::Z:  return get_flag(Flag::ZERO);
+        case Cond::NZ: return !get_flag(Flag::ZERO);
+        case Cond::C:  return get_flag(Flag::CARRY);
+        case Cond::NC: return !get_flag(Flag::CARRY);
         default:       fail("not implemented");
     }
 }
 
-uint16_t Emulator::readR16(R16 r16) const {
+uint16_t Emulator::read_R16(R16 r16) const {
     switch (r16) {
         case R16::BC: return m_reg.bc;
         case R16::DE: return m_reg.de;
@@ -58,7 +58,7 @@ uint16_t Emulator::readR16(R16 r16) const {
     }
 }
 
-void Emulator::writeR16(R16 r16, uint16_t data) {
+void Emulator::write_R16(R16 r16, uint16_t data) {
     switch (r16) {
         case R16::BC: m_reg.bc = data; break;
         case R16::DE: m_reg.de = data; break;
@@ -68,7 +68,7 @@ void Emulator::writeR16(R16 r16, uint16_t data) {
     }
 }
 
-uint16_t Emulator::readR16Stack(R16Stack r16) const {
+uint16_t Emulator::read_R16Stack(R16Stack r16) const {
     switch (r16) {
         case R16Stack::BC: return m_reg.bc;
         case R16Stack::DE: return m_reg.de;
@@ -78,7 +78,7 @@ uint16_t Emulator::readR16Stack(R16Stack r16) const {
     }
 }
 
-void Emulator::writeR16Stack(R16Stack r16, uint16_t data) {
+void Emulator::write_R16Stack(R16Stack r16, uint16_t data) {
     switch (r16) {
         case R16Stack::BC: m_reg.bc = data; break;
         case R16Stack::DE: m_reg.de = data; break;
@@ -92,7 +92,7 @@ void Emulator::writeR16Stack(R16Stack r16, uint16_t data) {
     }
 }
 
-uint8_t Emulator::readR8(R8 r8) const {
+uint8_t Emulator::read_R8(R8 r8) const {
     switch (r8) {
         case R8::B:       return m_reg.b;
         case R8::C:       return m_reg.c;
@@ -100,13 +100,13 @@ uint8_t Emulator::readR8(R8 r8) const {
         case R8::E:       return m_reg.e;
         case R8::H:       return m_reg.h;
         case R8::L:       return m_reg.l;
-        case R8::HL_ADDR: return readAddr(m_reg.hl);
+        case R8::HL_ADDR: return read_addr(m_reg.hl);
         case R8::A:       return m_reg.a;
         default:          fail("not implemented");
     }
 }
 
-void Emulator::writeR8(R8 r8, uint8_t data) {
+void Emulator::write_R8(R8 r8, uint8_t data) {
     switch (r8) {
         case R8::B:       m_reg.b = data; break;
         case R8::C:       m_reg.c = data; break;
@@ -114,13 +114,13 @@ void Emulator::writeR8(R8 r8, uint8_t data) {
         case R8::E:       m_reg.e = data; break;
         case R8::H:       m_reg.h = data; break;
         case R8::L:       m_reg.l = data; break;
-        case R8::HL_ADDR: writeAddr(m_reg.hl, data); break;
+        case R8::HL_ADDR: write_addr(m_reg.hl, data); break;
         case R8::A:       m_reg.a = data; break;
         default:          fail("not implemented");
     }
 }
 
-InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
+InstructionResult Emulator::handle_instr_prefixed(uint32_t pcData) {
 
     const auto opByte = static_cast<uint8_t>(pcData & 0x000000FF);
 
@@ -128,7 +128,7 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
     const auto top5Bits = (opByte & 0b11111000) >> 3;
     const auto bitIndex = (opByte & 0b00111000) >> 3;
 
-    const auto info = getOpCodeInfoPrefixed(opByte);
+    const auto info = get_opcode_info_prefixed(opByte);
 
     auto r8 = R8{opByte & 0b00000111};
 
@@ -140,104 +140,104 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
     switch (top2Bits) {
         case 0b01: // BIT r8 bitIndex
         {
-            const bool isSet = readR8(r8) & (0b1 << bitIndex);
-            setFlag(Flag::ZERO, !isSet);
-            setFlag(Flag::HALF_CARRY);
-            clearFlag(Flag::NEGATIVE);
+            const bool isSet = read_R8(r8) & (0b1 << bitIndex);
+            set_flag(Flag::ZERO, !isSet);
+            set_flag(Flag::HALF_CARRY);
+            clear_flag(Flag::NEGATIVE);
             break;
         }
         case 0b10: // RES
-            writeR8(r8, readR8(r8) & ~(0b1 << bitIndex));
+            write_R8(r8, read_R8(r8) & ~(0b1 << bitIndex));
             break;
         case 0b11: // SET
-            writeR8(r8, readR8(r8) | (0b1 << bitIndex));
+            write_R8(r8, read_R8(r8) | (0b1 << bitIndex));
             break;
         case 0b00: {
             switch (top5Bits) {
                 case 0b00000: // rlc r8
                 {
-                    auto r8v = readR8(r8);
+                    auto r8v = read_R8(r8);
                     const auto topBit = r8v & 0b1000'0000;
                     const uint8_t result = (r8v << 1) | (topBit ? 0b1 : 0b0);
-                    writeR8(r8, result);
-                    clearFlags();
-                    setFlag(Flag::CARRY, topBit);
-                    setFlag(Flag::ZERO, result == 0);
+                    write_R8(r8, result);
+                    clear_all_flags();
+                    set_flag(Flag::CARRY, topBit);
+                    set_flag(Flag::ZERO, result == 0);
                     break;
                 }
                 case 0b00001: // rrc r8
                 {
-                    const auto r8v = readR8(r8);
+                    const auto r8v = read_R8(r8);
                     const auto bottomBit = r8v & 0b1;
                     const uint8_t result = (r8v >> 1) | (bottomBit ? 0b1000'0000 : 0b0);
-                    writeR8(r8, result);
-                    clearFlags();
-                    setFlag(Flag::CARRY, bottomBit);
-                    setFlag(Flag::ZERO, result == 0);
+                    write_R8(r8, result);
+                    clear_all_flags();
+                    set_flag(Flag::CARRY, bottomBit);
+                    set_flag(Flag::ZERO, result == 0);
                     break;
                 }
                 case 0b00010: { // rl r8
-                    auto r8val = readR8(r8);
+                    auto r8val = read_R8(r8);
                     const auto setCarry = bool(0b1000'0000 & r8val);
-                    const uint8_t lastBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+                    const uint8_t lastBit = get_flag(Flag::CARRY) ? 0b1 : 0b0;
                     r8val = (r8val << 1) | lastBit;
-                    writeR8(r8, r8val);
-                    clearFlags();
-                    setFlag(Flag::CARRY, setCarry);
-                    setFlag(Flag::ZERO, r8val == 0);
+                    write_R8(r8, r8val);
+                    clear_all_flags();
+                    set_flag(Flag::CARRY, setCarry);
+                    set_flag(Flag::ZERO, r8val == 0);
                 } break;
                 case 0b00011: // rr r8
                 {
-                    auto r8val = readR8(r8);
+                    auto r8val = read_R8(r8);
                     const auto setCarry = bool(0b1 & r8val);
-                    const uint8_t firstBit = getFlag(Flag::CARRY) ? 0b1000'0000 : 0b0;
+                    const uint8_t firstBit = get_flag(Flag::CARRY) ? 0b1000'0000 : 0b0;
                     r8val = (r8val >> 1) | firstBit;
-                    writeR8(r8, r8val);
-                    clearFlags();
-                    setFlag(Flag::CARRY, setCarry);
-                    setFlag(Flag::ZERO, r8val == 0);
+                    write_R8(r8, r8val);
+                    clear_all_flags();
+                    set_flag(Flag::CARRY, setCarry);
+                    set_flag(Flag::ZERO, r8val == 0);
                     break;
                 }
                 case 0b00100: // sla r8
                 {
-                    const auto r8val = readR8(r8);
+                    const auto r8val = read_R8(r8);
                     const uint8_t result = r8val << 1;
-                    writeR8(r8, result);
-                    clearFlags();
-                    setFlag(Flag::ZERO, result == 0);
-                    setFlag(Flag::CARRY, r8val & 0b1000'0000);
+                    write_R8(r8, result);
+                    clear_all_flags();
+                    set_flag(Flag::ZERO, result == 0);
+                    set_flag(Flag::CARRY, r8val & 0b1000'0000);
                     break;
                 }
                 case 0b00101: // sra r8
                 {
-                    const auto r8val = readR8(r8);
+                    const auto r8val = read_R8(r8);
                     const uint8_t signBit = 0b1000'0000 & r8val;
                     const uint8_t lowBit = 0b1 & r8val;
                     const uint8_t result = (r8val >> 1) | signBit;
-                    writeR8(r8, result);
-                    clearFlags();
-                    setFlag(Flag::ZERO, result == 0);
-                    setFlag(Flag::CARRY, lowBit);
+                    write_R8(r8, result);
+                    clear_all_flags();
+                    set_flag(Flag::ZERO, result == 0);
+                    set_flag(Flag::CARRY, lowBit);
                     break;
                 }
                 case 0b00110: // swap r8
                 {
-                    const auto r8v_copy = readR8(r8);
-                    auto r8v = readR8(r8);
+                    const auto r8v_copy = read_R8(r8);
+                    auto r8v = read_R8(r8);
                     r8v = r8v << 4 | (r8v_copy >> 4);
-                    writeR8(r8, r8v);
-                    clearFlags();
-                    setFlag(Flag::ZERO, r8v == 0);
+                    write_R8(r8, r8v);
+                    clear_all_flags();
+                    set_flag(Flag::ZERO, r8v == 0);
                     break;
                 }
                 case 0b00111: // srl r8
                 {
-                    const auto r8v = readR8(r8);
+                    const auto r8v = read_R8(r8);
                     const auto result = r8v >> 1;
-                    writeR8(r8, r8v >> 1);
-                    clearFlags();
-                    setFlag(Flag::ZERO, result == 0);
-                    setFlag(Flag::CARRY, r8v & 0b1);
+                    write_R8(r8, r8v >> 1);
+                    clear_all_flags();
+                    set_flag(Flag::ZERO, result == 0);
+                    set_flag(Flag::CARRY, r8v & 0b1);
                     break;
                 }
                 default: fail("not implemented"); break;
@@ -260,12 +260,12 @@ InstructionResult Emulator::handleInstructionCB(uint32_t pcData) {
     };
 }
 
-InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
+InstructionResult Emulator::handle_instr_b3(uint32_t pcData) {
 
     const auto oc = OpCode{checked_cast<uint8_t>(pcData & 0xFF)};
     ez_assert(((+oc & 0b11000000) >> 6) == 3);
 
-    auto info = getOpCodeInfoUnprefixed(+oc);
+    auto info = get_opcode_info(+oc);
 
     const auto u16 = static_cast<uint16_t>((pcData >> 8) & 0x0000FFFF);
     const auto u8 = static_cast<uint8_t>((pcData >> 8) & 0x000000FF);
@@ -286,7 +286,7 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
         if (condition) {
             // todo, verify timing - different values on different sources
             m_reg.sp -= 2;
-            writeAddr16(m_reg.sp, m_reg.pc + uint16_t(info.m_size));
+            write_addr_16(m_reg.sp, m_reg.pc + uint16_t(info.m_size));
             jumpAddr = u16;
             if (setBranched) {
                 branched = true;
@@ -312,13 +312,13 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
             assert(tgt3 == 0x08);
         }
         m_reg.sp -= 2;
-        writeAddr16(m_reg.sp, m_reg.pc + uint16_t(info.m_size));
+        write_addr_16(m_reg.sp, m_reg.pc + uint16_t(info.m_size));
         jumpAddr = uint16_t(tgt3);
     } else if (last4bits == 0b0101) { // push r16stack
         m_reg.sp -= sizeof(uint16_t);
-        writeAddr16(m_reg.sp, readR16Stack(r16stack));
+        write_addr_16(m_reg.sp, read_R16Stack(r16stack));
     } else if (last4bits == 0b0001) { // pop r16stack
-        writeR16Stack(r16stack, readAddr16(m_reg.sp));
+        write_R16Stack(r16stack, readAddr16(m_reg.sp));
         m_reg.sp += sizeof(uint16_t);
     } else {
         switch (oc) {
@@ -334,121 +334,121 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
                 m_pendingInterruptEnableCycleCount = 0;
                 break;
 
-            case OpCode::LD__C__A:   writeAddr(0xFF00 + m_reg.c, m_reg.a); break;
-            case OpCode::LD_A__a16_: m_reg.a = readAddr(u16); break;
+            case OpCode::LD__C__A:   write_addr(0xFF00 + m_reg.c, m_reg.a); break;
+            case OpCode::LD_A__a16_: m_reg.a = read_addr(u16); break;
             case OpCode::LDH__a8__A: {
                 const uint16_t addr = u8 + uint16_t(0xFF00);
-                writeAddr(addr, m_reg.a);
+                write_addr(addr, m_reg.a);
                 break;
             }
-            case OpCode::LD__a16__A:  writeAddr(u16, m_reg.a); break;
+            case OpCode::LD__a16__A:  write_addr(u16, m_reg.a); break;
             case OpCode::CALL_a16:    maybeDoCall(true, false); break;
-            case OpCode::CALL_C_a16:  maybeDoCall(getFlag(Flag::CARRY), true); break;
-            case OpCode::CALL_NC_a16: maybeDoCall(!getFlag(Flag::CARRY), true); break;
-            case OpCode::CALL_Z_a16:  maybeDoCall(getFlag(Flag::ZERO), true); break;
-            case OpCode::CALL_NZ_a16: maybeDoCall(!getFlag(Flag::ZERO), true); break;
+            case OpCode::CALL_C_a16:  maybeDoCall(get_flag(Flag::CARRY), true); break;
+            case OpCode::CALL_NC_a16: maybeDoCall(!get_flag(Flag::CARRY), true); break;
+            case OpCode::CALL_Z_a16:  maybeDoCall(get_flag(Flag::ZERO), true); break;
+            case OpCode::CALL_NZ_a16: maybeDoCall(!get_flag(Flag::ZERO), true); break;
             case OpCode::RET:         maybeDoRet(true, false); break;
-            case OpCode::RET_C:       maybeDoRet(getFlag(Flag::CARRY), true); break;
-            case OpCode::RET_NC:      maybeDoRet(!getFlag(Flag::CARRY), true); break;
-            case OpCode::RET_Z:       maybeDoRet(getFlag(Flag::ZERO), true); break;
-            case OpCode::RET_NZ:      maybeDoRet(!getFlag(Flag::ZERO), true); break;
+            case OpCode::RET_C:       maybeDoRet(get_flag(Flag::CARRY), true); break;
+            case OpCode::RET_NC:      maybeDoRet(!get_flag(Flag::CARRY), true); break;
+            case OpCode::RET_Z:       maybeDoRet(get_flag(Flag::ZERO), true); break;
+            case OpCode::RET_NZ:      maybeDoRet(!get_flag(Flag::ZERO), true); break;
             case OpCode::CP_A_u8:     {
                 const uint8_t result = m_reg.a - u8;
-                setFlag(Flag::ZERO, result == 0);
-                setFlag(Flag::CARRY, m_reg.a < u8);
-                setFlag(Flag::HALF_CARRY, (m_reg.a & 0xF) < (u8 & 0xF));
-                setFlag(Flag::NEGATIVE);
+                set_flag(Flag::ZERO, result == 0);
+                set_flag(Flag::CARRY, m_reg.a < u8);
+                set_flag(Flag::HALF_CARRY, (m_reg.a & 0xF) < (u8 & 0xF));
+                set_flag(Flag::NEGATIVE);
 
             } break;
             case OpCode::JP_a16:     jumpAddr = u16; break;
             case OpCode::LDH_A__a8_: {
                 const uint16_t addr = u8 + uint16_t(0xFF00);
-                m_reg.a = readAddr(addr);
+                m_reg.a = read_addr(addr);
                 break;
             }
             case OpCode::AND_A_u8:
                 m_reg.a &= u8;
-                clearFlags();
-                setFlag(Flag::ZERO, m_reg.a == 0);
-                setFlag(Flag::HALF_CARRY);
+                clear_all_flags();
+                set_flag(Flag::ZERO, m_reg.a == 0);
+                set_flag(Flag::HALF_CARRY);
                 break;
             case OpCode::ADD_A_u8: {
                 const uint8_t result = m_reg.a + u8;
-                setFlag(Flag::ZERO, result == 0);
-                clearFlag(Flag::NEGATIVE);
-                setFlag(Flag::HALF_CARRY, getFlagHC_ADD(m_reg.a, u8));
-                setFlag(Flag::CARRY, getFlagC_ADD(m_reg.a, u8));
+                set_flag(Flag::ZERO, result == 0);
+                clear_flag(Flag::NEGATIVE);
+                set_flag(Flag::HALF_CARRY, get_flag_hc_add(m_reg.a, u8));
+                set_flag(Flag::CARRY, get_flag_c_add(m_reg.a, u8));
                 m_reg.a = result;
                 break;
             }
             case OpCode::SUB_A_u8: {
                 const uint8_t result = m_reg.a - u8;
-                setFlag(Flag::ZERO, result == 0);
-                setFlag(Flag::NEGATIVE, true);
-                setFlag(Flag::HALF_CARRY, getFlagHC_SUB(m_reg.a, u8));
-                setFlag(Flag::CARRY, getFlagC_SUB(m_reg.a, u8));
+                set_flag(Flag::ZERO, result == 0);
+                set_flag(Flag::NEGATIVE, true);
+                set_flag(Flag::HALF_CARRY, get_flag_hc_sub(m_reg.a, u8));
+                set_flag(Flag::CARRY, get_flag_c_sub(m_reg.a, u8));
                 m_reg.a = result;
                 break;
             }
             case OpCode::XOR_A_u8: {
                 m_reg.a ^= u8;
-                clearFlags();
-                setFlag(Flag::ZERO, m_reg.a == 0);
+                clear_all_flags();
+                set_flag(Flag::ZERO, m_reg.a == 0);
                 break;
             }
             case OpCode::ADC_A_u8: {
-                const uint8_t carryBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+                const uint8_t carryBit = get_flag(Flag::CARRY) ? 0b1 : 0b0;
                 const uint8_t result = m_reg.a + u8 + carryBit;
-                clearFlag(Flag::NEGATIVE);
-                setFlag(Flag::ZERO, result == 0);
+                clear_flag(Flag::NEGATIVE);
+                set_flag(Flag::ZERO, result == 0);
                 // wtf? https://gbdev.gg8.se/wiki/articles/ADC
-                setFlag(Flag::HALF_CARRY, getFlagHC_ADC(m_reg.a, u8, carryBit));
-                setFlag(Flag::CARRY, getFlagC_ADC(m_reg.a, u8, carryBit));
+                set_flag(Flag::HALF_CARRY, get_flag_hc_adc(m_reg.a, u8, carryBit));
+                set_flag(Flag::CARRY, get_flag_c_adc(m_reg.a, u8, carryBit));
                 m_reg.a = result;
                 break;
             }
             case OpCode::JP_HL:   jumpAddr = m_reg.hl; break;
             case OpCode::OR_A_u8: {
                 m_reg.a |= u8;
-                clearFlags();
-                setFlag(Flag::ZERO, m_reg.a == 0);
+                clear_all_flags();
+                set_flag(Flag::ZERO, m_reg.a == 0);
                 break;
             }
-            case OpCode::JP_NZ_a16:    maybeDoJump(!getFlag(Flag::ZERO)); break;
-            case OpCode::JP_Z_a16:     maybeDoJump(getFlag(Flag::ZERO)); break;
-            case OpCode::JP_C_a16:     maybeDoJump(getFlag(Flag::CARRY)); break;
-            case OpCode::JP_NC_a16:    maybeDoJump(!getFlag(Flag::CARRY)); break;
+            case OpCode::JP_NZ_a16:    maybeDoJump(!get_flag(Flag::ZERO)); break;
+            case OpCode::JP_Z_a16:     maybeDoJump(get_flag(Flag::ZERO)); break;
+            case OpCode::JP_C_a16:     maybeDoJump(get_flag(Flag::CARRY)); break;
+            case OpCode::JP_NC_a16:    maybeDoJump(!get_flag(Flag::CARRY)); break;
             case OpCode::LD_HL_SPplus: {
                 const uint16_t result = m_reg.sp + i8;
-                clearFlags();
+                clear_all_flags();
                 // flags are set using unsigned byte, even though result is signed
-                setFlag(Flag::HALF_CARRY, (m_reg.sp ^ u8 ^ result) & 0x10);
-                setFlag(Flag::CARRY, int(0xFF & m_reg.sp) + u8 > 0xFF);
+                set_flag(Flag::HALF_CARRY, (m_reg.sp ^ u8 ^ result) & 0x10);
+                set_flag(Flag::CARRY, int(0xFF & m_reg.sp) + u8 > 0xFF);
                 m_reg.hl = result;
                 break;
             }
             case OpCode::LD_SP_HL:  m_reg.sp = m_reg.hl; break;
             case OpCode::ADD_SP_i8: {
                 const uint16_t result = m_reg.sp + i8;
-                clearFlags();
+                clear_all_flags();
                 // flags are set using unsigned byte, even though result is signed
-                setFlag(Flag::HALF_CARRY, (m_reg.sp ^ u8 ^ result) & 0x10);
-                setFlag(Flag::CARRY, int(0xFF & m_reg.sp) + u8 > 0xFF);
+                set_flag(Flag::HALF_CARRY, (m_reg.sp ^ u8 ^ result) & 0x10);
+                set_flag(Flag::CARRY, int(0xFF & m_reg.sp) + u8 > 0xFF);
                 m_reg.sp = result;
                 break;
             }
             case OpCode::SBC_A_u8: {
-                const uint8_t carryBit = getFlag(Flag::CARRY) ? 0b1 : 0;
+                const uint8_t carryBit = get_flag(Flag::CARRY) ? 0b1 : 0;
                 const uint8_t result = m_reg.a - u8 - carryBit;
-                setFlag(Flag::NEGATIVE);
-                setFlag(Flag::ZERO, result == 0);
-                setFlag(Flag::HALF_CARRY, getFlagHC_SBC(m_reg.a, u8, carryBit));
-                setFlag(Flag::CARRY, getFlagC_SBC(m_reg.a, u8, carryBit));
+                set_flag(Flag::NEGATIVE);
+                set_flag(Flag::ZERO, result == 0);
+                set_flag(Flag::HALF_CARRY, get_flag_hc_sbc(m_reg.a, u8, carryBit));
+                set_flag(Flag::CARRY, get_flag_c_sbc(m_reg.a, u8, carryBit));
                 m_reg.a = result;
                 break;
             }
             case OpCode::LD_A__C_: {
-                m_reg.a = readAddr(0xFF00 + m_reg.c);
+                m_reg.a = read_addr(0xFF00 + m_reg.c);
                 break;
             }
             case OpCode::RETI: {
@@ -475,12 +475,12 @@ InstructionResult Emulator::handleInstructionBlock3(uint32_t pcData) {
     };
 }
 
-InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
+InstructionResult Emulator::handle_instr_b2(uint32_t pcData) {
 
     const auto oc = OpCode{checked_cast<uint8_t>(pcData & 0xFF)};
     ez_assert(((+oc & 0b11000000) >> 6) == 2);
 
-    const auto info = getOpCodeInfoUnprefixed(+oc);
+    const auto info = get_opcode_info(+oc);
 
     const auto top_5_bits = (+oc & 0b11111000) >> 3;
     const auto r8 = checked_cast<R8>(+oc & 0b111);
@@ -488,74 +488,74 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
     switch (top_5_bits) {
         case 0b10000: // add a, r8
         {
-            const auto r8val = readR8(r8);
+            const auto r8val = read_R8(r8);
             const uint8_t result = m_reg.a + r8val;
-            setFlag(Flag::ZERO, result == 0);
-            setFlag(Flag::NEGATIVE, false);
-            setFlag(Flag::HALF_CARRY, getFlagHC_ADD(m_reg.a, r8val));
-            setFlag(Flag::CARRY, getFlagC_ADD(m_reg.a, r8val));
+            set_flag(Flag::ZERO, result == 0);
+            set_flag(Flag::NEGATIVE, false);
+            set_flag(Flag::HALF_CARRY, get_flag_hc_add(m_reg.a, r8val));
+            set_flag(Flag::CARRY, get_flag_c_add(m_reg.a, r8val));
             m_reg.a = result;
             break;
         }
         case 0b10001: // adc a, r8
         {
-            const auto r8v = readR8(r8);
-            const uint8_t carryBit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+            const auto r8v = read_R8(r8);
+            const uint8_t carryBit = get_flag(Flag::CARRY) ? 0b1 : 0b0;
             const uint8_t result = m_reg.a + r8v + carryBit;
-            clearFlag(Flag::NEGATIVE);
-            setFlag(Flag::ZERO, result == 0);
-            setFlag(Flag::HALF_CARRY, getFlagHC_ADC(m_reg.a, r8v, carryBit));
-            setFlag(Flag::CARRY, getFlagC_ADC(m_reg.a, r8v, carryBit));
+            clear_flag(Flag::NEGATIVE);
+            set_flag(Flag::ZERO, result == 0);
+            set_flag(Flag::HALF_CARRY, get_flag_hc_adc(m_reg.a, r8v, carryBit));
+            set_flag(Flag::CARRY, get_flag_c_adc(m_reg.a, r8v, carryBit));
             m_reg.a = result;
             break;
         }
         case 0b10010: // sub a, r8
         {
-            const auto r8val = readR8(r8);
+            const auto r8val = read_R8(r8);
             const uint8_t result = m_reg.a - r8val;
-            setFlag(Flag::ZERO, result == 0);
-            setFlag(Flag::NEGATIVE, true);
-            setFlag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (r8val & 0xF)) & 0x10);
-            setFlag(Flag::CARRY, m_reg.a < r8val);
+            set_flag(Flag::ZERO, result == 0);
+            set_flag(Flag::NEGATIVE, true);
+            set_flag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (r8val & 0xF)) & 0x10);
+            set_flag(Flag::CARRY, m_reg.a < r8val);
             m_reg.a = result;
             break;
         }
         case 0b10011: // sbc a, r8
         {
-            const uint8_t carryBit = getFlag(Flag::CARRY) ? 0b1 : 0;
-            const auto r8v = readR8(r8);
+            const uint8_t carryBit = get_flag(Flag::CARRY) ? 0b1 : 0;
+            const auto r8v = read_R8(r8);
             const uint8_t result = m_reg.a - r8v - carryBit;
-            setFlag(Flag::NEGATIVE);
-            setFlag(Flag::ZERO, result == 0);
-            setFlag(Flag::HALF_CARRY, getFlagHC_SBC(m_reg.a, r8v, carryBit));
-            setFlag(Flag::CARRY, getFlagC_SBC(m_reg.a, r8v, carryBit));
+            set_flag(Flag::NEGATIVE);
+            set_flag(Flag::ZERO, result == 0);
+            set_flag(Flag::HALF_CARRY, get_flag_hc_sbc(m_reg.a, r8v, carryBit));
+            set_flag(Flag::CARRY, get_flag_c_sbc(m_reg.a, r8v, carryBit));
             m_reg.a = result;
             break;
         }
         case 0b10100: // and a, r8
-            m_reg.a &= readR8(r8);
-            clearFlags();
-            setFlag(Flag::ZERO, m_reg.a == 0);
-            setFlag(Flag::HALF_CARRY);
+            m_reg.a &= read_R8(r8);
+            clear_all_flags();
+            set_flag(Flag::ZERO, m_reg.a == 0);
+            set_flag(Flag::HALF_CARRY);
             break;
         case 0b10101: // xor a, r8
-            m_reg.a ^= readR8(r8);
-            clearFlags();
-            setFlag(Flag::ZERO, m_reg.a == 0);
+            m_reg.a ^= read_R8(r8);
+            clear_all_flags();
+            set_flag(Flag::ZERO, m_reg.a == 0);
             break;
         case 0b10110: // or a, r8
-            m_reg.a = m_reg.a | readR8(r8);
-            clearFlags();
-            setFlag(Flag::ZERO, m_reg.a == 0);
+            m_reg.a = m_reg.a | read_R8(r8);
+            clear_all_flags();
+            set_flag(Flag::ZERO, m_reg.a == 0);
             break;
         case 0b10111: // cp a, r8
         {
-            const auto r8val = readR8(r8);
+            const auto r8val = read_R8(r8);
             const uint8_t result = m_reg.a - r8val;
-            setFlag(Flag::ZERO, result == 0);
-            setFlag(Flag::NEGATIVE, true);
-            setFlag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (r8val & 0xF)) & 0x10);
-            setFlag(Flag::CARRY, m_reg.a < r8val);
+            set_flag(Flag::ZERO, result == 0);
+            set_flag(Flag::NEGATIVE, true);
+            set_flag(Flag::HALF_CARRY, ((m_reg.a & 0xF) - (r8val & 0xF)) & 0x10);
+            set_flag(Flag::CARRY, m_reg.a < r8val);
             break;
         }
         default: fail("not implemented");
@@ -567,12 +567,12 @@ InstructionResult Emulator::handleInstructionBlock2(uint32_t pcData) {
     };
 }
 
-InstructionResult Emulator::handleInstructionBlock1(uint32_t pcData) {
+InstructionResult Emulator::handle_instr_b1(uint32_t pcData) {
 
     const auto oc = OpCode{checked_cast<uint8_t>(pcData & 0xFF)};
     ez_assert(((+oc & 0b11000000) >> 6) == 0b01);
 
-    const auto info = getOpCodeInfoUnprefixed(+oc);
+    const auto info = get_opcode_info(+oc);
 
     const auto srcR8 = checked_cast<R8>(+oc & 0b111);
     const auto dstR8 = checked_cast<R8>((+oc & 0b111000) >> 3);
@@ -585,7 +585,7 @@ InstructionResult Emulator::handleInstructionBlock1(uint32_t pcData) {
             log_info("Enabling Halt Mode");
         }
     } else {
-        writeR8(dstR8, readR8(srcR8));
+        write_R8(dstR8, read_R8(srcR8));
     }
     return InstructionResult{
         checked_cast<uint16_t>(m_reg.pc + info.m_size),
@@ -593,12 +593,12 @@ InstructionResult Emulator::handleInstructionBlock1(uint32_t pcData) {
     };
 }
 
-InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
+InstructionResult Emulator::handle_instr_b0(uint32_t pcData) {
 
     const auto oc = OpCode{checked_cast<uint8_t>(pcData & 0xFF)};
     ez_assert(((+oc & 0b11000000) >> 6) == 0);
 
-    const auto info = getOpCodeInfoUnprefixed(+oc);
+    const auto info = get_opcode_info(+oc);
 
     bool branched = false;
     auto jumpAddr = std::optional<uint16_t>{};
@@ -629,51 +629,51 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
     const auto r16mem = R16Mem{(+oc & 0b00110000) >> 4};
 
     if (is_ld_r16_u16) {
-        writeR16(r16, u16);
+        write_R16(r16, u16);
     } else if (is_ld_r16mem_a) {
-        writeAddr(readR16Mem(r16mem), m_reg.a);
+        write_addr(read_R16Mem(r16mem), m_reg.a);
         if (r16mem == R16Mem::HLD) {
             --m_reg.hl;
         } else if (r16mem == R16Mem::HLI) {
             ++m_reg.hl;
         }
     } else if (is_ld_a_r16mem) {
-        m_reg.a = readAddr(readR16Mem(r16mem));
+        m_reg.a = read_addr(read_R16Mem(r16mem));
         if (r16mem == R16Mem::HLD) {
             --m_reg.hl;
         } else if (r16mem == R16Mem::HLI) {
             ++m_reg.hl;
         }
     } else if (is_inc_r16) {
-        writeR16(r16, readR16(r16) + 1);
+        write_R16(r16, read_R16(r16) + 1);
     } else if (is_dec_r16) {
-        writeR16(r16, readR16(r16) - 1);
+        write_R16(r16, read_R16(r16) - 1);
     } else if (is_add_hl_r16) {
-        const auto r16v = readR16(r16);
+        const auto r16v = read_R16(r16);
         const uint16_t result = m_reg.hl + r16v;
-        clearFlag(Flag::NEGATIVE);
-        setFlag(Flag::CARRY, (uint32_t(m_reg.hl) + r16v) > 0xFFFF);
-        setFlag(Flag::HALF_CARRY, (m_reg.hl ^ r16v ^ result) & 0x1000);
+        clear_flag(Flag::NEGATIVE);
+        set_flag(Flag::CARRY, (uint32_t(m_reg.hl) + r16v) > 0xFFFF);
+        set_flag(Flag::HALF_CARRY, (m_reg.hl ^ r16v ^ result) & 0x1000);
         m_reg.hl = result;
     } else if (is_inc_r8) {
-        const auto r8val = readR8(r8);
+        const auto r8val = read_R8(r8);
         const uint8_t result = r8val + 1;
-        setFlag(Flag::ZERO, result == 0);
-        setFlag(Flag::HALF_CARRY, getFlagHC_ADD(r8val, 1));
-        clearFlag(Flag::NEGATIVE);
-        writeR8(r8, result);
+        set_flag(Flag::ZERO, result == 0);
+        set_flag(Flag::HALF_CARRY, get_flag_hc_add(r8val, 1));
+        clear_flag(Flag::NEGATIVE);
+        write_R8(r8, result);
     } else if (is_dec_r8) {
-        const auto r8val = readR8(r8);
+        const auto r8val = read_R8(r8);
         const uint8_t result = r8val - 1;
-        setFlag(Flag::ZERO, result == 0);
-        setFlag(Flag::HALF_CARRY, getFlagHC_SUB(r8val, 1));
-        setFlag(Flag::NEGATIVE);
-        writeR8(r8, result);
+        set_flag(Flag::ZERO, result == 0);
+        set_flag(Flag::HALF_CARRY, get_flag_hc_sub(r8val, 1));
+        set_flag(Flag::NEGATIVE);
+        write_R8(r8, result);
     } else if (is_ld_r8_u8) {
-        writeR8(r8, u8);
+        write_R8(r8, u8);
     } else if (is_jr_cond_a8 || oc == OpCode::JR_i8) {
         const auto cond = checked_cast<Cond>(((+oc & 0b11000) >> 3));
-        if (oc == OpCode::JR_i8 || getCond(cond)) {
+        if (oc == OpCode::JR_i8 || get_Cond(cond)) {
             branched = oc != OpCode::JR_i8;
             jumpAddr = checked_cast<uint16_t>(m_reg.pc + info.m_size + i8);
         }
@@ -682,36 +682,36 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
             case OpCode::NOP: break;
             case OpCode::RLA: {
                 const auto set_carry = bool(0b1000'0000 & m_reg.a);
-                const uint8_t last_bit = getFlag(Flag::CARRY) ? 0b1 : 0b0;
+                const uint8_t last_bit = get_flag(Flag::CARRY) ? 0b1 : 0b0;
                 m_reg.a = (m_reg.a << 1) | last_bit;
-                clearFlags();
-                setFlag(Flag::CARRY, set_carry);
+                clear_all_flags();
+                set_flag(Flag::CARRY, set_carry);
             } break;
-            case OpCode::LD__a16__SP: writeAddr16(u16, m_reg.sp); break;
+            case OpCode::LD__a16__SP: write_addr_16(u16, m_reg.sp); break;
             case OpCode::RRA:         {
                 const auto setCarry = bool(0b1 & m_reg.a);
-                const uint8_t firstBit = getFlag(Flag::CARRY) ? 0b1000'0000 : 0b0;
+                const uint8_t firstBit = get_flag(Flag::CARRY) ? 0b1000'0000 : 0b0;
                 m_reg.a = (m_reg.a >> 1) | firstBit;
-                clearFlags();
-                setFlag(Flag::CARRY, setCarry);
+                clear_all_flags();
+                set_flag(Flag::CARRY, setCarry);
                 break;
             }
             case OpCode::RLCA: {
                 const auto topBit = m_reg.a & 0b1000'0000;
                 m_reg.a = (m_reg.a << 1) | (topBit ? 0b1 : 0b0);
-                clearFlags();
-                setFlag(Flag::CARRY, topBit);
+                clear_all_flags();
+                set_flag(Flag::CARRY, topBit);
                 break;
             }
             case OpCode::RRCA: {
                 const auto bottomBit = m_reg.a & 0b1;
                 m_reg.a = (m_reg.a >> 1) | (bottomBit ? 0b1000'0000 : 0b0);
-                clearFlags();
-                setFlag(Flag::CARRY, bottomBit);
+                clear_all_flags();
+                set_flag(Flag::CARRY, bottomBit);
                 break;
             }
             case OpCode::STOP_u8: {
-                if (readAddr(0xFF4D) & 0b1) {
+                if (read_addr(0xFF4D) & 0b1) {
                     // KEY1 register bit 0 set while stop doubles clock speed on GBC
                     log_warn("GBC Speed toggle ignored");
                 } else {
@@ -725,47 +725,47 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
                 // ripped from:
                 // https://stackoverflow.com/questions/45227884/z80-daa-implementation-and-blarggs-test-rom-issues
                 int tmp = m_reg.a;
-                if (!(getFlag(Flag::NEGATIVE))) {
-                    if ((getFlag(Flag::HALF_CARRY)) || (tmp & 0x0F) > 9)
+                if (!(get_flag(Flag::NEGATIVE))) {
+                    if ((get_flag(Flag::HALF_CARRY)) || (tmp & 0x0F) > 9)
                         tmp += 6;
-                    if ((getFlag(Flag::CARRY)) || tmp > 0x9F)
+                    if ((get_flag(Flag::CARRY)) || tmp > 0x9F)
                         tmp += 0x60;
                 } else {
-                    if (getFlag(Flag::HALF_CARRY)) {
+                    if (get_flag(Flag::HALF_CARRY)) {
                         tmp -= 6;
-                        if (!(getFlag(Flag::CARRY)))
+                        if (!(get_flag(Flag::CARRY)))
                             tmp &= 0xFF;
                     }
-                    if (getFlag(Flag::CARRY)) {
+                    if (get_flag(Flag::CARRY)) {
                         tmp -= 0x60;
                     }
                 }
-                clearFlag(Flag::HALF_CARRY);
-                clearFlag(Flag::ZERO);
+                clear_flag(Flag::HALF_CARRY);
+                clear_flag(Flag::ZERO);
                 if (tmp & 0x100) {
-                    setFlag(Flag::CARRY);
+                    set_flag(Flag::CARRY);
                 }
                 m_reg.a = tmp & 0xFF;
-                setFlag(Flag::ZERO, m_reg.a == 0);
+                set_flag(Flag::ZERO, m_reg.a == 0);
 
                 break;
             }
             case OpCode::CPL: {
                 m_reg.a = ~m_reg.a;
-                setFlag(Flag::NEGATIVE);
-                setFlag(Flag::HALF_CARRY);
+                set_flag(Flag::NEGATIVE);
+                set_flag(Flag::HALF_CARRY);
                 break;
             }
             case OpCode::SCF: {
-                setFlag(Flag::CARRY);
-                clearFlag(Flag::HALF_CARRY);
-                clearFlag(Flag::NEGATIVE);
+                set_flag(Flag::CARRY);
+                clear_flag(Flag::HALF_CARRY);
+                clear_flag(Flag::NEGATIVE);
                 break;
             }
             case OpCode::CCF: {
-                setFlag(Flag::CARRY, !getFlag(Flag::CARRY));
-                clearFlag(Flag::HALF_CARRY);
-                clearFlag(Flag::NEGATIVE);
+                set_flag(Flag::CARRY, !get_flag(Flag::CARRY));
+                clear_flag(Flag::HALF_CARRY);
+                clear_flag(Flag::NEGATIVE);
                 break;
             }
             default: fail("not implemented"); break;
@@ -786,35 +786,35 @@ InstructionResult Emulator::handleInstructionBlock0(uint32_t pcData) {
     };
 }
 
-InstructionResult Emulator::handleInstruction(uint32_t pcData) {
+InstructionResult Emulator::handle_instr(uint32_t pcData) {
 
     EZ_ENSURE(!m_prefix);
 
     const auto oc = OpCode{static_cast<uint8_t>(pcData & 0x000000FF)};
-    const auto info = getOpCodeInfoUnprefixed(+oc);
+    const auto info = get_opcode_info(+oc);
     maybe_log_opcode(info);
 
     const auto block = (+oc & 0b11000000) >> 6;
     switch (block) {
-        case 0b00: return handleInstructionBlock0(pcData); break;
-        case 0b01: return handleInstructionBlock1(pcData); break;
-        case 0b10: return handleInstructionBlock2(pcData); break;
-        case 0b11: return handleInstructionBlock3(pcData); break;
+        case 0b00: return handle_instr_b0(pcData); break;
+        case 0b01: return handle_instr_b1(pcData); break;
+        case 0b10: return handle_instr_b2(pcData); break;
+        case 0b11: return handle_instr_b3(pcData); break;
         default:   fail("should never get here"); break;
     }
 }
 
-bool Emulator::getFlag(Flag flag) const { return ((0x1 << +flag) & m_reg.f) != 0x0; }
+bool Emulator::get_flag(Flag flag) const { return ((0x1 << +flag) & m_reg.f) != 0x0; }
 
-void Emulator::setFlag(Flag flag) { m_reg.f |= (0x1 << +flag); }
+void Emulator::set_flag(Flag flag) { m_reg.f |= (0x1 << +flag); }
 
-void Emulator::setFlag(Flag flag, bool value) { return value ? setFlag(flag) : clearFlag(flag); }
+void Emulator::set_flag(Flag flag, bool value) { return value ? set_flag(flag) : clear_flag(flag); }
 
-void Emulator::clearFlag(Flag flag) { m_reg.f &= ~(0x1 << +flag); }
+void Emulator::clear_flag(Flag flag) { m_reg.f &= ~(0x1 << +flag); }
 
-void Emulator::clearFlags() { m_reg.f = 0x00; }
+void Emulator::clear_all_flags() { m_reg.f = 0x00; }
 
-void Emulator::tick(const JoypadState& input) {
+void Emulator::tick(const InputState& input) {
     m_inputState = input;
 
     auto handledInstructionOrInterrupt = false;
@@ -824,14 +824,14 @@ void Emulator::tick(const JoypadState& input) {
         return;
     }
 
-    tickCountdowns();
+    tick_countdowns();
     m_executedInstructionThisCycle = m_cyclesToWait == 0;
 
-    tickTimers();
+    tick_timers();
 
     // prefix instructions are atomic
     if (m_cyclesToWait == 0 && !m_prefix) {
-        tickInterrupts();
+        tick_interrupts();
         handledInstructionOrInterrupt = m_cyclesToWait != 0;
     }
 
@@ -847,9 +847,9 @@ void Emulator::tick(const JoypadState& input) {
         maybe_log_registers();
         if (m_prefix) {
             m_prefix = false;
-            result = handleInstructionCB(pcData);
+            result = handle_instr_prefixed(pcData);
         } else {
-            result = handleInstruction(pcData);
+            result = handle_instr(pcData);
         }
         if (!m_haltBugTriggered) {
             m_reg.pc = result.m_newPC;
@@ -874,7 +874,7 @@ void Emulator::tick(const JoypadState& input) {
     return;
 }
 
-void Emulator::tickCountdowns() {
+void Emulator::tick_countdowns() {
 
     m_cyclesToWait = std::max(m_cyclesToWait - 1, 0);
     m_oamDmaCyclesRemaining = std::max(m_oamDmaCyclesRemaining - 1, 0);
@@ -897,7 +897,7 @@ void Emulator::tickCountdowns() {
     }
 }
 
-void Emulator::tickTimers() {
+void Emulator::tick_timers() {
 
     auto sysclkBefore = m_sysclk;
     ++m_sysclk;
@@ -912,7 +912,7 @@ void Emulator::tickTimers() {
     }
 }
 
-void Emulator::tickInterrupts() {
+void Emulator::tick_interrupts() {
 
     for (auto i = 0; i < +Interrupts::NUM_INTERRUPTS; ++i) {
         const uint8_t bitFlag = 0b1 << i;
@@ -926,7 +926,7 @@ void Emulator::tickInterrupts() {
                 m_ioReg.m_if.data &= ~bitFlag;
                 m_interruptMasterEnable = false;
                 m_reg.sp -= 2;
-                writeAddr16(m_reg.sp, m_reg.pc);
+                write_addr_16(m_reg.sp, m_reg.pc);
                 ez_assert(m_cyclesToWait == 0);
                 m_cyclesToWait = 20; // 5 m-cycles
                 switch (i) {
@@ -950,7 +950,7 @@ void Emulator::tickInterrupts() {
     m_isInstructionAfterHaltMode = false;
 }
 
-AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
+AddrInfo Emulator::get_addr_info(uint16_t addr) const {
     if (Cart::ROM_RANGE.containsExclusive(addr)) {
         return {MemoryBank::ROM, 0};
     } else if (Cart::RAM_RANGE.containsExclusive(addr)) {
@@ -976,7 +976,7 @@ AddrInfo Emulator::getAddressInfo(uint16_t addr) const {
     }
 }
 
-void Emulator::writeAddr(uint16_t addr, uint8_t data) {
+void Emulator::write_addr(uint16_t addr, uint8_t data) {
     if (addr == +IOAddr::TAC) {
         log_warn("TAC set to {}", data);
     }
@@ -984,50 +984,50 @@ void Emulator::writeAddr(uint16_t addr, uint8_t data) {
         log_warn("TIMA set to {}", data);
     }
     m_lastWrittenAddr = addr;
-    const auto addrInfo = getAddressInfo(addr);
+    const auto addrInfo = get_addr_info(addr);
     switch (addrInfo.m_bank) {
-        case MemoryBank::ROM:     m_cart.writeAddr(addr, data); break;
-        case MemoryBank::EXT_RAM: m_cart.writeAddr(addr, data); break;
+        case MemoryBank::ROM:     m_cart.write_addr(addr, data); break;
+        case MemoryBank::EXT_RAM: m_cart.write_addr(addr, data); break;
         case MemoryBank::WRAM_0:  [[fallthrough]];
         case MemoryBank::WRAM_1:  m_ram[addr - addrInfo.m_baseAddr] = data; break;
         case MemoryBank::MIRROR:
             m_ram[addr - addrInfo.m_baseAddr] = data;
             break;
-        case MemoryBank::VRAM:        m_ppu.writeAddr(addr, data); break;
-        case MemoryBank::OAM:         m_ppu.writeAddr(addr, data); break;
-        case MemoryBank::IO:          writeIO(addr, data); break;
+        case MemoryBank::VRAM:        m_ppu.write_addr(addr, data); break;
+        case MemoryBank::OAM:         m_ppu.write_addr(addr, data); break;
+        case MemoryBank::IO:          write_io(addr, data); break;
         case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); break;
         default:                      fail("not implemented"); break;
     }
 }
 
-void Emulator::writeAddr16(uint16_t addr, uint16_t data) {
+void Emulator::write_addr_16(uint16_t addr, uint16_t data) {
     m_lastWrittenAddr = addr;
-    writeAddr(addr, uint8_t(data & 0x00FF));
-    writeAddr(addr + 1, uint8_t(data >> 8));
+    write_addr(addr, uint8_t(data & 0x00FF));
+    write_addr(addr + 1, uint8_t(data >> 8));
 }
 
-uint8_t Emulator::readAddr(uint16_t addr) const {
+uint8_t Emulator::read_addr(uint16_t addr) const {
 
-    const auto addrInfo = getAddressInfo(addr);
+    const auto addrInfo = get_addr_info(addr);
     switch (addrInfo.m_bank) {
         case MemoryBank::ROM:
             if (addr < BOOTROM_BYTES && !m_ioReg.m_bootromDisabled) {
                 return m_bootrom[addr];
             }
-            return m_cart.readAddr(addr);
-        case MemoryBank::EXT_RAM:     return m_cart.readAddr(addr);
+            return m_cart.read_addr(addr);
+        case MemoryBank::EXT_RAM:     return m_cart.read_addr(addr);
         case MemoryBank::WRAM_0:      [[fallthrough]];
         case MemoryBank::WRAM_1:      return m_ram[addr - addrInfo.m_baseAddr];
         case MemoryBank::MIRROR:      return m_ram[addr - addrInfo.m_baseAddr];
-        case MemoryBank::VRAM:        return m_ppu.readAddr(addr);
-        case MemoryBank::OAM:         return m_ppu.readAddr(addr);
-        case MemoryBank::IO:          return readIO(addr);
+        case MemoryBank::VRAM:        return m_ppu.read_addr(addr);
+        case MemoryBank::OAM:         return m_ppu.read_addr(addr);
+        case MemoryBank::IO:          return read_io(addr);
         case MemoryBank::NOT_USEABLE: log_warn("Read from unusable zone: {}", addr); return 0xFF;
         default:                      fail("not implemented"); break;
     }
 }
-void Emulator::writeIO(uint16_t addr, uint8_t val) {
+void Emulator::write_io(uint16_t addr, uint8_t val) {
 
     EZ_ENSURE(IO_ADDR_RANGE.containsExclusive(addr));
     switch (addr) {
@@ -1072,7 +1072,7 @@ void Emulator::writeIO(uint16_t addr, uint8_t val) {
             const uint16_t dstAddr = uint16_t(PPU::OAM_ADDR_RANGE.m_min);
             // todo, dont' do the copy instantaneously
             for (auto offset = 0; offset < PPU::OAM_ADDR_RANGE.width(); ++offset) {
-                writeAddr(dstAddr + uint16_t(offset), readAddr(srcAddr + uint16_t(offset)));
+                write_addr(dstAddr + uint16_t(offset), read_addr(srcAddr + uint16_t(offset)));
             }
             m_ioReg.m_lcd.m_dma = val;
             break;
@@ -1102,8 +1102,8 @@ void Emulator::writeIO(uint16_t addr, uint8_t val) {
 }
 
 uint16_t Emulator::readAddr16(uint16_t addr) const {
-    const auto byte0 = readAddr(addr);
-    const auto byte1 = readAddr(addr + 1);
+    const auto byte0 = read_addr(addr);
+    const auto byte1 = read_addr(addr + 1);
 
     return uint16_t(byte1) << 8 | uint16_t(byte0);
 }
@@ -1122,12 +1122,12 @@ void Emulator::maybe_log_registers() const {
         log_info("AF {:#06x} BC {:#06x} DE {:#06x} HL {:#06x} PC {:#06x} SP {:#06x} ", m_reg.af,
                  m_reg.bc, m_reg.de, m_reg.hl, m_reg.pc, m_reg.sp);
 
-        log_info("Flags: Z {} N {} H {} C {}", getFlag(Flag::ZERO), getFlag(Flag::NEGATIVE),
-                 getFlag(Flag::HALF_CARRY), getFlag(Flag::CARRY));
+        log_info("Flags: Z {} N {} H {} C {}", get_flag(Flag::ZERO), get_flag(Flag::NEGATIVE),
+                 get_flag(Flag::HALF_CARRY), get_flag(Flag::CARRY));
     }
 }
 
-const uint8_t* Emulator::getIOMemPtr(uint16_t addr) const {
+const uint8_t* Emulator::dbg_get_io_ptr(uint16_t addr) const {
 
     EZ_ENSURE(IO_ADDR_RANGE.containsExclusive(addr));
     // todo, check which registers are allowed to be written by CPU
@@ -1135,7 +1135,7 @@ const uint8_t* Emulator::getIOMemPtr(uint16_t addr) const {
     return reinterpret_cast<const uint8_t*>(&m_ioReg) + offset;
 }
 
-uint8_t Emulator::readIO(uint16_t addr) const {
+uint8_t Emulator::read_io(uint16_t addr) const {
 
     switch (addr) {
         case +IOAddr::P1_JOYP: {

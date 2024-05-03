@@ -553,7 +553,7 @@ namespace ez {
     };
 
 
-    inline OpCodeInfo getOpCodeInfoUnprefixed(uint8_t code) {
+    inline OpCodeInfo get_opcode_info(uint8_t code) {
 
         switch(code){
 
@@ -4403,7 +4403,7 @@ namespace ez {
     }
 
 
-    inline OpCodeInfo getOpCodeInfoPrefixed(uint8_t code) {
+    inline OpCodeInfo get_opcode_info_prefixed(uint8_t code) {
 
         switch(code){
 

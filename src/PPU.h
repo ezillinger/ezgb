@@ -48,35 +48,34 @@ class PPU {
 
     void tick();
 
-    uint8_t readAddr(uint16_t) const;
-    void writeAddr(uint16_t, uint8_t);
+    uint8_t read_addr(uint16_t) const;
+    void write_addr(uint16_t, uint8_t);
 
-    std::span<const rgba8> getDisplayFramebuffer() const;
+    std::span<const rgba8> get_display_framebuffer() const;
 
     // for debug only
-    std::span<const rgba8> getWindowDebugFramebuffer();
-    std::span<const rgba8> getBgDebugFramebuffer();
-    std::span<const rgba8> getVramDebugFramebuffer();
+    std::span<const rgba8> get_window_dbg_framebuffer();
+    std::span<const rgba8> get_bg_dbg_framebuffer();
+    std::span<const rgba8> get_vram_dbg_framebuffer();
 
     void reset();
 
   protected:
-    rgba8 getBGColor(const uint8_t paletteIdx) const;
-    rgba8 getColor(const uint8_t paletteIdx) const;
+    rgba8 get_bg_color(const uint8_t paletteIdx) const;
+    rgba8 get_color(const uint8_t paletteIdx) const;
 
-    bool isVramAvailToCPU() const;
-    bool isOamAvailToCPU() const;
-    void setStatIRQHigh(StatIRQSources src);
-    void updateLyLyc();
-    void updateScanline();
+    bool is_vram_avail_to_cpu() const;
+    bool is_oam_avail_to_cpu() const;
+    void set_stat_irq(StatIRQSources src);
+    void update_ly_eq_lyc();
+    void update_scanline();
 
-    static void renderTile(const uint8_t* tileBegin, uint8_t* dst, int rowPitch);
+    static void render_tile(const uint8_t* tileBegin, uint8_t* dst, int rowPitch);
 
-    std::vector<uint8_t> renderOAM();
-    void renderBgWindowRow(int tileY, bool enable, bool tileMap, uint8_t* dst);
+    void render_bg_window_row(int tileY, bool enable, bool tileMap, uint8_t* dst);
 
-    void updateBgRow(int line);
-    void updateWindowRow(int line);
+    void update_bg_row(int line);
+    void update_window_row(int line);
 
     int m_currentLineDotTickCount = 0;
 

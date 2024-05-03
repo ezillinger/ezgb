@@ -22,7 +22,7 @@ int main(int, char**) {
     }
 
     auto state = AppState{};
-    state.m_cart = std::make_unique<Cart>(Cart::loadFromDisk(romPath));
+    state.m_cart = std::make_unique<Cart>(Cart::load_from_disk(romPath));
     state.m_emu = std::make_unique<Emulator>(*state.m_cart);
 
     auto window = Window{"CoronaBoy"};
@@ -32,13 +32,13 @@ int main(int, char**) {
 
     while (true) {
         shouldExit |= window.run([&]() {
-            const auto input = gui.handleKeyboard();
+            const auto input = gui.handle_keyboard();
             while (RunResult::CONTINUE == runner.tick(input)) {
                 // run emu logic
             }
 
-            gui.drawGui();
-            shouldExit |= gui.shouldExit();
+            gui.draw();
+            shouldExit |= gui.should_exit();
         });
         if (shouldExit) {
             break;
