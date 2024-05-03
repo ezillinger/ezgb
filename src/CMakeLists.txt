@@ -25,12 +25,28 @@ if(MSVC)
   target_compile_options(CoronaBoy PRIVATE /W4 /WX)
   target_compile_features(CoronaBoy PRIVATE cxx_std_20)
 else()
+    # Clang and GCC compatible stuff here
   target_compile_options(CoronaBoy PRIVATE 
                           -Wall 
                           -Wextra 
                           #-Wpedantic 
                           -Werror)
+  
 endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    message("Clang Detected!")
+    if(EZ_ADDRESS_SANITIZER)
+      target_compile_options(CoronaBoy PRIVATE "-fsanitize=address")
+      target_link_options(CoronaBoy PRIVATE "-fsanitize=address")
+    endif()
+    # Clang specific stuff here
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    message("GCC Detected!")
+    # GCC specific stuff here
+  endif()
+
+
 
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)

@@ -46,7 +46,7 @@ enum class Cond {
 
 struct EmuSettings {
     bool m_logEnable = false;
-    bool m_skipBootROM = true;
+    bool m_skipBootROM = false;
 };
 
 enum class MemoryBank {

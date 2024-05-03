@@ -423,8 +423,12 @@ void Gui::drawDisplay() {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dims.x, dims.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                      m_state.m_emu->getDisplayFramebuffer());
 
-        ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(handle)),
-                     ImGui::GetContentRegionAvail());
+        const auto vpDim = ImGui::GetContentRegionAvail();
+        const auto imageAr = float(dims.x) / dims.y;
+        const auto vpAr = vpDim.x / vpDim.y;
+        const auto imageDims = vpAr > imageAr ? ImVec2{vpDim.x / imageAr, vpDim.y}
+                                              : ImVec2{vpDim.x, vpDim.y * imageAr};
+        ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(handle)), imageDims);
     }
     ImGui::End();
 }

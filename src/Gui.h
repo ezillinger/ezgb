@@ -59,7 +59,7 @@ class Gui {
     std::array<GLuint, numTextures> m_texHandles;
     std::array<int2, numTextures> m_texDims{
         int2{PPU::DISPLAY_WIDTH, PPU::DISPLAY_HEIGHT},            //
-        int2{PPU::BG_DIM_XY, PPU::BG_DIM_XY},                     //
+        int2{PPU::BG_WINDOW_DIM_XY, PPU::BG_WINDOW_DIM_XY},                     //
         int2{PPU::VRAM_DEBUG_FB_WIDTH, PPU::VRAM_DEBUG_FB_HEIGHT} //
     };
 };
