@@ -6,30 +6,10 @@ namespace ez {
 Gui::Gui(AppState& state) : m_state(state) {
     updateRomList();
 
-    glGenTextures(m_texHandles.size(), m_texHandles.data());
-
-    glBindTexture(GL_TEXTURE_2D, m_texHandles[+Textures::DISPLAY]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_texDims[+Textures::DISPLAY].x,
-                 m_texDims[+Textures::DISPLAY].y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                 state.m_emu->getDisplayFramebuffer());
-
-    glBindTexture(GL_TEXTURE_2D, m_texHandles[+Textures::BG]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_texDims[+Textures::BG].x, m_texDims[+Textures::BG].y,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, state.m_emu->getBgDebugFramebuffer());
-
-    glBindTexture(GL_TEXTURE_2D, m_texHandles[+Textures::VRAM]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_texDims[+Textures::VRAM].x,
-                 m_texDims[+Textures::VRAM].y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                 state.m_emu->getVramDebugFramebuffer());
+    configureImGui();
 }
 
-Gui::~Gui() { glDeleteTextures(m_texHandles.size(), m_texHandles.data()); }
+Gui::~Gui() {}
 
 void Gui::updateRomList() {
     m_romsAvail.clear();
@@ -257,8 +237,13 @@ void Gui::resetEmulator() {
     clearCache();
 }
 
-void Gui::putNextWindow(const int2& pos, const int2& dims) {
-    auto gridSize = int2{4, 4};
+void Gui::configureImGui() {
+    auto& style = ImGui::GetStyle();
+    style.ScrollbarSize *= 1.25f;
+}
+
+void Gui::putNextWindow(const float2& pos, const float2& dims) {
+    auto gridSize = float2{4, 4};
 
     const auto vpPos = ImGui::GetMainViewport()->WorkPos;
     const auto vpSize = ImGui::GetMainViewport()->WorkSize;
@@ -274,7 +259,9 @@ void Gui::putNextWindow(const int2& pos, const int2& dims) {
     ImGui::SetNextWindowSize(ImVec2{cellDims.x * dims.x, cellDims.y * dims.y});
 }
 
-ImGuiWindowFlags Gui::getWindowFlags() { return ImGuiWindowFlags_NoTitleBar; }
+ImGuiWindowFlags Gui::getWindowFlags() {
+    return ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar;
+}
 
 void Gui::drawSettings() {
     auto& emu = *m_state.m_emu;
@@ -299,7 +286,7 @@ void Gui::drawSettings() {
 void Gui::drawConsole() {
 
     auto& emu = *m_state.m_emu;
-    putNextWindow({1, 3}, {2, 1});
+    putNextWindow({1, 3.5f}, {2, 0.5f});
     if (ImGui::Begin("Serial Console", nullptr, getWindowFlags())) {
         ImGui::TextWrapped(emu.m_serialOutput.c_str());
     }
@@ -417,39 +404,36 @@ void Gui::drawDisplay() {
     putNextWindow({1, 0}, {2, 2});
     if (ImGui::Begin("Display", nullptr, getWindowFlags())) {
         // todo, use pixel buffer to upload
-        const auto dims = m_texDims[+Textures::DISPLAY];
-        const auto handle = m_texHandles[+Textures::DISPLAY];
-        glBindTexture(GL_TEXTURE_2D, handle);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dims.x, dims.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                     m_state.m_emu->getDisplayFramebuffer());
+        const auto dims = m_displayTex.dim();
+        m_displayTex.update(m_state.m_emu->getDisplayFramebuffer());
 
         const auto vpDim = ImGui::GetContentRegionAvail();
         const auto imageAr = float(dims.x) / dims.y;
         const auto vpAr = vpDim.x / vpDim.y;
-        const auto imageDims = vpAr > imageAr ? ImVec2{vpDim.x / imageAr, vpDim.y}
-                                              : ImVec2{vpDim.x, vpDim.y * imageAr};
-        ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(handle)), imageDims);
+        const auto imageDims = vpAr > imageAr ? ImVec2{vpDim.y * imageAr, vpDim.y}
+                                              : ImVec2{vpDim.x, vpDim.x / imageAr};
+        const auto paddingSize = ImVec2{std::max(0.0f, vpDim.x - imageDims.x) / 2.0f,
+                                        std::max(0.0f, vpDim.y - imageDims.y) / 2.0f};
+        ImGui::Dummy(paddingSize);
+        if(paddingSize.x > 0){
+            ImGui::SameLine();
+        }
+        imguiImage(m_displayTex, imageDims);
     }
     ImGui::End();
 }
 
 void Gui::drawPPU() {
-    putNextWindow({1, 2}, {2, 1});
+    putNextWindow({1, 2}, {2, 1.5});
     if (ImGui::Begin("PPU", nullptr, getWindowFlags())) {
-        // todo, proportions
         const auto dimAvail = ImGui::GetContentRegionAvail();
         const auto imgDim = ImVec2{dimAvail.x / 2, dimAvail.y};
-        // todo, use pixel buffer to upload
         {
-            const auto dims = m_texDims[+Textures::BG];
-            const auto handle = m_texHandles[+Textures::BG];
             const auto data = m_ppuDisplayWindow ? m_state.m_emu->getWindowDebugFramebuffer()
                                                  : m_state.m_emu->getBgDebugFramebuffer();
-            glBindTexture(GL_TEXTURE_2D, handle);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dims.x, dims.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                         data);
+            m_bgWindowTex.update(data);
 
-            ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(handle)), imgDim);
+            imguiImage(m_bgWindowTex, imgDim);
             ImGui::SetItemTooltip("Click to switch between Window and BG");
             if (ImGui::IsItemClicked()) {
                 m_ppuDisplayWindow = !m_ppuDisplayWindow;
@@ -458,16 +442,15 @@ void Gui::drawPPU() {
         ImGui::SameLine();
         // todo, use pixel buffer to upload
         {
-            const auto dims = m_texDims[+Textures::VRAM];
-            const auto handle = m_texHandles[+Textures::VRAM];
-            glBindTexture(GL_TEXTURE_2D, handle);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dims.x, dims.y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                         m_state.m_emu->getVramDebugFramebuffer());
-
-            ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(handle)), imgDim);
+            m_vramTex.update(m_state.m_emu->getVramDebugFramebuffer());
+            imguiImage(m_vramTex, imgDim);
         }
     }
     ImGui::End();
+}
+
+void imguiImage(const Tex2D& tex, const ImVec2& imageSize) {
+    ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<intptr_t>(tex.handle())), imageSize);
 }
 
 } // namespace ez

@@ -9,7 +9,7 @@ class Tester {
     Tester();
     bool test_all();
 
-  private:
+  protected:
     Emulator make_emulator();
     Cart make_cart();
     

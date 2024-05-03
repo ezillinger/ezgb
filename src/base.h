@@ -16,6 +16,7 @@
 #include <string_view>
 #include <vector>
 #include <fstream>
+#include <span>
 
 namespace ez {
 
@@ -164,19 +165,19 @@ class Stopwatch {
         return false;
     }
 
-  private:
+  protected:
     chrono::steady_clock::time_point m_start = chrono::steady_clock::now();
 };
 
 // easy way to delete/default copy/move constructors
-#define EZ_DEFINE_COPY_MOVE(PP_CLASS, PP_COPY, PP_MOVE)                                            \
+#define EZ_DECLARE_COPY_MOVE(PP_CLASS, PP_COPY, PP_MOVE)                                            \
     PP_CLASS(const PP_CLASS&) = PP_COPY;                                                           \
     void operator=(const PP_CLASS&) = PP_COPY;                                                     \
     PP_CLASS(PP_CLASS&&) = PP_MOVE;                                                                \
     void operator=(PP_CLASS&&) = PP_MOVE;
 
 // todo, make these not suck
-template<typename T> struct Vec2 { T x = T{0}; T y = T{0}; };
+template<typename T> struct Vec2 { T x = T{0}; T y = T{0}; constexpr T area() const { return x * y; } };
 template<typename T> struct Vec3 { T x = T{0}; T y = T{0}; T z = T{0};};
 template<typename T> struct Vec4 { T x = T{0}; T y = T{0}; T z = T{0}; T w = T{0};};
 

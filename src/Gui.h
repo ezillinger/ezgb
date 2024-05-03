@@ -1,23 +1,28 @@
 #include "AppState.h"
 #include "Base.h"
 #include "Window.h"
-#include <imgui.h>
+#include "ThirdParty_ImGui.h"
+#include "Texture.h"
 
 namespace ez {
+
+void imguiImage(const Tex2D& tex, const ImVec2& imageSize);
 
 class Gui {
   public:
     Gui(AppState& state);
     ~Gui();
-    EZ_DEFINE_COPY_MOVE(Gui, delete, delete);
+    EZ_DECLARE_COPY_MOVE(Gui, delete, delete);
 
     JoypadState handleKeyboard();
     void drawGui();
     bool shouldExit() const { return m_shouldExit; };
 
   private:
-    
-    void putNextWindow(const int2& posRowsCols, const int2& dimsRowsCols);
+
+    void configureImGui();
+
+    void putNextWindow(const float2& posRowsCols, const float2& dimsRowsCols);
     static ImGuiWindowFlags getWindowFlags();
 
     void drawToolbar();
@@ -55,12 +60,9 @@ class Gui {
         BG,
         VRAM
     };
-    static constexpr auto numTextures = 3;
-    std::array<GLuint, numTextures> m_texHandles;
-    std::array<int2, numTextures> m_texDims{
-        int2{PPU::DISPLAY_WIDTH, PPU::DISPLAY_HEIGHT},            //
-        int2{PPU::BG_WINDOW_DIM_XY, PPU::BG_WINDOW_DIM_XY},                     //
-        int2{PPU::VRAM_DEBUG_FB_WIDTH, PPU::VRAM_DEBUG_FB_HEIGHT} //
-    };
+
+    Tex2D m_displayTex{int2{PPU::DISPLAY_WIDTH, PPU::DISPLAY_HEIGHT}};
+    Tex2D m_bgWindowTex{int2{PPU::BG_WINDOW_DIM_XY, PPU::BG_WINDOW_DIM_XY}};
+    Tex2D m_vramTex{int2{PPU::VRAM_DEBUG_FB_WIDTH, PPU::VRAM_DEBUG_FB_HEIGHT} };
 };
 } // namespace ez

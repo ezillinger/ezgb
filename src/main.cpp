@@ -38,7 +38,6 @@ int main() {
                 // run emu logic
             }
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_R, PPU::DISPLAY_WIDTH, PPU::DISPLAY_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, state.m_emu->getDisplayFramebuffer());
             gui.drawGui();
             shouldExit |= gui.shouldExit();
         });

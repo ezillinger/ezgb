@@ -147,15 +147,15 @@ class Emulator {
     static constexpr auto MASTER_CLOCK_PERIOD = 239ns;
     static constexpr int T_CYCLES_PER_M_CYCLE = 4;
 
-    const rgba8* getDisplayFramebuffer() const { return m_ppu.getDisplayFramebuffer(); };
-    const rgba8* getWindowDebugFramebuffer() { return m_ppu.getWindowDebugFramebuffer(); };
-    const rgba8* getBgDebugFramebuffer() { return m_ppu.getBgDebugFramebuffer(); };
-    const rgba8* getVramDebugFramebuffer() { return m_ppu.getVramDebugFramebuffer(); };
+    std::span<const rgba8> getDisplayFramebuffer() const { return m_ppu.getDisplayFramebuffer(); };
+    std::span<const rgba8> getWindowDebugFramebuffer() { return m_ppu.getWindowDebugFramebuffer(); };
+    std::span<const rgba8> getBgDebugFramebuffer() { return m_ppu.getBgDebugFramebuffer(); };
+    std::span<const rgba8> getVramDebugFramebuffer() { return m_ppu.getVramDebugFramebuffer(); };
 
     // for testing only
     const uint8_t* getIOMemPtr(uint16_t addr) const;
 
-  private:
+  protected:
 
     void tickCountdowns();
     void tickTimers();

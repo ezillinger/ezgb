@@ -51,16 +51,16 @@ class PPU {
     uint8_t readAddr(uint16_t) const;
     void writeAddr(uint16_t, uint8_t);
 
-    const rgba8* getDisplayFramebuffer() const;
+    std::span<const rgba8> getDisplayFramebuffer() const;
 
     // for debug only
-    const rgba8* getWindowDebugFramebuffer();
-    const rgba8* getBgDebugFramebuffer();
-    const rgba8* getVramDebugFramebuffer();
+    std::span<const rgba8> getWindowDebugFramebuffer();
+    std::span<const rgba8> getBgDebugFramebuffer();
+    std::span<const rgba8> getVramDebugFramebuffer();
 
     void reset();
 
-  private:
+  protected:
     rgba8 getBGColor(const uint8_t paletteIdx) const;
     rgba8 getColor(const uint8_t paletteIdx) const;
 

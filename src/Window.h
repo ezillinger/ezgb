@@ -15,7 +15,7 @@ namespace ez {
     public:
         Window(const char* title, int w = 1280, int h = 720);
         ~Window();
-        EZ_DEFINE_COPY_MOVE(Window, delete, delete);
+        EZ_DECLARE_COPY_MOVE(Window, delete, delete);
 
         template <typename TFunc> 
         inline bool run(TFunc&& func) { 
@@ -25,7 +25,7 @@ namespace ez {
             return m_shouldExit;
         }
 
-      private:
+      protected:
         void beginFrame();
         void endFrame();
 

@@ -117,15 +117,15 @@ void PPU::tick() {
     }
 }
 
-const rgba8* PPU::getDisplayFramebuffer() const {
+std::span<const rgba8> PPU::getDisplayFramebuffer() const {
     if (m_reg.m_lcd.m_control.m_ppuEnable) {
-        return m_display.data();
+        return { m_display };
     } else {
-        return m_displayOff.data();
+        return m_displayOff;
     }
 }
 
-const rgba8* PPU::getWindowDebugFramebuffer() {
+std::span<const rgba8> PPU::getWindowDebugFramebuffer() {
     for (int i = 0; i < BG_WINDOW_DIM_XY / TILE_DIM_XY; ++i) {
         renderBgWindowRow(i, true, m_reg.m_lcd.m_control.m_windowTilemap, m_window.data());
     }
@@ -134,10 +134,10 @@ const rgba8* PPU::getWindowDebugFramebuffer() {
             m_windowDebugFramebuffer[y * BG_WINDOW_DIM_XY + x] = getBGColor(m_window[y * BG_WINDOW_DIM_XY + x]);
         }
     }
-    return m_windowDebugFramebuffer.data();
+    return m_windowDebugFramebuffer;
 }
 
-const rgba8* PPU::getBgDebugFramebuffer() {
+std::span<const rgba8> PPU::getBgDebugFramebuffer() {
     for (int i = 0; i < BG_WINDOW_DIM_XY / TILE_DIM_XY; ++i) {
         renderBgWindowRow(i, true, m_reg.m_lcd.m_control.m_bgTilemap, m_bg.data());
     }
@@ -146,10 +146,10 @@ const rgba8* PPU::getBgDebugFramebuffer() {
             m_bgDebugFramebuffer[y * BG_WINDOW_DIM_XY + x] = getBGColor(m_bg[y * BG_WINDOW_DIM_XY + x]);
         }
     }
-    return m_bgDebugFramebuffer.data();
+    return m_bgDebugFramebuffer;
 }
 
-const rgba8* PPU::getVramDebugFramebuffer() {
+std::span<const rgba8> PPU::getVramDebugFramebuffer() {
     auto tile = std::vector<uint8_t>(TILE_DIM_XY * TILE_DIM_XY);
     for (auto i = 0; i < 384; ++i) {
         renderTile(m_vram.data() + i * BYTES_PER_TILE_COMPRESSED, tile.data(), TILE_DIM_XY);
@@ -163,7 +163,7 @@ const rgba8* PPU::getVramDebugFramebuffer() {
             }
         }
     }
-    return m_vramDebugFramebuffer.data();
+    return m_vramDebugFramebuffer;
 }
 
 void PPU::setStatIRQHigh(StatIRQSources src) { m_statIRQSources[+src] = true; }
