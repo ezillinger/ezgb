@@ -8,7 +8,9 @@ APU::APU(IORegisters& io) : m_reg(io){};
 APU::~APU() {}
 
 uint8_t APU::read_addr(uint16_t addr) const {
-    return 0;
+
+    // todo, delete me
+    EZ_MSVC_WARN_DISABLE(4065)
     EZ_ENSURE(AUDIO_ADDR_RANGE.containsExclusive(addr));
     switch (addr) {
         default: {
@@ -89,7 +91,7 @@ uint8_t PulseOsc::get_sample() const {
                       : m_state.m_duty == 0b10 ? 0.5f
                                                : 0.75f;
     const auto currentCycleT = m_freqCounter / float(get_max_freq_count());
-    return m_currentVolume * (currentCycleT > duty ? 1 : 0);
+    return uint8_t(m_currentVolume * (currentCycleT > duty ? 1 : 0));
 }
 
 int PulseOsc::get_max_freq_count() const { 
