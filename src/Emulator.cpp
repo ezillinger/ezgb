@@ -867,6 +867,7 @@ void Emulator::tick(const InputState& input) {
         assert(m_cycleCounter % T_CYCLES_PER_M_CYCLE == 0);
     }
 
+    m_apu.tick();
     m_ppu.tick();
 
     ++m_cycleCounter;
@@ -990,12 +991,16 @@ void Emulator::write_addr(uint16_t addr, uint8_t data) {
         case MemoryBank::EXT_RAM: m_cart.write_addr(addr, data); break;
         case MemoryBank::WRAM_0:  [[fallthrough]];
         case MemoryBank::WRAM_1:  m_ram[addr - addrInfo.m_baseAddr] = data; break;
-        case MemoryBank::MIRROR:
-            m_ram[addr - addrInfo.m_baseAddr] = data;
+        case MemoryBank::MIRROR:  m_ram[addr - addrInfo.m_baseAddr] = data; break;
+        case MemoryBank::VRAM:    m_ppu.write_addr(addr, data); break;
+        case MemoryBank::OAM:     m_ppu.write_addr(addr, data); break;
+        case MemoryBank::IO:
+            if (APU::AUDIO_ADDR_RANGE.containsExclusive(addr)) {
+                m_apu.write_addr(addr, data);
+            } else {
+                write_io(addr, data);
+            }
             break;
-        case MemoryBank::VRAM:        m_ppu.write_addr(addr, data); break;
-        case MemoryBank::OAM:         m_ppu.write_addr(addr, data); break;
-        case MemoryBank::IO:          write_io(addr, data); break;
         case MemoryBank::NOT_USEABLE: log_warn("Write to unusable zone: {}", addr); break;
         default:                      fail("not implemented"); break;
     }
@@ -1016,13 +1021,18 @@ uint8_t Emulator::read_addr(uint16_t addr) const {
                 return m_bootrom[addr];
             }
             return m_cart.read_addr(addr);
-        case MemoryBank::EXT_RAM:     return m_cart.read_addr(addr);
-        case MemoryBank::WRAM_0:      [[fallthrough]];
-        case MemoryBank::WRAM_1:      return m_ram[addr - addrInfo.m_baseAddr];
-        case MemoryBank::MIRROR:      return m_ram[addr - addrInfo.m_baseAddr];
-        case MemoryBank::VRAM:        return m_ppu.read_addr(addr);
-        case MemoryBank::OAM:         return m_ppu.read_addr(addr);
-        case MemoryBank::IO:          return read_io(addr);
+        case MemoryBank::EXT_RAM: return m_cart.read_addr(addr);
+        case MemoryBank::WRAM_0:  [[fallthrough]];
+        case MemoryBank::WRAM_1:  return m_ram[addr - addrInfo.m_baseAddr];
+        case MemoryBank::MIRROR:  return m_ram[addr - addrInfo.m_baseAddr];
+        case MemoryBank::VRAM:    return m_ppu.read_addr(addr);
+        case MemoryBank::OAM:     return m_ppu.read_addr(addr);
+        case MemoryBank::IO:
+            if (APU::AUDIO_ADDR_RANGE.containsExclusive(addr)) {
+                return m_apu.read_addr(addr);
+            } else {
+                return read_io(addr);
+            }
         case MemoryBank::NOT_USEABLE: log_warn("Read from unusable zone: {}", addr); return 0xFF;
         default:                      fail("not implemented"); break;
     }

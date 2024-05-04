@@ -78,8 +78,31 @@ bool Tester::test_io_reg() {
 
     ez_assert(emu.dbg_get_io_ptr(+IOAddr::IF) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_if));
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR10) == emu.m_ioReg.m_audio);
-    ez_assert(emu.dbg_get_io_ptr(0xFF26) == last_addr(emu.m_ioReg.m_audio));
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR10) == &emu.m_ioReg.m_nr10);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR11) == &emu.m_ioReg.m_nr11);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR12) == &emu.m_ioReg.m_nr12);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR13) == &emu.m_ioReg.m_nr13);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR14) == &emu.m_ioReg.m_nr14);
+
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR21) == &emu.m_ioReg.m_nr21);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR22) == &emu.m_ioReg.m_nr22);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR23) == &emu.m_ioReg.m_nr23);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR24) == &emu.m_ioReg.m_nr24);
+
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR30) == &emu.m_ioReg.m_nr30);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR31) == &emu.m_ioReg.m_nr31);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR32) == &emu.m_ioReg.m_nr32);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR33) == &emu.m_ioReg.m_nr33);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR34) == &emu.m_ioReg.m_nr34);
+
+
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR41) == &emu.m_ioReg.m_nr41);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR42) == &emu.m_ioReg.m_nr42);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR43) == &emu.m_ioReg.m_nr43);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR44) == &emu.m_ioReg.m_nr44);
+
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR51) == &emu.m_ioReg.m_nr51);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR52) == &emu.m_ioReg.m_nr52);
 
     ez_assert(emu.dbg_get_io_ptr(+IOAddr::WaveRAMBegin) == emu.m_ioReg.m_wavePattern);
     ez_assert(emu.dbg_get_io_ptr(0xFF3F) == last_addr(emu.m_ioReg.m_wavePattern));

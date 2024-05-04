@@ -18,6 +18,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <functional>
 
 namespace ez {
 
@@ -42,6 +43,8 @@ namespace fs = std::filesystem;
 namespace chrono = std::chrono;
 using namespace std::literals::chrono_literals;
 using namespace std::literals;
+
+using fSec = chrono::duration<float, std::ratio<1>>;
 
 enum class LogLevel {
     INFO,
@@ -226,5 +229,10 @@ using int3 = Vec3<int>;
 using float4 = Vec4<float>;
 using int4 = Vec4<int>;
 using rgba8 = Vec4<uint8_t>;
+
+template<typename T>
+inline constexpr T clamp(const T&v, const T& min, const T& max){
+    return std::min(std::max(v, min), max);
+}
 
 } // namespace ez

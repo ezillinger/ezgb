@@ -11,7 +11,7 @@ int main(int, char**) {
     t.test_all();
 
     log_info("CurrentDir: {}", fs::current_path().string().c_str());
-    auto romStartsWith = "Kirby";
+    auto romStartsWith = "tetris";
     auto romPath = "./roms/cpu_instrs.gb"s;
     for (auto& romFile : fs::recursive_directory_iterator("./roms/")) {
         if (romFile.path().filename().string().starts_with(romStartsWith) &&
@@ -33,7 +33,8 @@ int main(int, char**) {
     while (true) {
         shouldExit |= window.run([&]() {
             const auto input = gui.handle_keyboard();
-            while (RunResult::CONTINUE == runner.tick(input)) {
+            while (RunResult::CONTINUE ==
+                   runner.tick(input, [&](auto span) { window.push_audio(span); })) {
                 // run emu logic
             }
 

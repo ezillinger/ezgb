@@ -1,5 +1,6 @@
 #pragma once
 
+
 #if defined(__clang__)
     #define EZ_CLANG 1
     #pragma clang diagnostic ignored "-Wformat-security"
@@ -18,14 +19,29 @@
 #endif
 
 #if EZ_MSVC
+
+    #define EZ_DO_PRAGMA(PP_VALUE) __pragma(#PP_VALUE)
     #define EZ_MSVC_WARN_PUSH() __pragma(warning(push))
     #define EZ_MSVC_WARN_POP() __pragma(warning(pop))
     #define EZ_MSVC_WARN_DISABLE(PP_ERROR_NO) __pragma(warning(disable : PP_ERROR_NO))
     #define EZ_DEBUG_BREAK() DebugBreak()
-    #pragma warning(disable: 4201) // nonstandard extension used: nameless struct/union
+
+    EZ_MSVC_WARN_DISABLE(4201) // we're using anonymous structs/unions extensively
 #else
+    #define EZ_DO_PRAGMA(PP_VALUE) _Pragma (#PP_VALUE)
     #define EZ_MSVC_WARN_PUSH()
     #define EZ_MSVC_WARN_POP()
     #define EZ_MSVC_WARN_DISABLE(PP_ERROR_NO)
     #define EZ_DEBUG_BREAK() raise(SIGTRAP)
+
+#endif
+
+#if EZ_GCC
+    #define EZ_GCC_WARN_PUSH() _Pragma("GCC diagnostic push")
+    #define EZ_GCC_WARN_POP() _Pragma("GCC diagnostic pop")
+    #define EZ_GCC_WARN_DISABLE(PP_WARNING) EZ_DO_PRAGMA(GCC diagnostic ignored #PP_WARNING)
+#else
+    #define EZ_GCC_WARN_PUSH()
+    #define EZ_GCC_WARN_POP()
+    #define EZ_GCC_WARN_DISABLE(PP_WARNING)
 #endif

@@ -8,7 +8,7 @@ namespace ez {
 
 Window::Window(const char* title, int width, int height) {
     // Setup SDL
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO) != 0) {
         fail("Failed to init SDL: {}\n", SDL_GetError());
     }
 
@@ -110,6 +110,8 @@ Window::Window(const char* title, int width, int height) {
     // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
     // ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f,
     // nullptr, io.Fonts->GetGlyphRangesJapanese()); IM_ASSERT(font != nullptr);
+
+    init_audio();
 }
 
 Window::~Window() {
@@ -118,9 +120,56 @@ Window::~Window() {
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
 
+    SDL_CloseAudioDevice(m_audioDevice); 
     SDL_GL_DeleteContext(m_glContext);
     SDL_DestroyWindow(m_window);
     SDL_Quit();
+}
+
+void Window::audio_callback(void* userdata, uint8_t* stream, int len) {
+    auto& window = *reinterpret_cast<Window*>(userdata);
+    const size_t numSamples = len / int(audio::NUM_CHANNELS * sizeof(float));
+    window.fill_audio_buffer({reinterpret_cast<audio::Sample*>(stream), numSamples});
+}
+
+void Window::fill_audio_buffer(std::span<audio::Sample> dst) {
+    const auto lg = std::scoped_lock(m_audioLock);
+    for (size_t i = 0; i < dst.size(); ++i) {
+        dst[i] = get_next_sample();
+    }
+}
+
+audio::Sample Window::get_next_sample() { 
+    if(m_audioBuffer.empty()){
+        return {0.0f, 0.0f};
+    }
+    const auto ret = m_audioBuffer.front();
+    m_audioBuffer.pop_front();
+    return ret;
+}
+
+void Window::push_audio(std::span<const audio::Sample> data) {
+    if(!data.empty()){
+        const auto lg = std::scoped_lock(m_audioLock);
+        m_audioBuffer.insert(m_audioBuffer.end(), data.begin(), data.end());
+    }
+}
+
+void Window::init_audio() {
+
+    SDL_AudioSpec specDesired{};
+    specDesired.freq = audio::SAMPLE_RATE;
+    specDesired.channels = 2;
+    specDesired.format = audio::FORMAT;
+    specDesired.samples = audio::BUFFER_SIZE;
+    specDesired.callback = audio_callback;
+    specDesired.userdata = this;
+
+    SDL_AudioSpec specObtained{};
+    const auto allowNoChanges = 0;
+    const auto noCapture = 0;
+    m_audioDevice = SDL_OpenAudioDevice(nullptr, noCapture, &specDesired, &specObtained, allowNoChanges);
+    SDL_PauseAudioDevice(m_audioDevice, 0);
 }
 
 void Window::begin_frame() {

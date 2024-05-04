@@ -139,7 +139,38 @@ struct alignas(uint8_t) IORegisters {
     uint8_t m_tac{};  // timer control
     uint8_t detail_padding1[7]{};
     InterruptControl m_if{}; // interrupt flag
-    uint8_t m_audio[23]{};
+
+    uint8_t m_nr10{};
+    uint8_t m_nr11{};
+    uint8_t m_nr12{};
+    uint8_t m_nr13{};
+    uint8_t m_nr14{};
+
+
+    uint8_t detail_nr20{};
+
+    uint8_t m_nr21{};
+    uint8_t m_nr22{};
+    uint8_t m_nr23{};
+    uint8_t m_nr24{};
+
+    uint8_t m_nr30{};
+    uint8_t m_nr31{};
+    uint8_t m_nr32{};
+    uint8_t m_nr33{};
+    uint8_t m_nr34{};
+
+    uint8_t detail_nr40{};
+
+    uint8_t m_nr41{};
+    uint8_t m_nr42{};
+    uint8_t m_nr43{};
+    uint8_t m_nr44{};
+
+    uint8_t m_nr50{};
+    uint8_t m_nr51{};
+    uint8_t m_nr52{};
+
     uint8_t detail_padding2[9]{};
     uint8_t m_wavePattern[16]{};
     LCDRegisters m_lcd{};
@@ -186,5 +217,8 @@ struct InputState {
     bool m_up = false;
     bool m_down = false;
 };
+
+static constexpr auto MASTER_CLOCK_PERIOD = 239ns;
+static constexpr int T_CYCLES_PER_M_CYCLE = 4;
 
 } // namespace ez

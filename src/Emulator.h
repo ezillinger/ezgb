@@ -4,6 +4,7 @@
 #include "IO.h"
 #include "OpCodes.h"
 #include "PPU.h"
+#include "APU.h"
 
 namespace ez {
 
@@ -46,7 +47,7 @@ enum class Cond {
 
 struct EmuSettings {
     bool m_logEnable = false;
-    bool m_skipBootROM = false;
+    bool m_skipBootROM = true;
 };
 
 enum class MemoryBank {
@@ -144,8 +145,6 @@ class Emulator {
         return false;
     }
 
-    static constexpr auto MASTER_CLOCK_PERIOD = 239ns;
-    static constexpr int T_CYCLES_PER_M_CYCLE = 4;
 
     std::span<const rgba8> get_display_framebuffer() const {
         return m_ppu.get_display_framebuffer();
@@ -155,6 +154,9 @@ class Emulator {
     };
     std::span<const rgba8> get_bg_dbg_framebuffer() { return m_ppu.get_bg_dbg_framebuffer(); };
     std::span<const rgba8> get_vram_dbg_framebuffer() { return m_ppu.get_vram_dbg_framebuffer(); };
+
+    std::span<const audio::Sample> get_audio_samples() const { return m_apu.get_samples(); }
+    void clear_audio_buffer() { m_apu.clear_buffer(); }
 
     // for testing only
     const uint8_t* dbg_get_io_ptr(uint16_t addr) const;
@@ -206,6 +208,7 @@ class Emulator {
     Reg m_reg{};
     IORegisters m_ioReg;
     PPU m_ppu{m_ioReg};
+    APU m_apu{m_ioReg};
 
     int64_t m_cycleCounter = 0;
 

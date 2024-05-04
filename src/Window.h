@@ -1,12 +1,11 @@
 #pragma once
 
 #include "Base.h"
-#include <SDL.h>
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-    #include <SDL_opengles2.h>
-#else
-    #include <SDL_opengl.h>
-#endif
+#include "ThirdParty_SDL.h" 
+
+#include "Audio.h"
+#include <deque>
+#include <mutex>
 
 namespace ez {
 class Window {
@@ -23,12 +22,25 @@ class Window {
         return m_shouldExit;
     }
 
+    void push_audio(std::span<const audio::Sample> data);
+
   protected:
+
+    void init_audio();
+    static void audio_callback(void* userdata, uint8_t* stream, int len);
+    void fill_audio_buffer(std::span<audio::Sample> dst);
+
+    audio::Sample get_next_sample();
+
     void begin_frame();
     void end_frame();
 
     bool m_shouldExit = false;
 
+    std::mutex m_audioLock{};
+    std::deque<audio::Sample> m_audioBuffer;
+
+    SDL_AudioDeviceID m_audioDevice = 0;
     SDL_Window* m_window = nullptr;
     SDL_GLContext m_glContext{};
 };

@@ -2,12 +2,12 @@
 
 namespace ez {
 
-RunResult ez::Runner::tick(const InputState& input) {
+RunResult ez::Runner::tick(const InputState& input, audio::SinkFunc putSamples) {
     auto ret = RunResult::CONTINUE;
     if (m_state.m_isPaused) {
         if (m_state.m_stepToNextInstr) {
             while (true) {
-                tick_emu_once(input);
+                tick_emu_once(input, putSamples);
                 if (m_state.m_emu->executed_instr_this_cycle()) {
                     break;
                 }
@@ -15,12 +15,12 @@ RunResult ez::Runner::tick(const InputState& input) {
             m_state.m_stepToNextInstr = false;
         }
         else if(m_state.m_stepOneCycle){
-            tick_emu_once(input);
+            tick_emu_once(input, putSamples);
             m_state.m_stepOneCycle = false;
         }
         ret = RunResult::DRAW;
     } else {
-        tick_emu_once(input);
+        tick_emu_once(input, putSamples);
         ++m_ticksSinceLastDraw;
         if (m_ticksSinceLastDraw == TICKS_PER_DRAW) {
             ret = RunResult::DRAW;
@@ -32,7 +32,7 @@ RunResult ez::Runner::tick(const InputState& input) {
     return ret;
 }
 
-void Runner::tick_emu_once(const InputState& input) {
+void Runner::tick_emu_once(const InputState& input, audio::SinkFunc putSamples) {
     bool shouldBreak = false;
     m_state.m_emu->tick(input);
     shouldBreak |= m_state.m_emu->want_breakpoint();
@@ -52,6 +52,8 @@ void Runner::tick_emu_once(const InputState& input) {
         log_info("Debug Break!");
         m_state.m_isPaused = true;
     }
+    putSamples(m_state.m_emu->get_audio_samples());
+    m_state.m_emu->clear_audio_buffer();
 }
 
 } // namespace ez
