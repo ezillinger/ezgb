@@ -8,33 +8,29 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/build/src/CoronaBoy",
+            "osx": {
+                "program": "${workspaceFolder}/build/src/CoronaBoy",
+            },
+            "windows": {
+                "program": "${workspaceFolder}/build/src/Debug/CoronaBoy.exe",
+            },
             "args": [],
             "cwd": "${workspaceFolder}",
-            "preLaunchTask": "CMake: build"
+            "preLaunchTask": "CMake: build",
         },
         {
-            "type": "lldb",
+            "name": "C++ Launch (Windows)",
+            "type": "cppvsdbg",
             "request": "launch",
-            "name": "Debug - Windows",
             "program": "${workspaceFolder}/build/src/Debug/CoronaBoy.exe",
-            "args": [],
+            "symbolSearchPath": "C:\\Symbols;C:\\SymbolDir2",
+            "logging": {
+                "moduleLoad": false,
+                "trace": true
+            },
+            "visualizerFile": "${workspaceFolder}/my.natvis",
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "CMake: build"
-        },
-        {
-        "name": "C++ Launch (Windows)",
-        "type": "cppvsdbg",
-        "request": "launch",
-        "program": "${workspaceFolder}/build/src/Debug/CoronaBoy.exe",
-        "symbolSearchPath": "C:\\Symbols;C:\\SymbolDir2",
-        "logging": {
-            "moduleLoad": false,
-            "trace": true
-        },
-        "visualizerFile": "${workspaceFolder}/my.natvis",
-        "cwd": "${workspaceFolder}",
-        "preLaunchTask": "CMake: build"
         }
     ]
 }
