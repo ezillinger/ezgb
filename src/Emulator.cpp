@@ -4,7 +4,9 @@
 
 namespace ez {
 
-Emulator::Emulator(Cart& cart, EmuSettings settings) : m_cart(cart), m_settings(settings) {
+Emulator::Emulator(Cart& cart, EmuSettings settings)
+    : m_cart(cart)
+    , m_settings(settings) {
     // const auto bootromPath = "./roms/bootix_dmg.bin";
     const auto bootromPath = "./roms/dmg_boot.bin";
     log_info("Loading bootrom: {}", bootromPath);
@@ -25,6 +27,7 @@ Emulator::Emulator(Cart& cart, EmuSettings settings) : m_cart(cart), m_settings(
         m_reg.sp = 0xfffe;
         m_reg.pc = 0x100;
         m_ioReg.m_bootromDisabled = true;
+        m_ioReg.m_lcd.m_control.m_ppuEnable = true;
     }
 }
 
@@ -1127,13 +1130,28 @@ void Emulator::maybe_log_opcode(const OpCodeInfo& info) const {
 void Emulator::maybe_log_registers() const {
     if (m_settings.m_logEnable) {
         log_info("A {:#04x} B {:#04x} C {:#04x} D {:#04x} E {:#04x} F {:#04x} H {:#04x} L {:#04x}",
-                 m_reg.a, m_reg.b, m_reg.c, m_reg.d, m_reg.e, m_reg.f, m_reg.h, m_reg.l);
+                 m_reg.a,
+                 m_reg.b,
+                 m_reg.c,
+                 m_reg.d,
+                 m_reg.e,
+                 m_reg.f,
+                 m_reg.h,
+                 m_reg.l);
 
-        log_info("AF {:#06x} BC {:#06x} DE {:#06x} HL {:#06x} PC {:#06x} SP {:#06x} ", m_reg.af,
-                 m_reg.bc, m_reg.de, m_reg.hl, m_reg.pc, m_reg.sp);
+        log_info("AF {:#06x} BC {:#06x} DE {:#06x} HL {:#06x} PC {:#06x} SP {:#06x} ",
+                 m_reg.af,
+                 m_reg.bc,
+                 m_reg.de,
+                 m_reg.hl,
+                 m_reg.pc,
+                 m_reg.sp);
 
-        log_info("Flags: Z {} N {} H {} C {}", get_flag(Flag::ZERO), get_flag(Flag::NEGATIVE),
-                 get_flag(Flag::HALF_CARRY), get_flag(Flag::CARRY));
+        log_info("Flags: Z {} N {} H {} C {}",
+                 get_flag(Flag::ZERO),
+                 get_flag(Flag::NEGATIVE),
+                 get_flag(Flag::HALF_CARRY),
+                 get_flag(Flag::CARRY));
     }
 }
 

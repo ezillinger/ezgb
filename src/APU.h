@@ -14,7 +14,11 @@ struct PulseState {
     bool m_envelopeIncreasing = false;
     uint8_t m_envelopePace = 0;
 
-    uint16_t m_period = 0;
+    uint8_t m_sweepPace = 0;
+    bool m_sweepIncreasing = false;
+    uint8_t m_sweepStep = 0;
+
+    uint16_t m_period = 0; // freq period
 
     int8_t m_lengthInitial = 0;
     bool m_lengthEnable = false;
@@ -22,20 +26,16 @@ struct PulseState {
 
 static constexpr int T_CYCLES_PER_512HZ_PERIOD = 8192;
 static constexpr int T_CYCLES_PER_256HZ_PERIOD = T_CYCLES_PER_512HZ_PERIOD * 2;
-static constexpr int T_CYCLES_PER_64HZ_PERIOD = T_CYCLES_PER_512HZ_PERIOD * 4;
+static constexpr int T_CYCLES_PER_128HZ_PERIOD = T_CYCLES_PER_256HZ_PERIOD * 2;
+static constexpr int T_CYCLES_PER_64HZ_PERIOD = T_CYCLES_PER_128HZ_PERIOD * 2;
 
 class PulseOsc {
   public:
-    PulseOsc() = default;
+    PulseOsc(bool hasSweep)
+        : m_hasSweep(hasSweep){};
 
     void update(const PulseState& state) { m_state = state; }
-    void trigger() {
-        m_state.m_enabled = true;
-        m_currentVolume = m_state.m_envelopeInitial;
-        m_64HzCounter = 0;
-        m_256HzCounter = 0;
-        m_lengthCounter = m_state.m_lengthInitial;
-    }
+    void trigger();
     void tick();
 
     uint8_t get_sample() const;
@@ -45,6 +45,7 @@ class PulseOsc {
     PulseState m_state;
 
     int m_64HzCounter = 0;
+    int m_128HzCounter = 0;
     int m_256HzCounter = 0;
     int m_512HzCounter = 0;
 
@@ -52,6 +53,10 @@ class PulseOsc {
     int m_envelopeCounter = 0;
     int m_lengthCounter = 0;
     int m_freqCounter = 0;
+
+    uint8_t m_dutyCyleCounter = 0;
+
+    const bool m_hasSweep = false;
 };
 
 class APU {
@@ -76,15 +81,15 @@ class APU {
   protected:
     void updateOsc1();
     void updateOsc2();
-    static void updatePulse(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4, PulseOsc& osc);
+    static void updatePulse(uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4, PulseOsc& osc);
 
     void tickOsc1();
     IORegisters& m_reg;
     chrono::nanoseconds m_timeSinceEmitSample = 0ns;
     std::vector<audio::Sample> m_outputBuffer;
 
-    PulseOsc m_osc1{};
-    PulseOsc m_osc2{};
+    PulseOsc m_osc1{true};
+    PulseOsc m_osc2{false};
 };
 
 } // namespace ez

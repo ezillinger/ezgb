@@ -3,7 +3,8 @@
 
 namespace ez {
 
-APU::APU(IORegisters& io) : m_reg(io){};
+APU::APU(IORegisters& io)
+    : m_reg(io){};
 
 APU::~APU() {}
 
@@ -26,7 +27,7 @@ void APU::write_addr(uint16_t addr, uint8_t val) {
     switch (addr) {
         case +IOAddr::NR14: {
             m_reg.m_nr14 = val;
-            if(0b1000'0000 & val){
+            if (0b1000'0000 & val) {
                 updateOsc1();
                 m_osc1.trigger();
             }
@@ -34,7 +35,7 @@ void APU::write_addr(uint16_t addr, uint8_t val) {
         }
         case +IOAddr::NR24: {
             m_reg.m_nr24 = val;
-            if(0b1000'0000 & val){
+            if (0b1000'0000 & val) {
                 updateOsc2();
                 m_osc2.trigger();
             }
@@ -47,34 +48,40 @@ void APU::write_addr(uint16_t addr, uint8_t val) {
     }
 }
 
-
 void APU::updateOsc1() {
 
+    auto byte0 = m_reg.m_nr10;
     auto byte1 = m_reg.m_nr11;
     auto byte2 = m_reg.m_nr12;
     auto byte3 = m_reg.m_nr13;
     auto byte4 = m_reg.m_nr14;
 
-    updatePulse(byte1, byte2, byte3, byte4, m_osc1);
-    //todo, sweep
+    updatePulse(byte0, byte1, byte2, byte3, byte4, m_osc1);
+    // todo, sweep
 }
 
 void APU::updateOsc2() {
 
-    auto byte1 = m_reg.m_nr21;
-    auto byte2 = m_reg.m_nr22;
-    auto byte3 = m_reg.m_nr23;
-    auto byte4 = m_reg.m_nr24;
+    const auto byte0 = uint8_t(0); // not used
+    const auto byte1 = m_reg.m_nr21;
+    const auto byte2 = m_reg.m_nr22;
+    const auto byte3 = m_reg.m_nr23;
+    const auto byte4 = m_reg.m_nr24;
 
-    updatePulse(byte1, byte2, byte3, byte4, m_osc2);
-    //todo, sweep
+    updatePulse(byte0, byte1, byte2, byte3, byte4, m_osc2);
 }
 
-void APU::updatePulse(uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, PulseOsc& osc) {
+void APU::updatePulse(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, PulseOsc& osc) {
 
     PulseState state{};
+
+    state.m_sweepPace = (byte0 & 0b0111'0000) >> 4;
+    state.m_sweepIncreasing = !bool(byte0 & 0b1000);
+    state.m_sweepStep = byte0 & 0b111;
+
     const uint8_t dutyBits = (0b1100'0000 & byte1) >> 6;
     state.m_duty = dutyBits;
+
     state.m_envelopeInitial = (0b1111'0000 & byte2) >> 4;
     state.m_envelopeIncreasing = 0x0000'1000 & byte2;
     state.m_envelopePace = byte2 & 0b111;
@@ -85,22 +92,29 @@ void APU::updatePulse(uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4
     osc.update(state);
 }
 
-uint8_t PulseOsc::get_sample() const {
-    const auto duty = m_state.m_duty == 0b00   ? 0.125f
-                      : m_state.m_duty == 0b01 ? 0.25f
-                      : m_state.m_duty == 0b10 ? 0.5f
-                                               : 0.75f;
-    const auto currentCycleT = m_freqCounter / float(get_max_freq_count());
-    return uint8_t(m_currentVolume * (currentCycleT > duty ? 1 : 0));
+void PulseOsc::trigger() {
+    m_state.m_enabled = true;
+    m_currentVolume = m_state.m_envelopeInitial;
+    m_lengthCounter = m_state.m_lengthInitial;
+    m_envelopeCounter = 0;
+    m_freqCounter = get_max_freq_count();
 }
 
-int PulseOsc::get_max_freq_count() const { 
-    return (2048 - m_state.m_period);
+uint8_t PulseOsc::get_sample() const {
+    const auto duty = m_state.m_duty == 0b00   ? 1
+                      : m_state.m_duty == 0b01 ? 2
+                      : m_state.m_duty == 0b10 ? 4
+                                               : 6;
+    ez_assert(m_state.m_duty < 8);
+    return uint8_t(m_currentVolume * (m_dutyCyleCounter < duty ? 1 : 0));
 }
+
+int PulseOsc::get_max_freq_count() const { return (2048 - m_state.m_period) * 4; }
 
 void PulseOsc::tick() {
 
     static constexpr auto maxVolume = 0x0F;
+    // todo, this should be tied to DIV
 
     // envelope
     ++m_64HzCounter;
@@ -108,7 +122,7 @@ void PulseOsc::tick() {
         m_64HzCounter = 0;
         if (m_state.m_envelopePace != 0) {
             ++m_envelopeCounter;
-            if (m_state.m_envelopePace == m_envelopeCounter) {
+            if (m_envelopeCounter >= m_state.m_envelopePace) {
                 m_envelopeCounter = 0;
                 m_currentVolume += m_state.m_envelopeIncreasing ? 1 : -1;
                 m_currentVolume = clamp(m_currentVolume, 0, maxVolume);
@@ -116,14 +130,22 @@ void PulseOsc::tick() {
         }
     }
 
-    // todo, this should be tied to DIV
-    ++m_256HzCounter;
-    if (m_256HzCounter >= T_CYCLES_PER_256HZ_PERIOD) {
+    ++m_128HzCounter;
+    if (m_128HzCounter >= T_CYCLES_PER_128HZ_PERIOD) {
         if (m_state.m_lengthEnable) {
-            m_256HzCounter = 0;
-            ++m_lengthCounter;
-            if (m_lengthCounter == 64) {
-                m_state.m_enabled = false;
+            m_128HzCounter = 0;
+        }
+    }
+
+    if(m_hasSweep){
+        ++m_256HzCounter;
+        if (m_256HzCounter >= T_CYCLES_PER_256HZ_PERIOD) {
+            if (m_state.m_lengthEnable) {
+                m_256HzCounter = 0;
+                ++m_lengthCounter;
+                if (m_lengthCounter >= 64) {
+                    m_state.m_enabled = false;
+                }
             }
         }
     }
@@ -131,10 +153,13 @@ void PulseOsc::tick() {
     ++m_512HzCounter;
     if (m_512HzCounter >= T_CYCLES_PER_512HZ_PERIOD) {
         m_512HzCounter = 0;
-        ++m_freqCounter;
-        if (m_freqCounter >= get_max_freq_count()) {
-            m_freqCounter = 0;
-        }
+        // wait what's this for?!
+    }
+
+    --m_freqCounter;
+    if (m_freqCounter <= 0) {
+        m_freqCounter = get_max_freq_count();
+        m_dutyCyleCounter = (m_dutyCyleCounter + 1) % 8;
     }
 }
 

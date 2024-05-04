@@ -1,10 +1,10 @@
 #pragma once
+#include "APU.h"
 #include "Base.h"
 #include "Cart.h"
 #include "IO.h"
 #include "OpCodes.h"
 #include "PPU.h"
-#include "APU.h"
 
 namespace ez {
 
@@ -47,7 +47,7 @@ enum class Cond {
 
 struct EmuSettings {
     bool m_logEnable = false;
-    bool m_skipBootROM = true;
+    bool m_skipBootROM = false;
 };
 
 enum class MemoryBank {
@@ -70,7 +70,9 @@ struct AddrInfo {
 
 struct InstructionResult {
     InstructionResult() = default;
-    InstructionResult(uint16_t newPC, int cycles) : m_newPC(newPC), m_cycles(cycles) {
+    InstructionResult(uint16_t newPC, int cycles)
+        : m_newPC(newPC)
+        , m_cycles(cycles) {
         ez_assert(cycles > 0);
     }
     uint16_t m_newPC = 0;
@@ -144,7 +146,6 @@ class Emulator {
         }
         return false;
     }
-
 
     std::span<const rgba8> get_display_framebuffer() const {
         return m_ppu.get_display_framebuffer();
