@@ -35,6 +35,8 @@ I tried to use as few 3rd party libraries as possible The only 3rd party librari
 * You'll need to install GCC or LLVM Clang on MacOS - AppleClang doesn't have enough C++20 support
 * On Windows download an SDL2 release and set the path in the top level CmakeLists.txt
 
+[![CMake Build All Platforms](https://github.com/ezillinger/ezgb/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/ezillinger/ezgb/actions/workflows/cmake-multi-platform.yml)
+
 ### Controls
 
 * Z - A
