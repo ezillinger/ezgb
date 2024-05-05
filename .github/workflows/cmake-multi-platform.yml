@@ -97,7 +97,7 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -DSDL2_DIR=C:\SDL2-${{WINDOWS_SDL_VERSION}}\cmake
+        -DSDL2_DIR=C:\SDL2-$env:WINDOWS_SDL_VERSION\cmake
         -S ${{ github.workspace }}
 
     - name: Build
