@@ -10,7 +10,7 @@ Cart Cart::load_from_disk(const fs::path& path) {
     EZ_ENSURE(sizeBytes > 0);
     auto data = std::vector<uint8_t>(size_t(sizeBytes));
     auto fp = fopen(path.generic_string().c_str(), "rb");
-    fread(data.data(), 1, sizeBytes, fp);
+    ez_assert(sizeBytes == fread(data.data(), 1, sizeBytes, fp));
     fclose(fp);
 
     return Cart(data.data(), data.size());
