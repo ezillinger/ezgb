@@ -1,6 +1,6 @@
 # This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
-name: CMake on multiple platforms
+name: CMake Build All Platforms
 env:
   WINDOWS_SDL_VERSION: 2.30.3
 on:
@@ -24,7 +24,7 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         build_type: [Release]
         c_compiler: [gcc-13, cl] #clang-18 ]
         include:
@@ -32,6 +32,9 @@ jobs:
             c_compiler: cl
             cpp_compiler: cl
           - os: ubuntu-latest
+            c_compiler: gcc-13
+            cpp_compiler: g++-13
+          - os: macos-latest
             c_compiler: gcc-13
             cpp_compiler: g++-13
   #       - os: ubuntu-latest
@@ -43,6 +46,8 @@ jobs:
   #       - os: windows-latest
   #         c_compiler: clang-18
           - os: ubuntu-latest
+            c_compiler: cl
+          - os: macos-latest
             c_compiler: cl
 
     steps:
@@ -57,14 +62,20 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Install SDL2 (Ubuntu)
+    - name: Install SDL2 - Linux
       shell: bash
       if: runner.os == 'Linux'
       run: |
         sudo apt-get install libsdl2-dev
 
-    - name: Cache SDL
-      uses: actions/cache@v2
+    - name: Install SDL2 - macOS
+      shell: bash
+      if: runner.os == 'macOS'
+      run: |
+        brew install sdl2
+
+    - name: Cache SDL - Windows
+      uses: actions/cache@v4
       if: runner.os == 'Windows'
       env:
         cache-name: cache-sdl
@@ -72,7 +83,7 @@ jobs:
         path: C:\SDL
         key: ${{ runner.os }}-build-${{ env.cache-name }}
 
-    - name: Download SDL if not cached
+    - name: Download SDL if not cached - Windows
       if: runner.os == 'Windows'
       run: |
         if (-Not (Test-Path C:\SDL))
@@ -81,7 +92,7 @@ jobs:
             Expand-Archive C:\SDL.zip -DestinationPath C:\
         }
 
-    - name: Configure CMake (Linux)
+    - name: Configure CMake - Linux/macOS
       if: runner.os != 'Windows'
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
@@ -90,7 +101,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
 
-    - name: Configure CMake (Windows)
+    - name: Configure CMake - Windows
       if: runner.os == 'Windows'
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}

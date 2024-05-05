@@ -20,7 +20,7 @@
             "type": "cppvsdbg",
             "name": "C++ Launch (Windows)",
             "request": "launch",
-            "program": "${workspaceFolder}/build/src/Debug/ezgb.exe",
+            "program": "${workspaceFolder}/build/src/${config}/ezgb.exe",
             "symbolSearchPath": "C:\\Symbols;C:\\SymbolDir2",
             "logging": {
                 "moduleLoad": false,
