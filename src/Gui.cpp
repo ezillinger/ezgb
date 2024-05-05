@@ -434,16 +434,16 @@ void Gui::draw_ppu() {
             m_bgWindowTex.update(data);
 
             imguiImage(m_bgWindowTex, imgDim);
-            ImGui::SetItemTooltip("Click to switch between Window and BG");
+            ImGui::SetItemTooltip("Click to switch between display of Window and BG");
             if (ImGui::IsItemClicked()) {
                 m_ppuDisplayWindow = !m_ppuDisplayWindow;
             }
         }
         ImGui::SameLine();
-        // todo, use pixel buffer to upload
         {
             m_vramTex.update(m_state.m_emu->get_vram_dbg_framebuffer());
             imguiImage(m_vramTex, imgDim);
+            ImGui::SetItemTooltip("Tiles currently in VRAM");
         }
     }
     ImGui::End();

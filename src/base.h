@@ -230,9 +230,20 @@ using float4 = Vec4<float>;
 using int4 = Vec4<int>;
 using rgba8 = Vec4<uint8_t>;
 
+// todo, use concepts to only allow these for integral types
 template<typename T>
 inline constexpr T clamp(const T&v, const T& min, const T& max){
     return std::min(std::max(v, min), max);
+}
+
+template <typename T>
+inline constexpr float lerp(float t, const T& min, const T& max){
+    return float(min) + t * (float(max) - float(min));
+}
+
+template <typename T>
+inline constexpr float lerpInverse(const T& v, const T& min, const T& max){
+    return (float(v) - float(min)) / (float(max) - float(min));
 }
 
 } // namespace ez

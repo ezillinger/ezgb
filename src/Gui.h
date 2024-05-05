@@ -54,7 +54,6 @@ class Gui {
 
     std::string m_lastRom = "";
 
-    // todo, RAII
     enum class Textures {
         DISPLAY,
         BG,

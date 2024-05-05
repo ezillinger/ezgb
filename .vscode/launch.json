@@ -8,9 +8,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "osx": {
-                "program": "${workspaceFolder}/build/src/CoronaBoy",
-            },
+            "program": "${workspaceFolder}/build/src/CoronaBoy",
             "windows": {
                 "program": "${workspaceFolder}/build/src/Debug/CoronaBoy.exe",
             },
@@ -19,8 +17,8 @@
             "preLaunchTask": "CMake: build",
         },
         {
-            "name": "C++ Launch (Windows)",
             "type": "cppvsdbg",
+            "name": "C++ Launch (Windows)",
             "request": "launch",
             "program": "${workspaceFolder}/build/src/Debug/CoronaBoy.exe",
             "symbolSearchPath": "C:\\Symbols;C:\\SymbolDir2",

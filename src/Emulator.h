@@ -134,7 +134,6 @@ class Emulator {
         return m_prefix ? get_opcode_info_prefixed(opByte) : get_opcode_info(opByte);
     }
 
-    // todo, make this less greasy
     int64_t get_cycle_counter() const { return m_cycleCounter; };
     int& get_last_written_addr() { return m_lastWrittenAddr; }
     bool want_breakpoint() {
