@@ -7,10 +7,11 @@
 int main(int, char**) {
     using namespace ez;
 
+    log_info("CurrentDir: {}", fs::current_path().string().c_str());
+
     auto t = Tester{};
     t.test_all();
 
-    log_info("CurrentDir: {}", fs::current_path().string().c_str());
     auto romStartsWith = "tetris";
     auto romPath = "./roms/cpu_instrs.gb"s;
     for (auto& romFile : fs::recursive_directory_iterator("./roms/")) {

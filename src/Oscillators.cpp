@@ -65,7 +65,7 @@ void PulseOsc::tick() {
                     if (!iRange(0, 2048).containsExclusive(newPeriod)) {
                         m_state.m_enabled = false;
                     } else {
-                        m_state.m_period = newPeriod;
+                        m_state.m_period = uint16_t(newPeriod);
                     }
                 }
             }
@@ -133,7 +133,7 @@ void NoiseOsc::tick() {
 
         // wtf? https://nightshade256.github.io/2021/03/27/gb-sound-emulation.html
         const auto xorResult = (m_lfsr & 0b01) ^ ((m_lfsr & 0b10) >> 1);
-        m_lfsr = (m_lfsr >> 1) | (xorResult << 14);
+        m_lfsr = uint16_t((m_lfsr >> 1) | (xorResult << 14));
 
         if (m_state.m_lfsrWidthIs7Bit) {
             m_lfsr &= ~(0b1 << 6);
@@ -180,7 +180,7 @@ uint8_t WaveOsc::get_sample(std::span<const uint8_t, 16> waveData) const {
                           : m_state.m_volume == 3 ? 2
                                                   : 3;
 
-    return val >> shiftAmt;
+    return uint8_t(val >> shiftAmt);
 }
 
 int WaveOsc::get_initial_freq_counter() const { return (2048 - m_state.m_period) * 4; }
