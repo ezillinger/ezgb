@@ -10,7 +10,6 @@ target_compile_definitions(ezgb PRIVATE IMGUI_USER_CONFIG="../../ImGuiConfig.h")
 
 target_include_directories(ezgb PRIVATE 
                           ./libs/imgui 
-#                          ./libs/imgui/misc/freetype
 )   
 
 if(MSVC)
