@@ -121,28 +121,28 @@ void Gui::draw_toolbar() {
             ImGui::Checkbox("Show Demo Window", &m_showDemoWindow);
             ImGui::EndMenu();
         }
-        if (m_state.m_isPaused) {
-            ImGui::Dummy(ImVec2(ImGui::GetWindowWidth() * 0.3f, 0));
-            if (ImGui::Button("Play")) {
-                m_state.m_isPaused = false;
-            }
-            if (ImGui::Button("Next Instr")) {
-                m_state.m_stepToNextInstr = true;
-                update_op_cache();
-            }
-            if (ImGui::Button("Step")) {
-                m_state.m_stepOneCycle = true;
-                update_op_cache();
-            }
-        } else {
-            ImGui::Dummy(ImVec2(ImGui::GetWindowWidth() * 0.35f, 0));
-            if (ImGui::Button("Pause")) {
-                m_state.m_isPaused = true;
+        const auto buttonWidth = 100.0f;
+        const auto buttonSize = ImVec2{buttonWidth, 0.0f};
+        const int numButtons = 3;
+        ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2.0f - 0.5f * buttonWidth * numButtons);
+        ImGui::PushItemWidth(buttonWidth);
+        if (ImGui::Button(m_state.m_isPaused ? "Resume" : "Break", buttonSize)) {
+            m_state.m_isPaused = !m_state.m_isPaused;
+            if(m_state.m_isPaused){
                 update_op_cache();
             }
         }
-
-        ImGui::Text("{}"_format(m_lastRom).c_str());
+        ImGui::BeginDisabled(!m_state.m_isPaused);
+        if (ImGui::Button("Step Instr", buttonSize)) {
+            m_state.m_stepToNextInstr = true;
+            update_op_cache();
+        }
+        if (ImGui::Button("Step Cycle", buttonSize)) {
+            m_state.m_stepOneCycle = true;
+            update_op_cache();
+        }
+        ImGui::EndDisabled();
+        ImGui::PopItemWidth();
 
         static Stopwatch frameTimer{};
         const auto frameTime = frameTimer.elapsed();
@@ -218,6 +218,7 @@ void Gui::draw_registers() {
         }
 
         if (ImGui::CollapsingHeader("Cart", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Text("{}"_format(m_lastRom).c_str());
             ImGui::LabelText("Size", "{}"_format(m_state.m_cart->m_sizeBytes).c_str());
             ImGui::LabelText("Type", "{}"_format(+m_state.m_cart->m_cartType).c_str());
             if (m_state.m_cart->m_cartType == CartType::MBC1) {

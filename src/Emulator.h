@@ -136,18 +136,11 @@ class Emulator {
 
     int64_t get_cycle_counter() const { return m_cycleCounter; };
     int& get_last_written_addr() { return m_lastWrittenAddr; }
-    bool want_breakpoint() {
-        if (m_wantBreakpoint) {
-            if (m_cyclesToWait == 1) {
-                m_wantBreakpoint = false;
-            }
-            return true;
-        }
-        return false;
-    }
+    bool want_breakpoint() { return m_wantBreakpoint; }
+    void clear_want_breakpoint() { m_wantBreakpoint = false; }
 
-    std::span<const rgba8> get_display_framebuffer() const {
-        return m_ppu.get_display_framebuffer();
+        std::span<const rgba8> get_display_framebuffer() const {
+            return m_ppu.get_display_framebuffer();
     };
     std::span<const rgba8> get_window_dbg_framebuffer() {
         return m_ppu.get_window_dbg_framebuffer();

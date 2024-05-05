@@ -1,5 +1,5 @@
 
-# ezgb - Eric's Mediocre Gameboy Emulator
+# ezgb
 
 ![Screenshot](./screenshot.png)
 

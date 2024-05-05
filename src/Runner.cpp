@@ -50,6 +50,7 @@ void Runner::tick_emu_once(const InputState& input, audio::SinkFunc putSamples) 
 
     if (shouldBreak && m_state.m_emu->executed_instr_this_cycle()) {
         log_info("Debug Break!");
+        m_state.m_emu->clear_want_breakpoint();
         m_state.m_isPaused = true;
     }
     putSamples(m_state.m_emu->get_audio_samples());
