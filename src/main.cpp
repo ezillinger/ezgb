@@ -25,7 +25,7 @@ int main(int, char**) {
     state.m_cart = std::make_unique<Cart>(Cart::load_from_disk(romPath));
     state.m_emu = std::make_unique<Emulator>(*state.m_cart);
 
-    auto window = Window{"CoronaBoy"};
+    auto window = Window{"ezgb - Eric's Mediocre Gameboy Emulator"};
     auto gui = Gui(state);
     auto runner = Runner(state);
     bool shouldExit = false;

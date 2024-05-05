@@ -74,7 +74,7 @@ class Cart {
         return m_mbc1State.m_ram.data() + (addr - RAM_RANGE.m_min);
     }
 
-    static bool is_mbc_type(CartType type);
+    static bool is_mbc1_type(CartType type);
 
     CartType m_cartType = CartType::ROM_ONLY;
     size_t m_sizeBytes = 0ull;

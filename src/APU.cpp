@@ -64,6 +64,7 @@ void APU::write_addr(uint16_t addr, uint8_t val) {
                 log_info("APU turned off!");
             }
             m_reg.m_nr52 = val;
+            break;
         }
         case +IOAddr::NR14: {
             m_reg.m_nr14 = val;

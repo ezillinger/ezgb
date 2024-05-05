@@ -2,30 +2,30 @@ file(GLOB SOURCES
     ./*.cpp
 )
 
-add_executable(CoronaBoy 
+add_executable(ezgb 
               ${SOURCES}
 )
 
-target_compile_definitions(CoronaBoy PRIVATE IMGUI_USER_CONFIG="../../ImGuiConfig.h")
+target_compile_definitions(ezgb PRIVATE IMGUI_USER_CONFIG="../../ImGuiConfig.h")
 
-target_include_directories(CoronaBoy PRIVATE 
+target_include_directories(ezgb PRIVATE 
                           ./libs/imgui 
 #                          ./libs/imgui/misc/freetype
 )   
 
 if(MSVC)
-  target_compile_options(CoronaBoy PRIVATE /W4 /WX)
-  target_compile_features(CoronaBoy PRIVATE cxx_std_20)
-  set_target_properties(CoronaBoy PROPERTIES WIN32_EXECUTABLE TRUE)
+  target_compile_options(ezgb PRIVATE /W4 /WX)
+  target_compile_features(ezgb PRIVATE cxx_std_20)
+  set_target_properties(ezgb PROPERTIES WIN32_EXECUTABLE TRUE)
 
    add_custom_command(
-        TARGET CoronaBoy POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:SDL2::SDL2>" "$<TARGET_FILE_DIR:CoronaBoy>"
+        TARGET ezgb POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different "$<TARGET_FILE:SDL2::SDL2>" "$<TARGET_FILE_DIR:ezgb>"
         VERBATIM
     )
 else()
     # Clang and GCC compatible stuff here
-  target_compile_options(CoronaBoy PRIVATE 
+  target_compile_options(ezgb PRIVATE 
                           -Wall 
                           -Wextra 
                           #-Wpedantic 
@@ -36,8 +36,8 @@ endif()
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message("Clang Detected!")
     if(EZ_ADDRESS_SANITIZER)
-      target_compile_options(CoronaBoy PRIVATE "-fsanitize=address")
-      target_link_options(CoronaBoy PRIVATE "-fsanitize=address")
+      target_compile_options(ezgb PRIVATE "-fsanitize=address")
+      target_link_options(ezgb PRIVATE "-fsanitize=address")
     endif()
     # Clang specific stuff here
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -49,11 +49,11 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 
-target_link_libraries(CoronaBoy SDL2::SDL2 OpenGL::GL)
+target_link_libraries(ezgb SDL2::SDL2 OpenGL::GL)
 
 if(EZ_USE_FREETYPE)
   find_package(Freetype REQUIRED)
-  target_link_libraries(CoronaBoy Freetype::Freetype)
-  target_include_directories(CoronaBoy PRIVATE ./libs/imgui/misc/freetype)
-  target_sources(CoronaBoy PRIVATE ./libs/imgui/misc/freetype/imgui_freetype.cpp)
+  target_link_libraries(ezgb Freetype::Freetype)
+  target_include_directories(ezgb PRIVATE ./libs/imgui/misc/freetype)
+  target_sources(ezgb PRIVATE ./libs/imgui/misc/freetype/imgui_freetype.cpp)
 endif()

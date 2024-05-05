@@ -8,9 +8,9 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/build/src/CoronaBoy",
+            "program": "${workspaceFolder}/build/src/ezgb",
             "windows": {
-                "program": "${workspaceFolder}/build/src/Debug/CoronaBoy.exe",
+                "program": "${workspaceFolder}/build/src/Debug/ezgb.exe",
             },
             "args": [],
             "cwd": "${workspaceFolder}",
@@ -20,7 +20,7 @@
             "type": "cppvsdbg",
             "name": "C++ Launch (Windows)",
             "request": "launch",
-            "program": "${workspaceFolder}/build/src/Debug/CoronaBoy.exe",
+            "program": "${workspaceFolder}/build/src/Debug/ezgb.exe",
             "symbolSearchPath": "C:\\Symbols;C:\\SymbolDir2",
             "logging": {
                 "moduleLoad": false,

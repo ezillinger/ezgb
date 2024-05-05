@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 # set the project name
-project( CoronaBoy )
+project( ezgb )
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
