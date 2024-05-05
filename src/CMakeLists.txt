@@ -12,6 +12,12 @@ target_include_directories(ezgb PRIVATE
                           ./libs/imgui 
 )   
 
+# some xcode versions have a bad linker - use the old one
+if (APPLE)
+  message("Using classic macOS linker")
+  set_property(TARGET ezgb PROPERTY LINKER_TYPE APPLE_CLASSIC)
+endif()
+
 if(MSVC)
   target_compile_options(ezgb PRIVATE /W4 /WX)
   target_compile_features(ezgb PRIVATE cxx_std_20)
