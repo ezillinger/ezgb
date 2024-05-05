@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 option(EZ_ADDRESS_SANITIZER "Enable Clang address sanitiizer" False)
 option(EZ_USE_FREETYPE "Use Freetype for font rendering" False)
 
-if(MSVC)
+if(MSVC AND NOT DEFINED SDL2_DIR)
     set(SDL2_DIR "C:\\git\\SDL2-2.30.3\\cmake\\")
 endif()
 

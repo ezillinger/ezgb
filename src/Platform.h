@@ -47,4 +47,4 @@ EZ_MSVC_WARN_DISABLE(4201) // we're using anonymous structs/unions extensively
     #define EZ_CLANG_GCC_WARN_DISABLE(PP_WARNING)
 #endif
 
-EZ_CLANG_GCC_WARN_DISABLE(-Wformat - security)
+EZ_CLANG_GCC_WARN_DISABLE(-Wformat-security)

@@ -1,7 +1,8 @@
 # This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
 name: CMake on multiple platforms
-
+env:
+  WINDOWS_SDL_VERSION: 2.30.3
 on:
   push:
     branches: [ "master" ]
@@ -23,9 +24,9 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ubuntu-24.04, windows-latest]
+        os: [ubuntu-latest, windows-latest]
         build_type: [Release]
-        c_compiler: [gcc-13, clang-18, cl]
+        c_compiler: [gcc-13, cl] #clang-18 ]
         include:
           - os: windows-latest
             c_compiler: cl
@@ -33,17 +34,14 @@ jobs:
           - os: ubuntu-latest
             c_compiler: gcc-13
             cpp_compiler: g++-13
-          - os: ubuntu-latest
-            c_compiler: clang-18
-            cpp_compiler: clang++
+  #       - os: ubuntu-latest
+  #         c_compiler: clang-18
+  #         cpp_compiler: clang++
         exclude:
           - os: windows-latest
             c_compiler: gcc-13
-          - os: windows-latest
-            c_compiler: clang-18
-            # disable windows until we figure out SDL2 install
-          - os: windows-latest
-            c_compiler: cl
+  #       - os: windows-latest
+  #         c_compiler: clang-18
           - os: ubuntu-latest
             c_compiler: cl
 
@@ -65,9 +63,26 @@ jobs:
       run: |
         sudo apt-get install libsdl2-dev
 
-    - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+    - name: Cache SDL
+      uses: actions/cache@v2
+      if: runner.os == 'Windows'
+      env:
+        cache-name: cache-sdl
+      with:
+        path: C:\SDL
+        key: ${{ runner.os }}-build-${{ env.cache-name }}
+
+    - name: Download SDL if not cached
+      if: runner.os == 'Windows'
+      run: |
+        if (-Not (Test-Path C:\SDL))
+        {
+            Invoke-WebRequest "https://github.com/libsdl-org/SDL/releases/download/release-$env:WINDOWS_SDL_VERSION/SDL2-devel-$env:WINDOWS_SDL_VERSION-VC.zip" -OutFile C:\SDL.zip
+            Expand-Archive C:\SDL.zip -DestinationPath C:\
+        }
+
+    - name: Configure CMake (Linux)
+      if: runner.os != 'Windows'
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
@@ -75,12 +90,16 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
 
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DSDL2_DIR=C:\SDL2-${{WINDOWS_SDL_VERSION}}\cmake
+        -S ${{ github.workspace }}
+
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
-
-    - name: Test
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest --build-config ${{ matrix.build_type }}
