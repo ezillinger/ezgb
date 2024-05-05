@@ -11,8 +11,8 @@
     #define NOMINMAX
     #define WIN32_LEAN_AND_MEAN 1
     #define _CRT_SECURE_NO_WARNINGS
-    #include <debugapi.h>
     #include <windows.h>
+    #include <debugapi.h>
 #endif
 
 #if EZ_MSVC
@@ -36,15 +36,15 @@ EZ_MSVC_WARN_DISABLE(4201) // we're using anonymous structs/unions extensively
 #if EZ_GCC
     #define EZ_CLANG_GCC_WARN_PUSH() _Pragma("GCC diagnostic push")
     #define EZ_CLANG_GCC_WARN_POP() _Pragma("GCC diagnostic pop")
-    #define EZ_CLANG_GCC_WARN_DISABLE(PP_WARNING) EZ_DO_PRAGMA(GCC diagnostic ignored #PP_WARNING)
+    #define EZ_CLANG_GCC_WARN_DISABLE(PP_WARNING) EZ_DO_PRAGMA(GCC diagnostic ignored PP_WARNING)
 #elif EZ_CLANG
     #define EZ_CLANG_GCC_WARN_PUSH() _Pragma("clang diagnostic push")
     #define EZ_CLANG_GCC_WARN_POP() _Pragma("clang diagnostic pop")
-    #define EZ_CLANG_GCC_WARN_DISABLE(PP_WARNING) EZ_DO_PRAGMA(clang diagnostic ignored #PP_WARNING)
+    #define EZ_CLANG_GCC_WARN_DISABLE(PP_WARNING) EZ_DO_PRAGMA(clang diagnostic ignored PP_WARNING)
 #else
     #define EZ_CLANG_GCC_WARN_PUSH()
     #define EZ_CLANG_GCC_WARN_POP()
     #define EZ_CLANG_GCC_WARN_DISABLE(PP_WARNING)
 #endif
 
-EZ_CLANG_GCC_WARN_DISABLE(-Wformat-security)
+EZ_CLANG_GCC_WARN_DISABLE("-Wformat-security")
