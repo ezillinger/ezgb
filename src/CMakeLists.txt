@@ -54,7 +54,21 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 
-target_link_libraries(ezgb SDL2::SDL2 OpenGL::GL)
+if(NOT EMSCRIPTEN)
+  target_link_libraries(ezgb SDL2::SDL2 OpenGL::GL)
+else()
+  target_compile_options(ezgb PRIVATE 
+  "-std=c++20" 
+  "-sUSE_SDL=2"
+  )
+  target_link_options(ezgb PRIVATE 
+  "-sUSE_SDL=2" 
+  "-sWASM=1"
+  "-sALLOW_MEMORY_GROWTH=1"
+  "-sNO_EXIT_RUNTIME=0"
+  "-sASSERTIONS=1"
+  )
+endif()
 
 if(EZ_USE_FREETYPE)
   find_package(Freetype REQUIRED)

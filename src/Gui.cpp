@@ -4,14 +4,19 @@
 namespace ez {
 
 Gui::Gui(AppState& state) : m_state(state) {
+    log_info("Creating GUI");
     update_rom_list();
-
     configure_ImGui();
+    log_info("Finished creating GUI");
 }
 
 Gui::~Gui() {}
 
 void Gui::update_rom_list() {
+
+    #if EZ_WASM
+    // todo, figure out how to load roms on wasm
+    #else
     m_romsAvail.clear();
     const auto romDir = "./roms/";
     for (auto& file : fs::recursive_directory_iterator(romDir)) {
@@ -22,6 +27,7 @@ void Gui::update_rom_list() {
     }
     std::sort(m_romsAvail.begin(), m_romsAvail.end(),
               [](const auto& lhs, const auto& rhs) { return lhs.filename() < rhs.filename(); });
+    #endif
 }
 
 void Gui::update_op_cache() {

@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(__EMSCRIPTEN__)
+    #define EZ_WASM 1
+    #include <emscripten.h>
+#endif
 #if defined(__clang__)
     #define EZ_CLANG 1
 #elif defined(__GNUC__) || defined(__GNUG__)

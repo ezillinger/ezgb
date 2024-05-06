@@ -1,16 +1,18 @@
 #include "Window.h"
 
+#include "ThirdParty_ImGui.h"
 #include "libs/imgui/backends/imgui_impl_opengl3.h"
 #include "libs/imgui/backends/imgui_impl_sdl2.h"
-#include "ThirdParty_ImGui.h"
 
 namespace ez {
 
 Window::Window(const char* title, int width, int height) {
+    log_info("Creating window");
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO) != 0) {
         fail("Failed to init SDL: {}\n", SDL_GetError());
     }
+    log_info("SDL_Init completed");
 
     // Decide GL+GLSL versions
 #if defined(IMGUI_IMPL_OPENGL_ES2)
@@ -48,15 +50,15 @@ Window::Window(const char* title, int width, int height) {
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_WindowFlags window_flags =
         (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-    m_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width,
-                                height, window_flags);
+    m_window = SDL_CreateWindow(
+        title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, window_flags);
     if (m_window == nullptr) {
         fail("Error: SDL_CreateWindow(): {}", SDL_GetError());
     }
 
     m_glContext = SDL_GL_CreateContext(m_window);
     SDL_GL_MakeCurrent(m_window, m_glContext);
-    SDL_GL_SetSwapInterval(1); // Disable vsync
+    SDL_GL_SetSwapInterval(1); // Enable vsync
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -92,6 +94,11 @@ Window::Window(const char* title, int width, int height) {
     // "fonts/" folder. See Makefile.emscripten for details.
     // io.Fonts->AddFontDefault();
     // io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\segoeui.ttf", 18.0f);
+
+    log_info("Loading Fonts");
+#if EZ_WASM
+    io.Fonts->AddFontDefault();
+#else
     ImFont* defaultFont = nullptr;
     for (const auto& fontPath : std::filesystem::directory_iterator("./data/fonts")) {
         if (fontPath.path().extension() == ".ttf") {
@@ -106,6 +113,8 @@ Window::Window(const char* title, int width, int height) {
         // io.Fonts->AddFontFromFileTTF("./data/fonts/ProggyClean.ttf", 15.0f);
         // io.Fonts->AddFontFromFileTTF("./data/fonts/Roboto-Medium.ttf", 15.0f);
     }
+#endif
+    log_info("Finished loading fonts");
     // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
     // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
     // ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f,
@@ -120,7 +129,7 @@ Window::~Window() {
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
 
-    SDL_CloseAudioDevice(m_audioDevice); 
+    SDL_CloseAudioDevice(m_audioDevice);
     SDL_GL_DeleteContext(m_glContext);
     SDL_DestroyWindow(m_window);
     SDL_Quit();
@@ -139,8 +148,8 @@ void Window::fill_audio_buffer(std::span<audio::Sample> dst) {
     }
 }
 
-audio::Sample Window::get_next_sample() { 
-    if(m_audioBuffer.empty()){
+audio::Sample Window::get_next_sample() {
+    if (m_audioBuffer.empty()) {
         return {0.0f, 0.0f};
     }
     const auto ret = m_audioBuffer.front();
@@ -149,14 +158,22 @@ audio::Sample Window::get_next_sample() {
 }
 
 void Window::push_audio(std::span<const audio::Sample> data) {
-    if(!data.empty()){
+    if (!data.empty()) {
+        const auto maxBufferSize = audio::SAMPLE_RATE * 2;
+        // if we've fallen behind dump old audio
         const auto lg = std::scoped_lock(m_audioLock);
+        if(m_audioBuffer.size() > maxBufferSize){
+            m_audioBuffer.clear();
+        }
         m_audioBuffer.insert(m_audioBuffer.end(), data.begin(), data.end());
     }
 }
 
 void Window::init_audio() {
 
+    log_info("Initializing Audio");
+
+    // todo, fix audio callback
     SDL_AudioSpec specDesired{};
     specDesired.freq = audio::SAMPLE_RATE;
     specDesired.channels = 2;
@@ -168,8 +185,11 @@ void Window::init_audio() {
     SDL_AudioSpec specObtained{};
     const auto allowNoChanges = 0;
     const auto noCapture = 0;
-    m_audioDevice = SDL_OpenAudioDevice(nullptr, noCapture, &specDesired, &specObtained, allowNoChanges);
+    m_audioDevice =
+        SDL_OpenAudioDevice(nullptr, noCapture, &specDesired, &specObtained, allowNoChanges);
     SDL_PauseAudioDevice(m_audioDevice, 0);
+
+    log_info("Finished Initializing Audio");
 }
 
 void Window::begin_frame() {
@@ -198,13 +218,16 @@ void Window::begin_frame() {
 }
 
 void Window::end_frame() {
+
     // Rendering
     ImGui::Render();
     auto& io = ImGui::GetIO();
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
     const auto clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w,
-                 clear_color.z * clear_color.w, clear_color.w);
+    glClearColor(clear_color.x * clear_color.w,
+                 clear_color.y * clear_color.w,
+                 clear_color.z * clear_color.w,
+                 clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(m_window);

@@ -3,9 +3,13 @@ cmake_minimum_required(VERSION 3.29)
 # set the project name
 project( ezgb )
 
-# specify the C++ standard
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+# for some reason emscripten tries to link to the system libc++ if we use CMAKE_CXX_STANDARD
+if(NOT EMSCRIPTEN)
+    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD_REQUIRED True)
+else()
+    set(CMAKE_EXECUTABLE_SUFFIX ".html")
+endif()
 
 option(EZ_ADDRESS_SANITIZER "Enable Clang address sanitiizer" False)
 option(EZ_USE_FREETYPE "Use Freetype for font rendering" False)

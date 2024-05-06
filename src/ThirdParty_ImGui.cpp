@@ -4,7 +4,9 @@ EZ_MSVC_WARN_PUSH()
 EZ_MSVC_WARN_DISABLE(4701)
 
 EZ_CLANG_GCC_WARN_PUSH()
+#if !EZ_WASM
 EZ_CLANG_GCC_WARN_DISABLE("-Wmaybe-uninitialized")
+#endif
 
 #include "libs/imgui/imgui.cpp"
 #include "libs/imgui/imgui_demo.cpp"
