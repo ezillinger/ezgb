@@ -32,6 +32,7 @@ class Gui {
     void draw_instructions();
     void draw_display();
     void draw_ppu();
+    void draw_popups();
 
     void update_rom_list();
     void update_op_cache();
@@ -44,7 +45,11 @@ class Gui {
 
     bool m_shouldExit = false;
     bool m_showDemoWindow = false;
+    bool m_showPPU = false;
     bool m_followPC = true;
+
+    bool m_showAboutPopup = false;
+    bool m_showControlsPopup = false;
 
     bool m_prevWasPaused = false;
 

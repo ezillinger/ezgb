@@ -7,9 +7,7 @@
 #include <thread>
 
 #if EZ_WASM
-    #include <emscripten.h>
-    #include <functional>
-static std::function<void()> MainLoopForEmscriptenP = []() {};
+static std::function<void()> MainLoopForEmscriptenP;
 static void MainLoopForEmscripten() { MainLoopForEmscriptenP(); }
     #define EMSCRIPTEN_MAINLOOP_BEGIN MainLoopForEmscriptenP = [&]()
     #define EMSCRIPTEN_MAINLOOP_END                                                                \
