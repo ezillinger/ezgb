@@ -98,6 +98,7 @@ class PPU {
     std::vector<rgba8> m_vramDebugFramebuffer = std::vector<rgba8>(VRAM_DEBUG_FB_HEIGHT * VRAM_DEBUG_FB_WIDTH);
 
     // whiter white than normal white
-    const std::vector<rgba8> m_displayOff = std::vector<rgba8>(size_t(DISPLAY_WIDTH * DISPLAY_HEIGHT), rgba8{0xf2, 0xf4, 0xf9, 0xFF});
+    const std::vector<rgba8> m_displayOff =
+        std::vector<rgba8>(size_t(DISPLAY_WIDTH * DISPLAY_HEIGHT), rgba8{0xc2, 0xc4, 0xc9, 0xFF});
 };
 } // namespace ez

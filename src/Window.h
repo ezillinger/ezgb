@@ -37,6 +37,8 @@ class Window {
 
     bool m_shouldExit = false;
 
+    bool m_audioInitialized = false;
+
     std::mutex m_audioLock{};
     std::deque<audio::Sample> m_audioBuffer;
 

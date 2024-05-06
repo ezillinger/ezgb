@@ -54,7 +54,23 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 
-target_link_libraries(ezgb SDL2::SDL2 OpenGL::GL)
+if(NOT EMSCRIPTEN)
+  target_link_libraries(ezgb SDL2::SDL2 OpenGL::GL)
+else()
+  # for some reason setting set(CMAKE_CXX_STANDARD 20) chooses the wrong version
+  target_compile_options(ezgb PRIVATE 
+    "-std=c++20" 
+    "-sUSE_SDL=2"
+  )
+  target_link_options(ezgb PRIVATE 
+    "-sUSE_SDL=2" 
+    "-sWASM=1"
+    "-sALLOW_MEMORY_GROWTH=1"
+    "-sNO_EXIT_RUNTIME=0"
+    "-sASSERTIONS=1"
+    "--shell-file ./index.html" # todo, why doesn't this work?!
+  )
+endif()
 
 if(EZ_USE_FREETYPE)
   find_package(Freetype REQUIRED)

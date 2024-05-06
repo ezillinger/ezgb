@@ -1,19 +1,28 @@
 #include "Emulator.h"
 #include "MiscOps.h"
 #include "OpCodes.h"
+#include "Bootrom.h"
 
 namespace ez {
 
 Emulator::Emulator(Cart& cart, EmuSettings settings)
     : m_cart(cart)
     , m_settings(settings) {
-    const auto bootromPath = "./roms/bootix_dmg.bin";
-    //const auto bootromPath = "./roms/dmg_boot.bin";
-    log_info("Loading bootrom: {}", bootromPath);
-    auto fp = fopen(bootromPath, "rb");
-    ez_assert(fp);
-    ez_assert(BOOTROM_BYTES == fread(m_bootrom.data(), 1, BOOTROM_BYTES, fp));
-    fclose(fp);
+
+    static constexpr bool loadBootromFromFile = false;
+    if(loadBootromFromFile){
+        const auto bootromPath = "./roms/bootix_dmg.bin";
+        log_info("Loading bootrom: {}", bootromPath);
+        auto fp = fopen(bootromPath, "rb");
+        ez_assert(fp);
+        ez_assert(BOOTROM_BYTES == fread(m_bootrom.data(), 1, BOOTROM_BYTES, fp));
+        fclose(fp);
+    }
+    else {
+        memcpy(m_bootrom.data(), BOOTROM.data(), BOOTROM_BYTES);
+    }
+
+    log_info("Bootrom loaded successfully");
 
     if (m_settings.m_skipBootROM) {
         m_reg.a = 0x01;

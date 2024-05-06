@@ -3,15 +3,40 @@
 
 namespace ez {
 
-Gui::Gui(AppState& state) : m_state(state) {
-    update_rom_list();
+static constexpr ImVec4 rgbMult(ImVec4 v, float t) {
+    return ImVec4{v.x * t, v.y * t, v.z * t, v.w};
+}
 
+static constexpr auto brown = ImVec4(59 / 255.0f, 47 / 255.0f, 9 / 255.0f, 1.0f);
+// static constexpr auto ltBrown = rgbMult(brown, 1.2f);
+static constexpr auto dkBrown = rgbMult(brown, 0.73f);
+static constexpr auto dkdkBrown = rgbMult(brown, 0.7f);
+
+static constexpr auto green = ImVec4(52 / 255.0f, 89 / 255.0f, 58 / 255.0f, 1.0f);
+static constexpr auto ltGreen = rgbMult(green, 1.2f);
+static constexpr auto dkGreen = rgbMult(green, 0.7f);
+
+static constexpr auto blue = ImVec4(100 / 255.0f, 138 / 255.0f, 146 / 255.0f, 1.0f);
+// static constexpr auto ltBlue = rgbMult(blue, 1.2f);
+// static constexpr auto dkBlue = rgbMult(blue, 0.8f);
+
+static constexpr auto white = ImVec4(226 / 255.0f, 228 / 255.0f, 232 / 255.0f, 1.0f);
+
+Gui::Gui(AppState& state)
+    : m_state(state) {
+    log_info("Creating GUI");
+    update_rom_list();
     configure_ImGui();
+    log_info("Finished creating GUI");
 }
 
 Gui::~Gui() {}
 
 void Gui::update_rom_list() {
+
+#if EZ_WASM
+// todo, figure out how to load roms on wasm
+#else
     m_romsAvail.clear();
     const auto romDir = "./roms/";
     for (auto& file : fs::recursive_directory_iterator(romDir)) {
@@ -20,8 +45,10 @@ void Gui::update_rom_list() {
             m_romsAvail.push_back(file.path());
         }
     }
-    std::sort(m_romsAvail.begin(), m_romsAvail.end(),
-              [](const auto& lhs, const auto& rhs) { return lhs.filename() < rhs.filename(); });
+    std::sort(m_romsAvail.begin(), m_romsAvail.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.filename() < rhs.filename();
+    });
+#endif
 }
 
 void Gui::update_op_cache() {
@@ -34,8 +61,8 @@ void Gui::update_op_cache() {
             if (opByte == +OpCode::PREFIX) {
                 isPrefixedOffset = 1;
             }
-            const auto info = isPrefixedOffset == 0 ? get_opcode_info_prefixed(opByte)
-                                                    : get_opcode_info(opByte);
+            const auto info =
+                isPrefixedOffset == 0 ? get_opcode_info_prefixed(opByte) : get_opcode_info(opByte);
             m_opCache.emplace_back(addr, info);
             lastOpSize = info.m_size;
             --isPrefixedOffset;
@@ -79,20 +106,89 @@ InputState Gui::handle_keyboard() {
 }
 
 void Gui::draw() {
+
+    // reset mouse cursor
+    ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
     draw_toolbar();
+
+    draw_popups();
     draw_registers();
     draw_settings();
     draw_console();
     draw_instructions();
     draw_display();
-    draw_ppu();
+    if (m_showPPU) {
+        draw_ppu();
+    }
 
     if (m_showDemoWindow) {
         ImGui::ShowDemoWindow();
     }
 }
 
+static void drawUnderline(ImColor col_) {
+    ImVec2 min = ImGui::GetItemRectMin();
+    ImVec2 max = ImGui::GetItemRectMax();
+    min.y = max.y;
+    ImGui::GetWindowDrawList()->AddLine(min, max, col_, 1.0f);
+}
+
+static void urlText(const char* text, const char* url = nullptr) {
+    ImGui::Text(text);
+    if (ImGui::IsItemHovered()) {
+        drawUnderline(ImGui::GetStyleColorVec4(ImGuiCol_Text));
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+    } else {
+    }
+    if (ImGui::IsItemClicked(0)) {
+        SDL_OpenURL(url ? url : text);
+    }
+}
+
+void Gui::draw_popups() {
+
+    if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("ezgb - Made by Eric Zillinger in 2024");
+        urlText("https://github.com/ezillinger/ezgb");
+        ImGui::Spacing();
+        ImGui::Text("Windsor Road - Made by Louie Zong in 2021");
+        urlText("https://everydaylouie.itch.io/windsor-road");
+        ImGui::Spacing();
+        if (ImGui::Button("Close")) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    if (m_showAboutPopup) {
+        ImGui::OpenPopup("About");
+        m_showAboutPopup = false;
+    }
+
+    if (ImGui::BeginPopupModal("Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("A - Z");
+        ImGui::Text("B - X");
+        ImGui::Text("Start - A");
+        ImGui::Text("Select - S");
+        ImGui::Text("D-Pad - Arrow Keys");
+        ImGui::Spacing();
+        ImGui::Text("Pause/Resume - Space");
+        ImGui::Text("Restart ROM - R");
+        ImGui::Text("Step One Cycle - M");
+        ImGui::Text("Step One Instruction - N");
+        ImGui::Spacing();
+        if (ImGui::Button("Close")) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    if (m_showControlsPopup) {
+        ImGui::OpenPopup("Controls");
+        m_showControlsPopup = false;
+    }
+}
+
 void Gui::draw_toolbar() {
+
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Reset")) {
@@ -118,7 +214,18 @@ void Gui::draw_toolbar() {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Options")) {
-            ImGui::Checkbox("Show Demo Window", &m_showDemoWindow);
+            ImGui::Checkbox("Show PPU Debug Panel", &m_showPPU);
+            ImGui::Checkbox("Show ImGui Demo Window", &m_showDemoWindow);
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Help")) {
+            if (ImGui::MenuItem("About")) {
+                m_showAboutPopup = true;
+            }
+            if (ImGui::MenuItem("Controls")) {
+                m_showControlsPopup = true;
+            }
             ImGui::EndMenu();
         }
         const auto buttonWidth = 100.0f;
@@ -128,7 +235,7 @@ void Gui::draw_toolbar() {
         ImGui::PushItemWidth(buttonWidth);
         if (ImGui::Button(m_state.m_isPaused ? "Resume" : "Break", buttonSize)) {
             m_state.m_isPaused = !m_state.m_isPaused;
-            if(m_state.m_isPaused){
+            if (m_state.m_isPaused) {
                 update_op_cache();
             }
         }
@@ -186,9 +293,10 @@ void Gui::draw_registers() {
         drawReg8("H", emu.m_reg.h);
         drawReg8("L", emu.m_reg.l);
         drawReg16("HL", emu.m_reg.hl);
-        ImGui::Text("Flags:\n Z {}\n N {}\n H {}\n C {}"_format(
-                        emu.get_flag(Flag::ZERO), emu.get_flag(Flag::NEGATIVE),
-                        emu.get_flag(Flag::HALF_CARRY), emu.get_flag(Flag::CARRY))
+        ImGui::Text("Flags:\n Z {}\n N {}\n H {}\n C {}"_format(emu.get_flag(Flag::ZERO),
+                                                                emu.get_flag(Flag::NEGATIVE),
+                                                                emu.get_flag(Flag::HALF_CARRY),
+                                                                emu.get_flag(Flag::CARRY))
                         .c_str());
 
         ImGui::Checkbox("Stop Mode", &m_state.m_emu->m_stopMode);
@@ -210,9 +318,15 @@ void Gui::draw_registers() {
             auto& ioReg = m_state.m_emu->m_ioReg;
             ImGui::Text(
                 "IE/IF:\n VB      {} {}\n LCD     {} {}\n TIMER   {} {}\n SERIAL  {} {}\n JOY     {} {}"_format(
-                    bool(ioReg.m_ie.vblank), bool(ioReg.m_if.vblank), bool(ioReg.m_ie.lcd),
-                    bool(ioReg.m_if.lcd), bool(ioReg.m_ie.timer), bool(ioReg.m_if.timer),
-                    bool(ioReg.m_ie.serial), bool(ioReg.m_if.serial), bool(ioReg.m_ie.joypad),
+                    bool(ioReg.m_ie.vblank),
+                    bool(ioReg.m_if.vblank),
+                    bool(ioReg.m_ie.lcd),
+                    bool(ioReg.m_if.lcd),
+                    bool(ioReg.m_ie.timer),
+                    bool(ioReg.m_if.timer),
+                    bool(ioReg.m_ie.serial),
+                    bool(ioReg.m_if.serial),
+                    bool(ioReg.m_ie.joypad),
                     bool(ioReg.m_if.joypad))
                     .c_str());
         }
@@ -241,6 +355,65 @@ void Gui::reset_emulator() {
 void Gui::configure_ImGui() {
     auto& style = ImGui::GetStyle();
     style.ScrollbarSize *= 1.25f;
+    style.FrameRounding = 12.0f;
+    style.WindowBorderSize = 0.0f;
+    style.WindowTitleAlign.x = 0.5f;
+
+    ImVec4* colors = ImGui::GetStyle().Colors;
+    colors[ImGuiCol_Text] = white;
+    colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+    colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+    colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    colors[ImGuiCol_PopupBg] = ImVec4(0.19f, 0.19f, 0.19f, 0.92f);
+    colors[ImGuiCol_Border] = ImVec4(0.19f, 0.19f, 0.19f, 0.29f);
+    colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.24f);
+    colors[ImGuiCol_FrameBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
+    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.19f, 0.19f, 0.19f, 0.54f);
+    colors[ImGuiCol_FrameBgActive] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
+    colors[ImGuiCol_TitleBg] = dkBrown; // ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+    colors[ImGuiCol_TitleBgActive] = dkBrown;
+    //    = ImVec4(0.06f, 0.06f, 0.06f, 1.00f);
+    colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+    colors[ImGuiCol_MenuBarBg] = dkBrown; // ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+    colors[ImGuiCol_ScrollbarBg] = ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
+    colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
+    colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.40f, 0.40f, 0.40f, 0.54f);
+    colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
+    colors[ImGuiCol_CheckMark] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
+    colors[ImGuiCol_SliderGrab] = ImVec4(0.34f, 0.34f, 0.34f, 0.54f);
+    colors[ImGuiCol_SliderGrabActive] = ImVec4(0.56f, 0.56f, 0.56f, 0.54f);
+    colors[ImGuiCol_Button] = dkGreen;       // ImVec4(0.05f, 0.05f, 0.05f, 0.54f);
+    colors[ImGuiCol_ButtonHovered] = green;  //    = ImVec4(0.19f, 0.19f, 0.19f, 0.54f);
+    colors[ImGuiCol_ButtonActive] = ltGreen; // = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
+    colors[ImGuiCol_Header] = dkdkBrown;
+    colors[ImGuiCol_HeaderHovered] = dkBrown;
+    colors[ImGuiCol_HeaderActive] = ImVec4(0.20f, 0.22f, 0.23f, 0.33f);
+    colors[ImGuiCol_Separator] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
+    colors[ImGuiCol_SeparatorHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
+    colors[ImGuiCol_SeparatorActive] = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
+    colors[ImGuiCol_ResizeGrip] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
+    colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.44f, 0.44f, 0.44f, 0.29f);
+    colors[ImGuiCol_ResizeGripActive] = ImVec4(0.40f, 0.44f, 0.47f, 1.00f);
+    colors[ImGuiCol_Tab] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+    colors[ImGuiCol_TabHovered] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+    colors[ImGuiCol_TabActive] = ImVec4(0.20f, 0.20f, 0.20f, 0.36f);
+    colors[ImGuiCol_TabUnfocused] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+    colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+    colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+    colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+    colors[ImGuiCol_PlotHistogram] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+    colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+    colors[ImGuiCol_TableHeaderBg] = dkBrown;
+    colors[ImGuiCol_TableBorderStrong] = ImVec4(0.00f, 0.00f, 0.00f, 0.52f);
+    colors[ImGuiCol_TableBorderLight] = ImVec4(0.28f, 0.28f, 0.28f, 0.29f);
+    colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
+    colors[ImGuiCol_TextSelectedBg] = ImVec4(0.20f, 0.22f, 0.23f, 1.00f);
+    colors[ImGuiCol_DragDropTarget] = ImVec4(0.33f, 0.67f, 0.86f, 1.00f);
+    colors[ImGuiCol_NavHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 1.00f);
+    colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 0.00f, 0.00f, 0.70f);
+    colors[ImGuiCol_NavWindowingDimBg] = ImVec4(1.00f, 0.00f, 0.00f, 0.20f);
+    colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.35f);
 }
 
 void Gui::put_next_window(const float2& pos, const float2& dims) {
@@ -261,7 +434,8 @@ void Gui::put_next_window(const float2& pos, const float2& dims) {
 }
 
 ImGuiWindowFlags Gui::getWindowFlags() {
-    return ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar;
+    return ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_HorizontalScrollbar |
+           ImGuiWindowFlags_NoResize;
 }
 
 void Gui::draw_settings() {
@@ -270,14 +444,22 @@ void Gui::draw_settings() {
     if (ImGui::Begin("Settings", nullptr, getWindowFlags())) {
         ImGui::Checkbox("Skip Bootrom", &emu.m_settings.m_skipBootROM);
         ImGui::Checkbox("Log", &emu.m_settings.m_logEnable);
-        ImGui::DragInt("PC Break Addr", &m_state.m_debugSettings.m_breakOnPC, 1.0f, -1, INT16_MAX,
+        ImGui::DragInt(
+            "PC Break Addr", &m_state.m_debugSettings.m_breakOnPC, 1.0f, -1, INT16_MAX, "%04x");
+        ImGui::DragInt(
+            "OC Break", &m_state.m_debugSettings.m_breakOnOpCode, 1.0f, -1, INT16_MAX, "%04x");
+        ImGui::DragInt("OC Break Prefixed",
+                       &m_state.m_debugSettings.m_breakOnOpCodePrefixed,
+                       1.0f,
+                       -1,
+                       INT16_MAX,
                        "%04x");
-        ImGui::DragInt("OC Break", &m_state.m_debugSettings.m_breakOnOpCode, 1.0f, -1, INT16_MAX,
+        ImGui::DragInt("Break On Write Addr",
+                       &m_state.m_debugSettings.m_breakOnWriteAddr,
+                       1.0f,
+                       -1,
+                       INT16_MAX,
                        "%04x");
-        ImGui::DragInt("OC Break Prefixed", &m_state.m_debugSettings.m_breakOnOpCodePrefixed, 1.0f,
-                       -1, INT16_MAX, "%04x");
-        ImGui::DragInt("Break On Write Addr", &m_state.m_debugSettings.m_breakOnWriteAddr, 1.0f, -1,
-                       INT16_MAX, "%04x");
 
         ImGui::Separator();
     }
@@ -308,12 +490,15 @@ void Gui::draw_instructions() {
         ImGui::SameLine();
         if (ImGui::Button("Jump to PC") || m_followPC) {
             const auto lb =
-                std::lower_bound(m_opCache.begin(), m_opCache.end(), m_state.m_emu->m_reg.pc,
+                std::lower_bound(m_opCache.begin(),
+                                 m_opCache.end(),
+                                 m_state.m_emu->m_reg.pc,
                                  [](const OpLine& line, int addr) { return line.m_addr < addr; });
             scrollToLine = int(lb - m_opCache.begin());
         }
         const auto numCols = 5;
-        if (ImGui::BeginTable("Memory View Table", numCols,
+        if (ImGui::BeginTable("Memory View Table",
+                              numCols,
                               ImGuiTableFlags_ScrollY | ImGuiTableFlags_Resizable)) {
             ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
             ImGui::TableSetupColumn("Addr", ImGuiTableColumnFlags_None);
@@ -330,7 +515,7 @@ void Gui::draw_instructions() {
                     ImGui::TableNextRow();
                     const auto& ocLine = m_opCache[row];
                     if (emu.m_reg.pc == ocLine.m_addr) {
-                        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, 0xFF0000FF);
+                        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImColor(blue));
                     }
                     ImGui::TableNextColumn();
                     ImGui::Text("{:04x}"_format(ocLine.m_addr).c_str());
@@ -361,7 +546,8 @@ void Gui::draw_instructions() {
                         operandText += "a16={:04x} "_format(u16);
                     }
                     if (hasOperand("a8") || hasOperand("(a8)")) {
-                        const uint16_t a8 = 0xFF00 + m_state.m_emu->read_addr(uint16_t(ocLine.m_addr + 1));
+                        const uint16_t a8 =
+                            0xFF00 + m_state.m_emu->read_addr(uint16_t(ocLine.m_addr + 1));
                         operandText += "a8={:04x} "_format(a8);
                     }
                     if (hasOperand("(a16)")) {
@@ -370,13 +556,14 @@ void Gui::draw_instructions() {
                         operandText += "(a16)={:02x} "_format(a16deref);
                     }
                     if (hasOperand("(a8)")) {
-                        const uint16_t a8 = 0xFF00 + m_state.m_emu->read_addr(uint16_t(ocLine.m_addr + 1));
+                        const uint16_t a8 =
+                            0xFF00 + m_state.m_emu->read_addr(uint16_t(ocLine.m_addr + 1));
                         const auto a8deref = m_state.m_emu->read_addr(a8);
                         operandText += "(a8)={:02x} "_format(a8deref);
                     }
                     if (hasOperand("i8")) {
-                        const auto i8 =
-                            static_cast<int8_t>(m_state.m_emu->read_addr(uint16_t(ocLine.m_addr + 1)));
+                        const auto i8 = static_cast<int8_t>(
+                            m_state.m_emu->read_addr(uint16_t(ocLine.m_addr + 1)));
                         operandText += "i8={:02x} "_format(i8);
                     }
                     if (hasOperand("u8")) {
@@ -402,8 +589,15 @@ void Gui::draw_instructions() {
 }
 
 void Gui::draw_display() {
-    put_next_window({1, 0}, {2, 2});
-    if (ImGui::Begin("Display", nullptr, getWindowFlags())) {
+    if (m_showPPU) {
+        put_next_window({1, 0}, {2, 2});
+    } else {
+        put_next_window({1, 0}, {2, 3.5f});
+    }
+    if (ImGui::Begin("Display",
+                     nullptr,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar |
+                         ImGuiWindowFlags_NoResize)) {
         // todo, use pixel buffer to upload
         const auto dims = m_displayTex.dim();
         m_displayTex.update(m_state.m_emu->get_display_framebuffer());
@@ -416,7 +610,7 @@ void Gui::draw_display() {
         const auto paddingSize = ImVec2{std::max(0.0f, vpDim.x - imageDims.x) / 2.0f,
                                         std::max(0.0f, vpDim.y - imageDims.y) / 2.0f};
         ImGui::Dummy(paddingSize);
-        if(paddingSize.x > 0){
+        if (paddingSize.x > 0) {
             ImGui::SameLine();
         }
         imguiImage(m_displayTex, imageDims);
