@@ -69,6 +69,7 @@ class PPU {
     void set_stat_irq(StatIRQSources src);
     void update_ly_eq_lyc();
     void update_scanline();
+    void do_oam_scan();
 
     static void render_tile(const uint8_t* tileBegin, uint8_t* dst, int rowPitch);
 
@@ -84,6 +85,9 @@ class PPU {
     bool m_statIRQRisingEdge = false;
 
     IORegisters& m_reg;
+
+    using ObjAndIdx = std::pair<ObjectAttribute, int>;
+    std::vector<ObjAndIdx> m_spritesAndOamIdxOnLine;
 
     std::vector<uint8_t> m_bg = std::vector<uint8_t>(BG_WINDOW_DIM_XY * BG_WINDOW_DIM_XY);
     std::vector<uint8_t> m_window = std::vector<uint8_t>(BG_WINDOW_DIM_XY * BG_WINDOW_DIM_XY);

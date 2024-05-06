@@ -61,6 +61,7 @@ void PPU::tick() {
     switch (m_reg.m_lcd.m_status.m_ppuMode) {
         case +PPUMode::OAM_SCAN:
             if (m_currentLineDotTickCount == 80) {
+                do_oam_scan();
                 m_currentLineDotTickCount = 0;
                 m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::DRAWING;
             }
@@ -85,6 +86,9 @@ void PPU::tick() {
                     if (m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_mode1InterruptSelect) {
                         set_stat_irq(StatIRQSources::MODE_1);
                     }
+                }
+                else{
+                    m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::OAM_SCAN;
                 }
                 update_ly_eq_lyc();
             }
@@ -186,31 +190,7 @@ void PPU::update_scanline() {
 
     const auto y = m_reg.m_lcd.m_ly;
     const auto objHeight = m_reg.m_lcd.m_control.m_objSize ? 16 : 8;
-    using ObjAndIdx = std::pair<ObjectAttribute, int>;
-    // todo, move this to OAM scan
-    std::vector<ObjAndIdx> spritesAndOamIdxOnLine;
-    if (m_reg.m_lcd.m_control.m_objEnable) {
-        ez_assert(iRange{0, DISPLAY_HEIGHT}.containsExclusive(y));
-        for (auto objIdx = 0; objIdx < OAM_SPRITE_COUNT; ++objIdx) {
-            const auto oa = reinterpret_cast<ObjectAttribute*>(m_oam.data())[objIdx];
-            const auto yMin = oa.m_yPosMinus16 - 16;
-            const auto spriteRangeY = iRange{yMin, yMin + objHeight};
-            if (spriteRangeY.containsExclusive(y)) {
-                spritesAndOamIdxOnLine.push_back({oa, objIdx});
-                if (spritesAndOamIdxOnLine.size() == 10) {
-                    break;
-                }
-            }
-        }
-        ez_assert(spritesAndOamIdxOnLine.size() <= 10);
-    }
-
-    std::sort(spritesAndOamIdxOnLine.begin(), spritesAndOamIdxOnLine.end(),
-              [](const ObjAndIdx& lhs, const ObjAndIdx& rhs) {
-                  return lhs.first.m_xPosMinus8 == rhs.first.m_xPosMinus8
-                             ? lhs.second < rhs.second
-                             : lhs.first.m_xPosMinus8 < rhs.first.m_xPosMinus8;
-              });
+    
     // todo, don't draw the entire bg/window every line
     update_bg_row(y);
     update_window_row(y);
@@ -235,7 +215,7 @@ void PPU::update_scanline() {
         uint8_t spritePaletteIdx = 0;
         auto spritePriority = false;
         auto spritePalette = false;
-        for (const auto& spritePair : spritesAndOamIdxOnLine) {
+        for (const auto& spritePair : m_spritesAndOamIdxOnLine) {
             const auto& sprite = spritePair.first;
             if (!iRange(sprite.m_xPosMinus8 - 8, sprite.m_xPosMinus8).containsExclusive(x)) {
                 continue;
@@ -274,6 +254,37 @@ void PPU::update_scanline() {
         const auto color = get_color(useSpritePx ? spriteColorIdx : bgColorIdx);
         m_display[y * DISPLAY_WIDTH + x] = color;
     }
+}
+
+void PPU::do_oam_scan() {
+
+    m_spritesAndOamIdxOnLine.clear();
+
+    const auto y = m_reg.m_lcd.m_ly;
+    const auto objHeight = m_reg.m_lcd.m_control.m_objSize ? 16 : 8;
+    // todo, move this to OAM scan
+    if (m_reg.m_lcd.m_control.m_objEnable) {
+        ez_assert(iRange{0, DISPLAY_HEIGHT}.containsExclusive(y));
+        for (auto objIdx = 0; objIdx < OAM_SPRITE_COUNT; ++objIdx) {
+            const auto oa = reinterpret_cast<ObjectAttribute*>(m_oam.data())[objIdx];
+            const auto yMin = oa.m_yPosMinus16 - 16;
+            const auto spriteRangeY = iRange{yMin, yMin + objHeight};
+            if (spriteRangeY.containsExclusive(y)) {
+                m_spritesAndOamIdxOnLine.push_back({oa, objIdx});
+                if (m_spritesAndOamIdxOnLine.size() == 10) {
+                    break;
+                }
+            }
+        }
+        ez_assert(m_spritesAndOamIdxOnLine.size() <= 10);
+    }
+
+    std::sort(m_spritesAndOamIdxOnLine.begin(), m_spritesAndOamIdxOnLine.end(),
+              [](const ObjAndIdx& lhs, const ObjAndIdx& rhs) {
+                  return lhs.first.m_xPosMinus8 == rhs.first.m_xPosMinus8
+                             ? lhs.second < rhs.second
+                             : lhs.first.m_xPosMinus8 < rhs.first.m_xPosMinus8;
+              });
 }
 
 void PPU::update_bg_row(int y) {

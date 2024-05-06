@@ -28,10 +28,10 @@ int main(int, char**) {
 
     auto state = AppState{};
 
-    static constexpr bool loadRomFromDisk = false;
+    static constexpr bool loadRomFromDisk = true;
     if (loadRomFromDisk) {
         log_info("Looking for ROMs");
-        auto romStartsWith = "tetris";
+        auto romStartsWith = "dmg-acid";
         auto romPath = "./roms/cpu_instrs.gb"s;
         for (auto& romFile : fs::recursive_directory_iterator("./roms/")) {
             if (romFile.path().filename().string().starts_with(romStartsWith) &&
