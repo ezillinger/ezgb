@@ -64,8 +64,8 @@ Window::Window(const char* title, int width, int height) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -213,9 +213,19 @@ void Window::begin_frame() {
         ImGui_ImplSDL2_ProcessEvent(&event);
         if (event.type == SDL_QUIT)
             m_shouldExit = true;
-        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE &&
-            event.window.windowID == SDL_GetWindowID(m_window))
-            m_shouldExit = true;
+        if (event.type == SDL_WINDOWEVENT && event.window.windowID == SDL_GetWindowID(m_window)) {
+            if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
+                m_shouldExit = true;
+            }
+            if(m_audioInitialized){
+                if(event.window.event == SDL_WINDOWEVENT_FOCUS_LOST){
+                    SDL_PauseAudioDevice(m_audioDevice, 1);
+                }
+                if(event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED){
+                    SDL_PauseAudioDevice(m_audioDevice, 0);
+                }
+            }
+        }
     }
 
     // Start the Dear ImGui frame

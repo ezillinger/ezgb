@@ -43,7 +43,7 @@ int main(int, char**) {
         state.m_cart = std::make_unique<Cart>(Cart::load_from_disk(romPath));
     } else {
         log_info("Loading Windsor Road");
-        state.m_cart = std::make_unique<Cart>(SAMPLE_ROM.data(), SAMPLE_ROM.size());
+        state.m_cart = std::make_unique<Cart>(SAMPLE_ROM);
     }
 
     log_info("Created Cart");

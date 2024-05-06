@@ -8,7 +8,7 @@ Tester::Tester() {}
 
 Cart Tester::make_cart() {
     const auto zeros = std::vector<uint8_t>(64 * 1024ull);
-    return Cart(zeros.data(), zeros.size());
+    return Cart(zeros);
 }
 
 Emulator Tester::make_emulator() {

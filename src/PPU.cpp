@@ -81,6 +81,7 @@ void PPU::tick() {
                 ++m_reg.m_lcd.m_ly;
                 m_currentLineDotTickCount = 0;
                 if (m_reg.m_lcd.m_ly == DISPLAY_HEIGHT) {
+                    m_displayOnLastVBlank = m_display;
                     m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::VBLANK;
                     m_reg.m_if.vblank = true;
                     if (m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_mode1InterruptSelect) {
@@ -123,7 +124,13 @@ void PPU::tick() {
 
 std::span<const rgba8> PPU::get_display_framebuffer() const {
     if (m_reg.m_lcd.m_control.m_ppuEnable) {
-        return { m_display };
+        // don't let display tear
+        static constexpr bool allowTearing = false;
+        if(allowTearing){
+            return m_display;
+        } else {
+            return m_displayOnLastVBlank;
+        }
     } else {
         return m_displayOff;
     }

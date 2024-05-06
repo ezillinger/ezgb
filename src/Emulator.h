@@ -139,8 +139,8 @@ class Emulator {
     bool want_breakpoint() { return m_wantBreakpoint; }
     void clear_want_breakpoint() { m_wantBreakpoint = false; }
 
-        std::span<const rgba8> get_display_framebuffer() const {
-            return m_ppu.get_display_framebuffer();
+    std::span<const rgba8> get_display_framebuffer() const {
+        return m_ppu.get_display_framebuffer();
     };
     std::span<const rgba8> get_window_dbg_framebuffer() {
         return m_ppu.get_window_dbg_framebuffer();

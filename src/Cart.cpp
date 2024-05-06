@@ -13,10 +13,10 @@ Cart Cart::load_from_disk(const fs::path& path) {
     ez_assert(sizeBytes == fread(data.data(), 1, sizeBytes, fp));
     fclose(fp);
 
-    return Cart(data.data(), data.size());
+    return Cart(data);
 }
 
-Cart::Cart(const uint8_t* data, size_t len) : m_sizeBytes(len), m_data(data, data + len) {
+Cart::Cart(std::span<const uint8_t> data) : m_sizeBytes(data.size()), m_data(data.begin(), data.end()) {
     m_cartType = CartType(m_data[0x0147]);
     log_info("CartType: {}", +m_cartType);
     ez_assert(m_cartType == CartType::ROM_ONLY || is_mbc1_type(m_cartType));

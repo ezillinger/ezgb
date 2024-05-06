@@ -96,6 +96,7 @@ class PPU {
     std::vector<uint8_t> m_oam = std::vector<uint8_t>(OAM_ADDR_RANGE.width());
 
     std::vector<rgba8> m_display = std::vector<rgba8>(size_t(DISPLAY_WIDTH * DISPLAY_HEIGHT));
+    std::vector<rgba8> m_displayOnLastVBlank = std::vector<rgba8>(size_t(DISPLAY_WIDTH * DISPLAY_HEIGHT));
 
     std::vector<rgba8> m_windowDebugFramebuffer = std::vector<rgba8>(size_t(BG_WINDOW_DIM_XY * BG_WINDOW_DIM_XY));
     std::vector<rgba8> m_bgDebugFramebuffer = std::vector<rgba8>(size_t(BG_WINDOW_DIM_XY * BG_WINDOW_DIM_XY));

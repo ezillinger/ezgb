@@ -353,6 +353,7 @@ void Gui::reset_emulator() {
 }
 
 void Gui::configure_ImGui() {
+
     auto& style = ImGui::GetStyle();
     style.ScrollbarSize *= 1.25f;
     style.FrameRounding = 12.0f;

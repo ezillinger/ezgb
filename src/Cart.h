@@ -50,7 +50,7 @@ class Cart {
     friend class Tester;
     friend class Gui;
 
-    Cart(const uint8_t* data, size_t len);
+    Cart(std::span<const uint8_t> data);
     static Cart load_from_disk(const fs::path& path);
 
     uint8_t read_addr(uint16_t addr) const;
