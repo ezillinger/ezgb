@@ -5,11 +5,15 @@
 
 This is a Gameboy emulator written from scratch in C++20. It's not super accurate but it is mostly feature complete 
 
+[Click here to try me in your browser!](https://zillinger.ca/ezgb_wasm)
+
 #### Features
 
 * Plays most simple commercial games - ROM Only and MBC1 cartridge types
+* Runs in the browser via WebAssembly
 * Audio
 * Debugger/Disassembler with breakpoints
+* PPU Vram Debug Display
 
 #### Things that can be improved
 
@@ -31,6 +35,7 @@ I tried to use as few 3rd party libraries as possible The only 3rd party librari
 ### Building
 
 * Requires CMake, a C++20 compiler, and SDL2
+* Tested on GCC, LLVM Clang, MSVC, and Emscripten
 * On Linux/MacOS install SDL2 with your package manager
 * You'll need to install GCC or LLVM Clang on MacOS - AppleClang doesn't have enough C++20 support
 * On Windows download an SDL2 release and set the path in the top level CmakeLists.txt
