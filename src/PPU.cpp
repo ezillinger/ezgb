@@ -3,7 +3,10 @@
 
 namespace ez {
 
-PPU::PPU(IORegisters& ioReg) : m_reg(ioReg) { reset(); }
+PPU::PPU(IORegisters& ioReg)
+    : m_reg(ioReg) {
+    reset();
+}
 
 void PPU::write_addr(uint16_t addr, uint8_t data) {
     if (VRAM_ADDR_RANGE.containsExclusive(addr)) {
@@ -87,8 +90,7 @@ void PPU::tick() {
                     if (m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_mode1InterruptSelect) {
                         set_stat_irq(StatIRQSources::MODE_1);
                     }
-                }
-                else{
+                } else {
                     m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::OAM_SCAN;
                 }
                 update_ly_eq_lyc();
@@ -126,7 +128,7 @@ std::span<const rgba8> PPU::get_display_framebuffer() const {
     if (m_reg.m_lcd.m_control.m_ppuEnable) {
         // don't let display tear
         static constexpr bool allowTearing = false;
-        if(allowTearing){
+        if (allowTearing) {
             return m_display;
         } else {
             return m_displayOnLastVBlank;
@@ -142,7 +144,8 @@ std::span<const rgba8> PPU::get_window_dbg_framebuffer() {
     }
     for (auto y = 0; y < BG_WINDOW_DIM_XY; ++y) {
         for (auto x = 0; x < BG_WINDOW_DIM_XY; ++x) {
-            m_windowDebugFramebuffer[y * BG_WINDOW_DIM_XY + x] = get_bg_color(m_window[y * BG_WINDOW_DIM_XY + x]);
+            m_windowDebugFramebuffer[y * BG_WINDOW_DIM_XY + x] =
+                get_bg_color(m_window[y * BG_WINDOW_DIM_XY + x]);
         }
     }
     return m_windowDebugFramebuffer;
@@ -154,7 +157,8 @@ std::span<const rgba8> PPU::get_bg_dbg_framebuffer() {
     }
     for (auto y = 0; y < BG_WINDOW_DIM_XY; ++y) {
         for (auto x = 0; x < BG_WINDOW_DIM_XY; ++x) {
-            m_bgDebugFramebuffer[y * BG_WINDOW_DIM_XY + x] = get_bg_color(m_bg[y * BG_WINDOW_DIM_XY + x]);
+            m_bgDebugFramebuffer[y * BG_WINDOW_DIM_XY + x] =
+                get_bg_color(m_bg[y * BG_WINDOW_DIM_XY + x]);
         }
     }
     return m_bgDebugFramebuffer;
@@ -168,7 +172,8 @@ std::span<const rgba8> PPU::get_vram_dbg_framebuffer() {
         const auto dstCol = i % 16;
         const auto bytesPerRow = 16 * TILE_DIM_XY * TILE_DIM_XY;
         for (auto ty = 0; ty < TILE_DIM_XY; ++ty) {
-            const auto dstOffset = (dstRow * bytesPerRow + ty * TILE_DIM_XY * 16) + dstCol * TILE_DIM_XY;
+            const auto dstOffset =
+                (dstRow * bytesPerRow + ty * TILE_DIM_XY * 16) + dstCol * TILE_DIM_XY;
             for (auto tx = 0; tx < TILE_DIM_XY; ++tx) {
                 m_vramDebugFramebuffer[dstOffset + tx] = get_color(tile[ty * TILE_DIM_XY + tx]);
             }
@@ -197,7 +202,7 @@ void PPU::update_scanline() {
 
     const auto y = m_reg.m_lcd.m_ly;
     const auto objHeight = m_reg.m_lcd.m_control.m_objSize ? 16 : 8;
-    
+
     // todo, don't draw the entire bg/window every line
     update_bg_row(y);
     update_window_row(y);
@@ -213,11 +218,13 @@ void PPU::update_scanline() {
         const auto wX = x - windowLeft;
         const auto wY = y - windowTop;
 
-        const bool inWindow = m_reg.m_lcd.m_control.m_windowEnable &&
-                              iRange{windowLeft, windowLeft + BG_WINDOW_DIM_XY}.containsExclusive(x) &&
-                              iRange{windowTop, windowTop + BG_WINDOW_DIM_XY}.containsExclusive(y);
+        const bool inWindow =
+            m_reg.m_lcd.m_control.m_windowEnable &&
+            iRange{windowLeft, windowLeft + BG_WINDOW_DIM_XY}.containsExclusive(x) &&
+            iRange{windowTop, windowTop + BG_WINDOW_DIM_XY}.containsExclusive(y);
 
-        auto bgPaletteIdx = inWindow ? m_window[wY * BG_WINDOW_DIM_XY + wX] : m_bg[bgY * BG_WINDOW_DIM_XY + bgX];
+        auto bgPaletteIdx =
+            inWindow ? m_window[wY * BG_WINDOW_DIM_XY + wX] : m_bg[bgY * BG_WINDOW_DIM_XY + bgX];
         const auto bgColorIdx = sample_palette(bgPaletteIdx, m_reg.m_lcd.m_bgp);
         uint8_t spritePaletteIdx = 0;
         auto spritePriority = false;
@@ -241,10 +248,12 @@ void PPU::update_scanline() {
             const bool isTopTile = spriteY < 8;
             if (isTopTile && m_reg.m_lcd.m_control.m_objSize) {
                 tileIdx &= 0xFE;
-            } else if(!isTopTile){
+            } else if (!isTopTile) {
                 tileIdx |= 0x01;
             }
-            render_tile(m_vram.data() + tileIdx * BYTES_PER_TILE_COMPRESSED, renderedTile.data(), TILE_DIM_XY);
+            render_tile(m_vram.data() + tileIdx * BYTES_PER_TILE_COMPRESSED,
+                        renderedTile.data(),
+                        TILE_DIM_XY);
             spritePaletteIdx = renderedTile[(spriteY % TILE_DIM_XY) * TILE_DIM_XY + spriteX];
             spritePriority = sprite.m_attributes.m_priority;
             spritePalette = sprite.m_attributes.m_palette;
@@ -286,20 +295,31 @@ void PPU::do_oam_scan() {
         ez_assert(m_spritesAndOamIdxOnLine.size() <= 10);
     }
 
-    std::sort(m_spritesAndOamIdxOnLine.begin(), m_spritesAndOamIdxOnLine.end(),
-              [](const ObjAndIdx& lhs, const ObjAndIdx& rhs) {
-                  return lhs.first.m_xPosMinus8 == rhs.first.m_xPosMinus8
-                             ? lhs.second < rhs.second
-                             : lhs.first.m_xPosMinus8 < rhs.first.m_xPosMinus8;
-              });
+    // even though this is an DMG emulator, the gameboy color sprite ordering looks better most of
+    // the time
+    constexpr auto useCgbSpriteOrdering = true;
+    const auto dmgSpriteOrder = [](const ObjAndIdx& lhs, const ObjAndIdx& rhs) {
+        return lhs.first.m_xPosMinus8 == rhs.first.m_xPosMinus8
+                   ? lhs.second < rhs.second
+                   : lhs.first.m_xPosMinus8 < rhs.first.m_xPosMinus8;
+    };
+    const auto cgbSpriteOrder = [](const ObjAndIdx& lhs, const ObjAndIdx& rhs) {
+        return lhs.second < rhs.second;
+    };
+
+    std::sort(m_spritesAndOamIdxOnLine.begin(),
+              m_spritesAndOamIdxOnLine.end(),
+              useCgbSpriteOrdering ? cgbSpriteOrder : dmgSpriteOrder);
 }
 
 void PPU::update_bg_row(int y) {
     const auto bgY = (y + m_reg.m_lcd.m_scy) % BG_WINDOW_DIM_XY;
     const auto tileY = bgY / TILE_DIM_XY;
 
-    render_bg_window_row(tileY, m_reg.m_lcd.m_control.m_bgWindowEnable,
-                      m_reg.m_lcd.m_control.m_bgTilemap, m_bg.data());
+    render_bg_window_row(tileY,
+                         m_reg.m_lcd.m_control.m_bgWindowEnable,
+                         m_reg.m_lcd.m_control.m_bgTilemap,
+                         m_bg.data());
 }
 
 void PPU::update_window_row(int y) {
@@ -308,9 +328,11 @@ void PPU::update_window_row(int y) {
     const auto windowY = (BG_WINDOW_DIM_XY + y - windowTop) % BG_WINDOW_DIM_XY;
     const auto tileY = windowY / TILE_DIM_XY;
 
-    render_bg_window_row(
-        tileY, m_reg.m_lcd.m_control.m_windowEnable && m_reg.m_lcd.m_control.m_bgWindowEnable,
-        m_reg.m_lcd.m_control.m_windowTilemap, m_window.data());
+    render_bg_window_row(tileY,
+                         m_reg.m_lcd.m_control.m_windowEnable &&
+                             m_reg.m_lcd.m_control.m_bgWindowEnable,
+                         m_reg.m_lcd.m_control.m_windowTilemap,
+                         m_window.data());
 }
 
 void PPU::render_bg_window_row(int tileY, bool enable, bool tileMap, uint8_t* dst) {
@@ -324,11 +346,13 @@ void PPU::render_bg_window_row(int tileY, bool enable, bool tileMap, uint8_t* ds
 
     const auto getTilePtr = [&](uint8_t tileIdx) {
         if (m_reg.m_lcd.m_control.m_bgWindowTileAddrMode) {
-            const auto offset = (0x8000 - VRAM_ADDR_RANGE.m_min) + (tileIdx * BYTES_PER_TILE_COMPRESSED);
+            const auto offset =
+                (0x8000 - VRAM_ADDR_RANGE.m_min) + (tileIdx * BYTES_PER_TILE_COMPRESSED);
             return m_vram.data() + offset;
         } else {
             const int signedIdx = static_cast<int8_t>(tileIdx);
-            const auto offset = (0x9000 - VRAM_ADDR_RANGE.m_min) + (signedIdx * BYTES_PER_TILE_COMPRESSED);
+            const auto offset =
+                (0x9000 - VRAM_ADDR_RANGE.m_min) + (signedIdx * BYTES_PER_TILE_COMPRESSED);
             return m_vram.data() + offset;
         }
     };
@@ -339,7 +363,8 @@ void PPU::render_bg_window_row(int tileY, bool enable, bool tileMap, uint8_t* ds
         const auto tilePtr = getTilePtr(tileIdx);
         render_tile(tilePtr, renderedTile.data(), 8);
         for (auto tilePxY = 0; tilePxY < TILE_DIM_XY; ++tilePxY) {
-            auto dstPtr = dst + ((tileY * TILE_DIM_XY + tilePxY) * BG_WINDOW_DIM_XY) + tileX * TILE_DIM_XY;
+            auto dstPtr =
+                dst + ((tileY * TILE_DIM_XY + tilePxY) * BG_WINDOW_DIM_XY) + tileX * TILE_DIM_XY;
             for (auto tilePxX = 0; tilePxX < TILE_DIM_XY; ++tilePxX) {
                 dstPtr[tilePxX] = renderedTile[tilePxY * TILE_DIM_XY + tilePxX];
             }
@@ -363,10 +388,8 @@ void PPU::reset() {
     m_statIRQ = false;
     m_statIRQRisingEdge = false;
 
-    // todo, fix gcc complains about memset
-    for (auto& px : m_display) {
-        px = {};
-    }
+    m_display = m_displayOff;
+    m_displayOnLastVBlank = m_displayOff;
 }
 
 bool PPU::is_oam_avail_to_cpu() const {

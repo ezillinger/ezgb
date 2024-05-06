@@ -28,6 +28,7 @@ int main(int, char**) {
 
     auto state = AppState{};
 
+#if !EZ_WASM
     static constexpr bool loadRomFromDisk = true;
     if (loadRomFromDisk) {
         log_info("Looking for ROMs");
@@ -41,7 +42,9 @@ int main(int, char**) {
             }
         }
         state.m_cart = std::make_unique<Cart>(Cart::load_from_disk(romPath));
-    } else {
+    } else 
+#endif
+    {
         log_info("Loading Windsor Road");
         state.m_cart = std::make_unique<Cart>(SAMPLE_ROM);
     }

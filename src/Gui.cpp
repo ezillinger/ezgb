@@ -72,17 +72,17 @@ void Gui::update_op_cache() {
 
 InputState Gui::handle_keyboard() {
 
-    auto inputState = InputState{};
-    inputState.m_a = ImGui::IsKeyDown(ImGuiKey_Z);
-    inputState.m_b = ImGui::IsKeyDown(ImGuiKey_X);
+    auto inputState = m_inputFromOnScreenControls;
+    inputState.m_a |= ImGui::IsKeyDown(ImGuiKey_Z);
+    inputState.m_b |= ImGui::IsKeyDown(ImGuiKey_X);
 
-    inputState.m_start = ImGui::IsKeyDown(ImGuiKey_A);
-    inputState.m_select = ImGui::IsKeyDown(ImGuiKey_S);
+    inputState.m_start |= ImGui::IsKeyDown(ImGuiKey_A);
+    inputState.m_select |= ImGui::IsKeyDown(ImGuiKey_S);
 
-    inputState.m_left = ImGui::IsKeyDown(ImGuiKey_LeftArrow);
-    inputState.m_right = ImGui::IsKeyDown(ImGuiKey_RightArrow);
-    inputState.m_up = ImGui::IsKeyDown(ImGuiKey_UpArrow);
-    inputState.m_down = ImGui::IsKeyDown(ImGuiKey_DownArrow);
+    inputState.m_left |= ImGui::IsKeyDown(ImGuiKey_LeftArrow);
+    inputState.m_right |= ImGui::IsKeyDown(ImGuiKey_RightArrow);
+    inputState.m_up |= ImGui::IsKeyDown(ImGuiKey_UpArrow);
+    inputState.m_down |= ImGui::IsKeyDown(ImGuiKey_DownArrow);
 
     if (ImGui::IsKeyPressed(ImGuiKey_R)) {
         reset_emulator();
@@ -102,24 +102,39 @@ InputState Gui::handle_keyboard() {
         update_op_cache();
     }
 
+    m_inputFromOnScreenControls = {};
+
     return inputState;
 }
 
 void Gui::draw() {
 
+    if (!m_mobileLayoutDismissed) {
+        const auto vpSize = ImGui::GetMainViewport()->Size;
+        const auto vpAspect = vpSize.x / vpSize.y;
+        static constexpr auto useMobileIfAspectLessThan = 0.6f;
+
+        m_mobileLayout = vpAspect < useMobileIfAspectLessThan;
+    }
+
     // reset mouse cursor
     ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
-    draw_toolbar();
 
     draw_popups();
-    draw_registers();
-    draw_settings();
-    draw_console();
-    draw_instructions();
-    draw_display();
-    if (m_showPPU) {
-        draw_ppu();
+
+    if (m_mobileLayout) {
+        draw_controls();
+    } else {
+        draw_toolbar();
+        draw_registers();
+        draw_settings();
+        draw_console();
+        draw_instructions();
+        if (m_showPPU) {
+            draw_ppu();
+        }
     }
+    draw_display();
 
     if (m_showDemoWindow) {
         ImGui::ShowDemoWindow();
@@ -146,6 +161,12 @@ static void urlText(const char* text, const char* url = nullptr) {
 }
 
 void Gui::draw_popups() {
+    const auto modalDismissButton = []() {
+        if (ImGui::Button("Close", ImVec2(ImGui::GetContentRegionAvail().x, 0)) ||
+            ImGui::IsKeyPressed(ImGuiKey_Escape) || ImGui::IsKeyPressed(ImGuiKey_Enter)) {
+            ImGui::CloseCurrentPopup();
+        }
+    };
 
     if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Text("ezgb - Made by Eric Zillinger in 2024");
@@ -154,9 +175,7 @@ void Gui::draw_popups() {
         ImGui::Text("Windsor Road - Made by Louie Zong in 2021");
         urlText("https://everydaylouie.itch.io/windsor-road");
         ImGui::Spacing();
-        if (ImGui::Button("Close")) {
-            ImGui::CloseCurrentPopup();
-        }
+        modalDismissButton();
         ImGui::EndPopup();
     }
     if (m_showAboutPopup) {
@@ -176,15 +195,105 @@ void Gui::draw_popups() {
         ImGui::Text("Step One Cycle - M");
         ImGui::Text("Step One Instruction - N");
         ImGui::Spacing();
-        if (ImGui::Button("Close")) {
-            ImGui::CloseCurrentPopup();
-        }
+        modalDismissButton();
         ImGui::EndPopup();
     }
     if (m_showControlsPopup) {
         ImGui::OpenPopup("Controls");
         m_showControlsPopup = false;
     }
+
+    if (m_mobileLayout) {
+        auto showMobilePopup = !m_mobileLayoutDismissed;
+        ImGui::SetNextWindowSize(ImVec2(ImGui::GetMainViewport()->Size.x, 0));
+        if (ImGui::BeginPopupModal("Mobile Info", &showMobilePopup)) {
+            ImGui::TextWrapped("It looks like you're using a Mobile Browser in portrait mode, but "
+                               "there isn't a great way to detect this in SDL yet");
+            ImGui::Spacing();
+            ImGui::TextWrapped("The control pad is for demo purposes only. ImGui doesn't support "
+                               "multi-touch so you can only press one button at a time.");
+
+            const auto mobileButtonHeight = 50.0f;
+            if (ImGui::Button("OK", ImVec2(ImGui::GetContentRegionAvail().x, mobileButtonHeight))) {
+                m_mobileLayoutDismissed = true;
+            }
+            if (ImGui::Button("Switch to Desktop Mode", ImVec2(ImGui::GetContentRegionAvail().x, mobileButtonHeight))) {
+                m_mobileLayout = false;
+                m_mobileLayoutDismissed = true;
+            }
+            ImGui::EndPopup();
+        }
+    }
+    if(!m_mobileLayoutDismissed){
+        ImGui::OpenPopup("Mobile Info");
+    }
+}
+
+void Gui::draw_controls() {
+    put_next_window({0.0f, 2.5f}, {4.0f, 1.5f});
+    if (ImGui::Begin("On-Screen Controls", nullptr, getWindowFlags())) {
+        const auto numCols = 6;
+        const auto numRows = 3;
+        const auto winDim = ImGui::GetContentRegionAvail();
+
+        const auto cellDim = ImVec2{winDim.x / numCols, winDim.y / numRows};
+        const auto padding = ImVec2{0.05f * cellDim.x, 0.1f * cellDim.y};
+        const auto buttonDim = ImVec2{cellDim.x - 2.0f * padding.x, cellDim.y};
+        const auto smallButtonDim = ImVec2{buttonDim.x, (buttonDim.y - 2.0f * padding.y) / 2.0f};
+
+        const auto putCursor = [&](float col, float row) {
+            ImGui::SetCursorPos(ImVec2{cellDim.x * col + padding.x, cellDim.y * row});
+        };
+
+        putCursor(1, 0);
+        ImGui::Button("UP", buttonDim);
+        if (ImGui::IsItemActive()) {
+            m_inputFromOnScreenControls.m_up = true;
+        }
+
+        putCursor(0, 1);
+        ImGui::Button("LEFT", buttonDim);
+        if (ImGui::IsItemActive()) {
+            m_inputFromOnScreenControls.m_left = true;
+        }
+
+        putCursor(2, 1);
+        ImGui::Button("RIGHT", buttonDim);
+        if (ImGui::IsItemActive()) {
+            m_inputFromOnScreenControls.m_right = true;
+        }
+
+        putCursor(1, 2);
+        ImGui::Button("DOWN", buttonDim);
+        if (ImGui::IsItemActive()) {
+            m_inputFromOnScreenControls.m_down = true;
+        }
+
+        putCursor(4, 1);
+        ImGui::Button("B", buttonDim);
+        if (ImGui::IsItemActive()) {
+            m_inputFromOnScreenControls.m_b = true;
+        }       
+
+        putCursor(5, 1);
+        ImGui::Button("A", buttonDim);
+        if (ImGui::IsItemActive()) {
+            m_inputFromOnScreenControls.m_a = true;
+        }
+
+        putCursor(3, 2);
+        ImGui::Button("Start", smallButtonDim);
+        if (ImGui::IsItemActive()) {
+            m_inputFromOnScreenControls.m_start = true;
+        }
+
+        putCursor(3, 2.5f);
+        ImGui::Button("Select", smallButtonDim);
+        if (ImGui::IsItemActive()) {
+            m_inputFromOnScreenControls.m_select = true;
+        }
+    }
+    ImGui::End();
 }
 
 void Gui::draw_toolbar() {
@@ -216,6 +325,7 @@ void Gui::draw_toolbar() {
         if (ImGui::BeginMenu("Options")) {
             ImGui::Checkbox("Show PPU Debug Panel", &m_showPPU);
             ImGui::Checkbox("Show ImGui Demo Window", &m_showDemoWindow);
+            ImGui::Checkbox("Mobile Layout (Refresh Required to Undo)", &m_mobileLayout);
             ImGui::EndMenu();
         }
 
@@ -590,10 +700,13 @@ void Gui::draw_instructions() {
 }
 
 void Gui::draw_display() {
+    const auto left = m_mobileLayout ? 0.0f : 1.0f;
+    const auto width = m_mobileLayout ? 4.0f : 2.0f;
     if (m_showPPU) {
-        put_next_window({1, 0}, {2, 2});
+        put_next_window({left, 0}, {width, 2});
     } else {
-        put_next_window({1, 0}, {2, 3.5f});
+        const auto height = m_mobileLayout ? 2.5f : 3.5f;
+        put_next_window({left, 0}, {width, height});
     }
     if (ImGui::Begin("Display",
                      nullptr,

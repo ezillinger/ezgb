@@ -3,3 +3,4 @@ build/
 **/.DS_Store
 dump.bmp
 imgui.ini
+roms/commercial/**

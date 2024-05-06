@@ -41,8 +41,8 @@ void Cart::write_addr(uint16_t addr, uint8_t val) {
                 return;
             }
             *get_ram_ptr(addr) = val;
-        } else {
-            fail("Wat?");
+        } else if (ROM_RANGE.containsExclusive(addr)) {
+            log_error("Unsupported write to ROM - probably an MBC we don't support");
         }
     }
 }

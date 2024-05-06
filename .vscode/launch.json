@@ -8,9 +8,9 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/build/src/ezgb",
+            "program": "${workspaceFolder}/build/${command:cmake.buildType}/ezgb",
             "windows": {
-                "program": "${workspaceFolder}/build/src/Debug/ezgb.exe",
+                "program": "${workspaceFolder}/build/${command:cmake.buildType}/ezgb.exe",
             },
             "args": [],
             "cwd": "${workspaceFolder}",

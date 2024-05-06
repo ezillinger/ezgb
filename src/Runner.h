@@ -21,7 +21,7 @@ class Runner {
     void tick_emu_once(const InputState& input, audio::SinkFunc putSamples);
 
     int m_ticksSinceLastDraw = 0;
-    static constexpr auto TICKS_PER_DRAW = int((16.6666ms / MASTER_CLOCK_PERIOD));
+    static constexpr auto TICKS_PER_DRAW = 70'224; // dots per v-sync;
     AppState& m_state;
 };
 } // namespace ez
