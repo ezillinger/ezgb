@@ -183,7 +183,7 @@ void Gui::draw_popups() {
         m_showAboutPopup = false;
     }
 
-    if (ImGui::BeginPopupModal("Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (ImGui::BeginPopupModal("Controls##help", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Text("A - Z");
         ImGui::Text("B - X");
         ImGui::Text("Start - A");
@@ -199,7 +199,7 @@ void Gui::draw_popups() {
         ImGui::EndPopup();
     }
     if (m_showControlsPopup) {
-        ImGui::OpenPopup("Controls");
+        ImGui::OpenPopup("Controls##help");
         m_showControlsPopup = false;
     }
 
@@ -223,9 +223,10 @@ void Gui::draw_popups() {
             }
             ImGui::EndPopup();
         }
-    }
-    if(!m_mobileLayoutDismissed){
-        ImGui::OpenPopup("Mobile Info");
+
+        if(!m_mobileLayoutDismissed){
+            ImGui::OpenPopup("Mobile Info");
+        }
     }
 }
 
@@ -333,7 +334,7 @@ void Gui::draw_toolbar() {
             if (ImGui::MenuItem("About")) {
                 m_showAboutPopup = true;
             }
-            if (ImGui::MenuItem("Controls")) {
+            if (ImGui::MenuItem("Controls##menu")) {
                 m_showControlsPopup = true;
             }
             ImGui::EndMenu();
