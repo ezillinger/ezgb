@@ -66,106 +66,106 @@ bool Tester::test_io_reg() {
 
     const auto last_addr = [](auto& arr) -> uint8_t* { return &arr[std::size(arr) - 1]; };
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::P1_JOYP) == &emu.m_ioReg.m_joypad);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::P1_JOYP) == &emu.m_ioReg->m_joypad);
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::SB) == &emu.m_ioReg.m_serialData);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::SC) == &emu.m_ioReg.m_serialControl);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::SB) == &emu.m_ioReg->m_serialData);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::SC) == &emu.m_ioReg->m_serialControl);
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::DIV) == &emu.m_ioReg.m_timerDivider);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::TIMA) == &emu.m_ioReg.m_tima);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::TMA) == &emu.m_ioReg.m_tma);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::TAC) == &emu.m_ioReg.m_tac);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::DIV) == &emu.m_ioReg->m_timerDivider);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::TIMA) == &emu.m_ioReg->m_tima);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::TMA) == &emu.m_ioReg->m_tma);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::TAC) == &emu.m_ioReg->m_tac);
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::IF) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_if));
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::IF) == reinterpret_cast<uint8_t*>(&emu.m_ioReg->m_if));
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR10) == &emu.m_ioReg.m_nr10);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR11) == &emu.m_ioReg.m_nr11);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR12) == &emu.m_ioReg.m_nr12);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR13) == &emu.m_ioReg.m_nr13);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR14) == &emu.m_ioReg.m_nr14);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR10) == &emu.m_ioReg->m_nr10);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR11) == &emu.m_ioReg->m_nr11);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR12) == &emu.m_ioReg->m_nr12);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR13) == &emu.m_ioReg->m_nr13);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR14) == &emu.m_ioReg->m_nr14);
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR21) == &emu.m_ioReg.m_nr21);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR22) == &emu.m_ioReg.m_nr22);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR23) == &emu.m_ioReg.m_nr23);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR24) == &emu.m_ioReg.m_nr24);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR21) == &emu.m_ioReg->m_nr21);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR22) == &emu.m_ioReg->m_nr22);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR23) == &emu.m_ioReg->m_nr23);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR24) == &emu.m_ioReg->m_nr24);
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR30) == &emu.m_ioReg.m_nr30);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR31) == &emu.m_ioReg.m_nr31);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR32) == &emu.m_ioReg.m_nr32);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR33) == &emu.m_ioReg.m_nr33);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR34) == &emu.m_ioReg.m_nr34);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR30) == &emu.m_ioReg->m_nr30);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR31) == &emu.m_ioReg->m_nr31);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR32) == &emu.m_ioReg->m_nr32);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR33) == &emu.m_ioReg->m_nr33);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR34) == &emu.m_ioReg->m_nr34);
 
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR41) == &emu.m_ioReg.m_nr41);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR42) == &emu.m_ioReg.m_nr42);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR43) == &emu.m_ioReg.m_nr43);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR44) == &emu.m_ioReg.m_nr44);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR41) == &emu.m_ioReg->m_nr41);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR42) == &emu.m_ioReg->m_nr42);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR43) == &emu.m_ioReg->m_nr43);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR44) == &emu.m_ioReg->m_nr44);
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR51) == &emu.m_ioReg.m_nr51);
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR52) == &emu.m_ioReg.m_nr52);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR51) == &emu.m_ioReg->m_nr51);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::NR52) == &emu.m_ioReg->m_nr52);
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::WaveRAMBegin) == emu.m_ioReg.m_wavePattern);
-    ez_assert(emu.dbg_get_io_ptr(0xFF3F) == last_addr(emu.m_ioReg.m_wavePattern));
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::WaveRAMBegin) == emu.m_ioReg->m_wavePattern);
+    ez_assert(emu.dbg_get_io_ptr(0xFF3F) == last_addr(emu.m_ioReg->m_wavePattern));
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::LCDC) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_lcd));
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::LCDC) == reinterpret_cast<uint8_t*>(&emu.m_ioReg->m_lcd));
     // todo, test individual LCD register layout
 
-    ez_assert(emu.dbg_get_io_ptr(+IOAddr::VBK) == &emu.m_ioReg.m_vramBankSelect);
+    ez_assert(emu.dbg_get_io_ptr(+IOAddr::VBK) == &emu.m_ioReg->m_vramBankSelect);
     ez_assert(emu.dbg_get_io_ptr(0xFF50) ==
-              reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_bootromDisabled));
+              reinterpret_cast<uint8_t*>(&emu.m_ioReg->m_bootromDisabled));
 
-    ez_assert(emu.dbg_get_io_ptr(0xFF51) == emu.m_ioReg.m_vramDMA);
-    ez_assert(emu.dbg_get_io_ptr(0xFF55) == last_addr(emu.m_ioReg.m_vramDMA));
+    ez_assert(emu.dbg_get_io_ptr(0xFF51) == emu.m_ioReg->m_vramDMA);
+    ez_assert(emu.dbg_get_io_ptr(0xFF55) == last_addr(emu.m_ioReg->m_vramDMA));
 
-    ez_assert(emu.dbg_get_io_ptr(0xFF68) == emu.m_ioReg.m_bgObjPalettes);
-    ez_assert(emu.dbg_get_io_ptr(0xFF6B) == last_addr(emu.m_ioReg.m_bgObjPalettes));
+    ez_assert(emu.dbg_get_io_ptr(0xFF68) == emu.m_ioReg->m_bgObjPalettes);
+    ez_assert(emu.dbg_get_io_ptr(0xFF6B) == last_addr(emu.m_ioReg->m_bgObjPalettes));
 
-    ez_assert(emu.dbg_get_io_ptr(0xFF70) == &emu.m_ioReg.m_wramBankSelect);
+    ez_assert(emu.dbg_get_io_ptr(0xFF70) == &emu.m_ioReg->m_wramBankSelect);
 
-    ez_assert(emu.dbg_get_io_ptr(0xFF76) == &emu.m_ioReg.m_pcm12);
-    ez_assert(emu.dbg_get_io_ptr(0xFF77) == &emu.m_ioReg.m_pcm34);
+    ez_assert(emu.dbg_get_io_ptr(0xFF76) == &emu.m_ioReg->m_pcm12);
+    ez_assert(emu.dbg_get_io_ptr(0xFF77) == &emu.m_ioReg->m_pcm34);
 
-    ez_assert(emu.dbg_get_io_ptr(0xFF80) == emu.m_ioReg.m_hram);
+    ez_assert(emu.dbg_get_io_ptr(0xFF80) == emu.m_ioReg->m_hram);
 
     emu.write_addr_16(0xFF81, 0xABCD);
     ez_assert(emu.readAddr16(0xFF81) == 0xABCD);
 
-    ez_assert(emu.dbg_get_io_ptr(0xFFFF) == reinterpret_cast<uint8_t*>(&emu.m_ioReg.m_ie));
+    ez_assert(emu.dbg_get_io_ptr(0xFFFF) == reinterpret_cast<uint8_t*>(&emu.m_ioReg->m_ie));
 
     emu.write_addr(+IOAddr::IF, 0b00010101);
     ez_assert(emu.read_addr(+IOAddr::IF) == 0b00010101);
-    ez_assert(emu.m_ioReg.m_if.vblank);
-    ez_assert(emu.m_ioReg.m_if.data & 0b1 << +Interrupts::VBLANK);
+    ez_assert(emu.m_ioReg->m_if.vblank);
+    ez_assert(emu.m_ioReg->m_if.data & 0b1 << +Interrupts::VBLANK);
 
-    ez_assert(!emu.m_ioReg.m_if.lcd);
-    ez_assert(!(emu.m_ioReg.m_if.data & 0b1 << +Interrupts::LCD));
+    ez_assert(!emu.m_ioReg->m_if.lcd);
+    ez_assert(!(emu.m_ioReg->m_if.data & 0b1 << +Interrupts::LCD));
 
-    ez_assert(emu.m_ioReg.m_if.timer);
-    ez_assert(emu.m_ioReg.m_if.data & 0b1 << +Interrupts::TIMER);
+    ez_assert(emu.m_ioReg->m_if.timer);
+    ez_assert(emu.m_ioReg->m_if.data & 0b1 << +Interrupts::TIMER);
 
-    ez_assert(!emu.m_ioReg.m_if.serial);
-    ez_assert(!(emu.m_ioReg.m_if.data & 0b1 << +Interrupts::SERIAL));
+    ez_assert(!emu.m_ioReg->m_if.serial);
+    ez_assert(!(emu.m_ioReg->m_if.data & 0b1 << +Interrupts::SERIAL));
 
-    ez_assert(emu.m_ioReg.m_if.joypad);
-    ez_assert(emu.m_ioReg.m_if.data & 0b1 << +Interrupts::JOYPAD);
+    ez_assert(emu.m_ioReg->m_if.joypad);
+    ez_assert(emu.m_ioReg->m_if.data & 0b1 << +Interrupts::JOYPAD);
 
     emu.write_addr(+IOAddr::IE, 0b0001'0101);
     ez_assert(emu.read_addr(+IOAddr::IE) == 0b0001'0101);
 
-    ez_assert(emu.m_ioReg.m_ie.vblank);
-    ez_assert(emu.m_ioReg.m_ie.data & 0b1 << +Interrupts::VBLANK);
+    ez_assert(emu.m_ioReg->m_ie.vblank);
+    ez_assert(emu.m_ioReg->m_ie.data & 0b1 << +Interrupts::VBLANK);
 
-    ez_assert(!emu.m_ioReg.m_ie.lcd);
-    ez_assert(!(emu.m_ioReg.m_ie.data & 0b1 << +Interrupts::LCD));
+    ez_assert(!emu.m_ioReg->m_ie.lcd);
+    ez_assert(!(emu.m_ioReg->m_ie.data & 0b1 << +Interrupts::LCD));
 
-    ez_assert(emu.m_ioReg.m_ie.timer);
-    ez_assert(emu.m_ioReg.m_ie.data & 0b1 << +Interrupts::TIMER);
+    ez_assert(emu.m_ioReg->m_ie.timer);
+    ez_assert(emu.m_ioReg->m_ie.data & 0b1 << +Interrupts::TIMER);
 
-    ez_assert(!emu.m_ioReg.m_ie.serial);
-    ez_assert(!(emu.m_ioReg.m_ie.data & 0b1 << +Interrupts::SERIAL));
+    ez_assert(!emu.m_ioReg->m_ie.serial);
+    ez_assert(!(emu.m_ioReg->m_ie.data & 0b1 << +Interrupts::SERIAL));
 
-    ez_assert(emu.m_ioReg.m_ie.joypad);
-    ez_assert(emu.m_ioReg.m_ie.data & 0b1 << +Interrupts::JOYPAD);
+    ez_assert(emu.m_ioReg->m_ie.joypad);
+    ez_assert(emu.m_ioReg->m_ie.data & 0b1 << +Interrupts::JOYPAD);
 
     return true;
 }

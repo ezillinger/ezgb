@@ -3,7 +3,7 @@
 
 namespace ez {
 
-PPU::PPU(IORegisters& ioReg)
+PPU::PPU(Addressable<IORegisters>& ioReg)
     : m_reg(ioReg) {
     reset();
 }
@@ -52,7 +52,7 @@ uint8_t PPU::read_addr(uint16_t addr) const {
 
 void PPU::tick() {
 
-    if (!m_reg.m_lcd.m_control.m_ppuEnable) {
+    if (!m_reg->m_lcd.m_control.m_ppuEnable) {
         return;
     }
 
@@ -61,51 +61,51 @@ void PPU::tick() {
     }
 
     ++m_currentLineDotTickCount;
-    switch (m_reg.m_lcd.m_status.m_ppuMode) {
+    switch (m_reg->m_lcd.m_status.m_ppuMode) {
         case +PPUMode::OAM_SCAN:
             if (m_currentLineDotTickCount == 80) {
                 do_oam_scan();
                 m_currentLineDotTickCount = 0;
-                m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::DRAWING;
+                m_reg->m_lcd.m_status.m_ppuMode = +PPUMode::DRAWING;
             }
             break;
         case +PPUMode::DRAWING:
             if (m_currentLineDotTickCount == 200) {
-                m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::HBLANK;
-                if (m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_mode0InterruptSelect) {
+                m_reg->m_lcd.m_status.m_ppuMode = +PPUMode::HBLANK;
+                if (m_reg->m_ie.lcd && m_reg->m_lcd.m_status.m_mode0InterruptSelect) {
                     set_stat_irq(StatIRQSources::MODE_0);
                 }
             }
             break;
         case +PPUMode::HBLANK:
-            ez_assert(m_reg.m_lcd.m_ly < DISPLAY_HEIGHT);
+            ez_assert(m_reg->m_lcd.m_ly < DISPLAY_HEIGHT);
             if (m_currentLineDotTickCount == 456) {
                 update_scanline();
-                ++m_reg.m_lcd.m_ly;
+                ++m_reg->m_lcd.m_ly;
                 m_currentLineDotTickCount = 0;
-                if (m_reg.m_lcd.m_ly == DISPLAY_HEIGHT) {
+                if (m_reg->m_lcd.m_ly == DISPLAY_HEIGHT) {
                     m_displayOnLastVBlank = m_display;
-                    m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::VBLANK;
-                    m_reg.m_if.vblank = true;
-                    if (m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_mode1InterruptSelect) {
+                    m_reg->m_lcd.m_status.m_ppuMode = +PPUMode::VBLANK;
+                    m_reg->m_if.vblank = true;
+                    if (m_reg->m_ie.lcd && m_reg->m_lcd.m_status.m_mode1InterruptSelect) {
                         set_stat_irq(StatIRQSources::MODE_1);
                     }
                 } else {
-                    m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::OAM_SCAN;
+                    m_reg->m_lcd.m_status.m_ppuMode = +PPUMode::OAM_SCAN;
                 }
                 update_ly_eq_lyc();
             }
             break;
         case +PPUMode::VBLANK:
-            ez_assert(m_reg.m_lcd.m_ly >= DISPLAY_HEIGHT);
-            ez_assert(m_reg.m_lcd.m_ly < DISPLAY_HEIGHT + 10);
+            ez_assert(m_reg->m_lcd.m_ly >= DISPLAY_HEIGHT);
+            ez_assert(m_reg->m_lcd.m_ly < DISPLAY_HEIGHT + 10);
             if (m_currentLineDotTickCount == 456) {
-                ++m_reg.m_lcd.m_ly;
+                ++m_reg->m_lcd.m_ly;
                 m_currentLineDotTickCount = 0;
-                if (m_reg.m_lcd.m_ly == 154) {
-                    m_reg.m_lcd.m_ly = 0;
-                    m_reg.m_lcd.m_status.m_ppuMode = +PPUMode::OAM_SCAN;
-                    if (m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_mode2InterruptSelect) {
+                if (m_reg->m_lcd.m_ly == 154) {
+                    m_reg->m_lcd.m_ly = 0;
+                    m_reg->m_lcd.m_status.m_ppuMode = +PPUMode::OAM_SCAN;
+                    if (m_reg->m_ie.lcd && m_reg->m_lcd.m_status.m_mode2InterruptSelect) {
                         set_stat_irq(StatIRQSources::MODE_2);
                     }
                 }
@@ -120,12 +120,12 @@ void PPU::tick() {
         statIRQ |= src;
     }
     if (update(m_statIRQ, statIRQ) && statIRQ) {
-        m_reg.m_if.lcd = true;
+        m_reg->m_if.lcd = true;
     }
 }
 
 std::span<const rgba8> PPU::get_display_framebuffer() const {
-    if (m_reg.m_lcd.m_control.m_ppuEnable) {
+    if (m_reg->m_lcd.m_control.m_ppuEnable) {
         // don't let display tear
         static constexpr bool allowTearing = false;
         if (allowTearing) {
@@ -140,7 +140,7 @@ std::span<const rgba8> PPU::get_display_framebuffer() const {
 
 std::span<const rgba8> PPU::get_window_dbg_framebuffer() {
     for (int i = 0; i < BG_WINDOW_DIM_XY / TILE_DIM_XY; ++i) {
-        render_bg_window_row(i, true, m_reg.m_lcd.m_control.m_windowTilemap, m_window.data());
+        render_bg_window_row(i, true, m_reg->m_lcd.m_control.m_windowTilemap, m_window.data());
     }
     for (auto y = 0; y < BG_WINDOW_DIM_XY; ++y) {
         for (auto x = 0; x < BG_WINDOW_DIM_XY; ++x) {
@@ -153,7 +153,7 @@ std::span<const rgba8> PPU::get_window_dbg_framebuffer() {
 
 std::span<const rgba8> PPU::get_bg_dbg_framebuffer() {
     for (int i = 0; i < BG_WINDOW_DIM_XY / TILE_DIM_XY; ++i) {
-        render_bg_window_row(i, true, m_reg.m_lcd.m_control.m_bgTilemap, m_bg.data());
+        render_bg_window_row(i, true, m_reg->m_lcd.m_control.m_bgTilemap, m_bg.data());
     }
     for (auto y = 0; y < BG_WINDOW_DIM_XY; ++y) {
         for (auto x = 0; x < BG_WINDOW_DIM_XY; ++x) {
@@ -200,8 +200,8 @@ void PPU::render_tile(const uint8_t* tileBegin, uint8_t* dst, int rowPitch) {
 
 void PPU::update_scanline() {
 
-    const auto y = m_reg.m_lcd.m_ly;
-    const auto objHeight = m_reg.m_lcd.m_control.m_objSize ? 16 : 8;
+    const auto y = m_reg->m_lcd.m_ly;
+    const auto objHeight = m_reg->m_lcd.m_control.m_objSize ? 16 : 8;
 
     // todo, don't draw the entire bg/window every line
     update_bg_row(y);
@@ -210,22 +210,22 @@ void PPU::update_scanline() {
     auto renderedTile = std::vector<uint8_t>(TILE_DIM_XY * TILE_DIM_XY);
     for (auto x = 0; x < DISPLAY_WIDTH; ++x) {
 
-        const auto bgY = (y + m_reg.m_lcd.m_scy) % BG_WINDOW_DIM_XY;
-        const auto bgX = (x + m_reg.m_lcd.m_scx) % BG_WINDOW_DIM_XY;
+        const auto bgY = (y + m_reg->m_lcd.m_scy) % BG_WINDOW_DIM_XY;
+        const auto bgX = (x + m_reg->m_lcd.m_scx) % BG_WINDOW_DIM_XY;
 
-        const auto windowLeft = m_reg.m_lcd.m_windowXPlus7 - 7;
-        const auto windowTop = m_reg.m_lcd.m_windowY;
+        const auto windowLeft = m_reg->m_lcd.m_windowXPlus7 - 7;
+        const auto windowTop = m_reg->m_lcd.m_windowY;
         const auto wX = x - windowLeft;
         const auto wY = y - windowTop;
 
         const bool inWindow =
-            m_reg.m_lcd.m_control.m_windowEnable &&
+            m_reg->m_lcd.m_control.m_windowEnable &&
             iRange{windowLeft, windowLeft + BG_WINDOW_DIM_XY}.containsExclusive(x) &&
             iRange{windowTop, windowTop + BG_WINDOW_DIM_XY}.containsExclusive(y);
 
         auto bgPaletteIdx =
             inWindow ? m_window[wY * BG_WINDOW_DIM_XY + wX] : m_bg[bgY * BG_WINDOW_DIM_XY + bgX];
-        const auto bgColorIdx = sample_palette(bgPaletteIdx, m_reg.m_lcd.m_bgp);
+        const auto bgColorIdx = sample_palette(bgPaletteIdx, m_reg->m_lcd.m_bgp);
         uint8_t spritePaletteIdx = 0;
         auto spritePriority = false;
         auto spritePalette = false;
@@ -246,7 +246,7 @@ void PPU::update_scanline() {
             ez_assert(spriteX < 8);
             auto tileIdx = sprite.m_tileIdx;
             const bool isTopTile = spriteY < 8;
-            if (isTopTile && m_reg.m_lcd.m_control.m_objSize) {
+            if (isTopTile && m_reg->m_lcd.m_control.m_objSize) {
                 tileIdx &= 0xFE;
             } else if (!isTopTile) {
                 tileIdx |= 0x01;
@@ -266,7 +266,7 @@ void PPU::update_scanline() {
             (spritePaletteIdx != 0) && (spritePriority ? bgColorIdx == 0 : true);
 
         const auto spriteColorIdx = sample_palette(
-            spritePaletteIdx, spritePalette ? m_reg.m_lcd.m_obp1 : m_reg.m_lcd.m_obp0);
+            spritePaletteIdx, spritePalette ? m_reg->m_lcd.m_obp1 : m_reg->m_lcd.m_obp0);
         const auto color = get_color(useSpritePx ? spriteColorIdx : bgColorIdx);
         m_display[y * DISPLAY_WIDTH + x] = color;
     }
@@ -276,10 +276,10 @@ void PPU::do_oam_scan() {
 
     m_spritesAndOamIdxOnLine.clear();
 
-    const auto y = m_reg.m_lcd.m_ly;
-    const auto objHeight = m_reg.m_lcd.m_control.m_objSize ? 16 : 8;
+    const auto y = m_reg->m_lcd.m_ly;
+    const auto objHeight = m_reg->m_lcd.m_control.m_objSize ? 16 : 8;
     // todo, move this to OAM scan
-    if (m_reg.m_lcd.m_control.m_objEnable) {
+    if (m_reg->m_lcd.m_control.m_objEnable) {
         ez_assert(iRange{0, DISPLAY_HEIGHT}.containsExclusive(y));
         for (auto objIdx = 0; objIdx < OAM_SPRITE_COUNT; ++objIdx) {
             const auto oa = reinterpret_cast<ObjectAttribute*>(m_oam.data())[objIdx];
@@ -313,25 +313,25 @@ void PPU::do_oam_scan() {
 }
 
 void PPU::update_bg_row(int y) {
-    const auto bgY = (y + m_reg.m_lcd.m_scy) % BG_WINDOW_DIM_XY;
+    const auto bgY = (y + m_reg->m_lcd.m_scy) % BG_WINDOW_DIM_XY;
     const auto tileY = bgY / TILE_DIM_XY;
 
     render_bg_window_row(tileY,
-                         m_reg.m_lcd.m_control.m_bgWindowEnable,
-                         m_reg.m_lcd.m_control.m_bgTilemap,
+                         m_reg->m_lcd.m_control.m_bgWindowEnable,
+                         m_reg->m_lcd.m_control.m_bgTilemap,
                          m_bg.data());
 }
 
 void PPU::update_window_row(int y) {
 
-    const auto windowTop = m_reg.m_lcd.m_windowY;
+    const auto windowTop = m_reg->m_lcd.m_windowY;
     const auto windowY = (BG_WINDOW_DIM_XY + y - windowTop) % BG_WINDOW_DIM_XY;
     const auto tileY = windowY / TILE_DIM_XY;
 
     render_bg_window_row(tileY,
-                         m_reg.m_lcd.m_control.m_windowEnable &&
-                             m_reg.m_lcd.m_control.m_bgWindowEnable,
-                         m_reg.m_lcd.m_control.m_windowTilemap,
+                         m_reg->m_lcd.m_control.m_windowEnable &&
+                             m_reg->m_lcd.m_control.m_bgWindowEnable,
+                         m_reg->m_lcd.m_control.m_windowTilemap,
                          m_window.data());
 }
 
@@ -345,7 +345,7 @@ void PPU::render_bg_window_row(int tileY, bool enable, bool tileMap, uint8_t* ds
     const auto tileMapOffset = (tileMap ? 0x9C00 : 0x9800) - VRAM_ADDR_RANGE.m_min;
 
     const auto getTilePtr = [&](uint8_t tileIdx) {
-        if (m_reg.m_lcd.m_control.m_bgWindowTileAddrMode) {
+        if (m_reg->m_lcd.m_control.m_bgWindowTileAddrMode) {
             const auto offset =
                 (0x8000 - VRAM_ADDR_RANGE.m_min) + (tileIdx * BYTES_PER_TILE_COMPRESSED);
             return m_vram.data() + offset;
@@ -373,18 +373,18 @@ void PPU::render_bg_window_row(int tileY, bool enable, bool tileMap, uint8_t* ds
 }
 
 bool PPU::is_vram_avail_to_cpu() const {
-    if (m_reg.m_lcd.m_control.m_ppuEnable == false) {
+    if (m_reg->m_lcd.m_control.m_ppuEnable == false) {
         return true;
     }
-    return m_reg.m_lcd.m_status.m_ppuMode != +PPUMode::DRAWING;
+    return m_reg->m_lcd.m_status.m_ppuMode != +PPUMode::DRAWING;
 }
 
 void PPU::reset() {
     // todo, verify this is all the resets when LCD is disabled
     log_warn("PPU Reset!");
     m_currentLineDotTickCount = 0;
-    m_reg.m_lcd.m_ly = 0;
-    m_reg.m_lcd.m_status.m_ppuMode = 0;
+    m_reg->m_lcd.m_ly = 0;
+    m_reg->m_lcd.m_status.m_ppuMode = 0;
     m_statIRQ = false;
     m_statIRQRisingEdge = false;
 
@@ -393,17 +393,17 @@ void PPU::reset() {
 }
 
 bool PPU::is_oam_avail_to_cpu() const {
-    if (m_reg.m_lcd.m_control.m_ppuEnable == false) {
+    if (m_reg->m_lcd.m_control.m_ppuEnable == false) {
         return true;
     }
-    return m_reg.m_lcd.m_status.m_ppuMode == +PPUMode::VBLANK ||
-           m_reg.m_lcd.m_status.m_ppuMode == +PPUMode::HBLANK;
+    return m_reg->m_lcd.m_status.m_ppuMode == +PPUMode::VBLANK ||
+           m_reg->m_lcd.m_status.m_ppuMode == +PPUMode::HBLANK;
 }
 
 rgba8 PPU::get_bg_color(const uint8_t paletteIdx) const {
     ez_assert(paletteIdx < 4);
 
-    const auto bgp = m_reg.m_lcd.m_bgp;
+    const auto bgp = m_reg->m_lcd.m_bgp;
     const uint8_t colorIdx = ((0b11 << (2 * paletteIdx)) & bgp) >> (2 * paletteIdx);
     return get_color(colorIdx);
 }
@@ -421,13 +421,13 @@ rgba8 PPU::get_color(const uint8_t colorIdx) const {
 }
 
 void PPU::update_ly_eq_lyc() {
-    if (m_reg.m_lcd.m_ly == m_reg.m_lcd.m_lyc) {
-        m_reg.m_lcd.m_status.m_lycIsLy = true;
-        if (m_reg.m_ie.lcd && m_reg.m_lcd.m_status.m_lycInterruptSelect) {
+    if (m_reg->m_lcd.m_ly == m_reg->m_lcd.m_lyc) {
+        m_reg->m_lcd.m_status.m_lycIsLy = true;
+        if (m_reg->m_ie.lcd && m_reg->m_lcd.m_status.m_lycInterruptSelect) {
             set_stat_irq(StatIRQSources::LY);
         }
     } else {
-        m_reg.m_lcd.m_status.m_lycIsLy = false;
+        m_reg->m_lcd.m_status.m_lycIsLy = false;
     }
 }
 } // namespace ez

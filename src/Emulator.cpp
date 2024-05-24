@@ -35,8 +35,8 @@ Emulator::Emulator(Cart& cart, EmuSettings settings)
         m_reg.l = 0x4D;
         m_reg.sp = 0xfffe;
         m_reg.pc = 0x100;
-        m_ioReg.m_bootromDisabled = true;
-        m_ioReg.m_lcd.m_control.m_ppuEnable = true;
+        m_ioReg->m_bootromDisabled = true;
+        m_ioReg->m_lcd.m_control.m_ppuEnable = true;
     }
 }
 
@@ -728,7 +728,7 @@ InstructionResult Emulator::handle_instr_b0(uint32_t pcData) {
                     log_warn("GBC Speed toggle ignored");
                 } else {
                     m_stopMode = true;
-                    m_ioReg.m_timerDivider = 0;
+                    m_ioReg->m_timerDivider = 0;
                 }
                 break;
             }
@@ -904,8 +904,8 @@ void Emulator::tick_countdowns() {
         --m_pendingTimaOverflowCycles;
         if (m_pendingTimaOverflowCycles == 0) {
             // ez_assert((m_sysclk) % 4 == 0);
-            m_ioReg.m_if.timer = true;
-            m_ioReg.m_tima = m_ioReg.m_tma;
+            m_ioReg->m_if.timer = true;
+            m_ioReg->m_tima = m_ioReg->m_tma;
         }
     }
 }
@@ -915,11 +915,11 @@ void Emulator::tick_timers() {
     auto sysclkBefore = m_sysclk;
     ++m_sysclk;
 
-    m_ioReg.m_timerDivider = m_sysclk >> 8;
+    m_ioReg->m_timerDivider = m_sysclk >> 8;
 
-    if (is_tima_increment(sysclkBefore, m_sysclk, m_ioReg.m_tac, m_ioReg.m_tac)) {
-        ++m_ioReg.m_tima;
-        if (m_ioReg.m_tima == 0) {
+    if (is_tima_increment(sysclkBefore, m_sysclk, m_ioReg->m_tac, m_ioReg->m_tac)) {
+        ++m_ioReg->m_tima;
+        if (m_ioReg->m_tima == 0) {
             m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE + 1;
         }
     }
@@ -929,14 +929,14 @@ void Emulator::tick_interrupts() {
 
     for (auto i = 0; i < +Interrupts::NUM_INTERRUPTS; ++i) {
         const uint8_t bitFlag = 0b1 << i;
-        if (m_ioReg.m_ie.data & bitFlag && m_ioReg.m_if.data & bitFlag) {
+        if (m_ioReg->m_ie.data & bitFlag && m_ioReg->m_if.data & bitFlag) {
             // todo, implement halt bug
             m_haltMode = false;
             if (m_interruptMasterEnable) {
                 if (m_settings.m_logEnable) {
                     log_info("Calling ISR {}", i);
                 }
-                m_ioReg.m_if.data &= ~bitFlag;
+                m_ioReg->m_if.data &= ~bitFlag;
                 m_interruptMasterEnable = false;
                 m_reg.sp -= 2;
                 write_addr_16(m_reg.sp, m_reg.pc);
@@ -1029,7 +1029,7 @@ uint8_t Emulator::read_addr(uint16_t addr) const {
     const auto addrInfo = get_addr_info(addr);
     switch (addrInfo.m_bank) {
         case MemoryBank::ROM:
-            if (addr < BOOTROM_BYTES && !m_ioReg.m_bootromDisabled) {
+            if (addr < BOOTROM_BYTES && !m_ioReg->m_bootromDisabled) {
                 return m_bootrom[addr];
             }
             return m_cart.read_addr(addr);
@@ -1055,14 +1055,14 @@ void Emulator::write_io(uint16_t addr, uint8_t val) {
     switch (addr) {
         case +IOAddr::SB:
             m_serialOutput.push_back(std::bit_cast<uint8_t>(val));
-            m_ioReg.m_serialData = val;
+            m_ioReg->m_serialData = val;
             return;
         case +IOAddr::DIV: {
-            m_ioReg.m_timerDivider = 0;
-            if (is_tima_increment(m_sysclk, 0, m_ioReg.m_tac, m_ioReg.m_tac)) {
+            m_ioReg->m_timerDivider = 0;
+            if (is_tima_increment(m_sysclk, 0, m_ioReg->m_tac, m_ioReg->m_tac)) {
                 log_warn("TIMA incr from div write");
-                ++m_ioReg.m_tima;
-                if (m_ioReg.m_tima == 0) {
+                ++m_ioReg->m_tima;
+                if (m_ioReg->m_tima == 0) {
                     m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE;
                 }
             }
@@ -1070,17 +1070,17 @@ void Emulator::write_io(uint16_t addr, uint8_t val) {
             return;
         }
         case +IOAddr::TAC:
-            if (is_tima_increment(m_sysclk, m_sysclk, m_ioReg.m_tac, val)) {
+            if (is_tima_increment(m_sysclk, m_sysclk, m_ioReg->m_tac, val)) {
                 log_warn("TIMA incr from TAC write");
-                ++m_ioReg.m_tima;
-                if (m_ioReg.m_tima == 0) {
+                ++m_ioReg->m_tima;
+                if (m_ioReg->m_tima == 0) {
                     m_pendingTimaOverflowCycles = T_CYCLES_PER_M_CYCLE;
                 }
             }
-            m_ioReg.m_tac = val;
+            m_ioReg->m_tac = val;
             return;
         case +IOAddr::TIMA: {
-            m_ioReg.m_tima = val;
+            m_ioReg->m_tima = val;
             // todo, verify overwriting value with modulo if same cycle
             if (m_pendingTimaOverflowCycles == T_CYCLES_PER_M_CYCLE) {
                 log_warn("TIMA written to on overflow tick");
@@ -1096,7 +1096,7 @@ void Emulator::write_io(uint16_t addr, uint8_t val) {
             for (auto offset = 0; offset < PPU::OAM_ADDR_RANGE.width(); ++offset) {
                 write_addr(dstAddr + uint16_t(offset), read_addr(srcAddr + uint16_t(offset)));
             }
-            m_ioReg.m_lcd.m_dma = val;
+            m_ioReg->m_lcd.m_dma = val;
             break;
         }
         case +IOAddr::LY: {
@@ -1105,20 +1105,20 @@ void Emulator::write_io(uint16_t addr, uint8_t val) {
         }
         case +IOAddr::STAT: {
             // ppu mode and ly==lyc are read only
-            m_ioReg.m_lcd.m_status.m_data =
-                (val & ~0b111) | (m_ioReg.m_lcd.m_status.m_data & 0b111);
+            m_ioReg->m_lcd.m_status.m_data =
+                (val & ~0b111) | (m_ioReg->m_lcd.m_status.m_data & 0b111);
             break;
         }
         case +IOAddr::LCDC: {
-            m_ioReg.m_lcd.m_control.m_data = val;
-            if (!m_ioReg.m_lcd.m_control.m_ppuEnable) {
+            m_ioReg->m_lcd.m_control.m_data = val;
+            if (!m_ioReg->m_lcd.m_control.m_ppuEnable) {
                 m_ppu.reset();
             }
             break;
         }
         default: {
             const auto offset = addr - IO_ADDR_RANGE.m_min;
-            reinterpret_cast<uint8_t*>(&m_ioReg)[offset] = val;
+            m_ioReg[offset] = val;
         } break;
     }
 }
@@ -1165,9 +1165,7 @@ void Emulator::maybe_log_registers() const {
 }
 
 const uint8_t* Emulator::dbg_get_io_ptr(uint16_t addr) const {
-
     EZ_ENSURE(IO_ADDR_RANGE.containsExclusive(addr));
-    // todo, check which registers are allowed to be written by CPU
     const auto offset = addr - IO_ADDR_RANGE.m_min;
     return reinterpret_cast<const uint8_t*>(&m_ioReg) + offset;
 }
@@ -1176,7 +1174,7 @@ uint8_t Emulator::read_io(uint16_t addr) const {
 
     switch (addr) {
         case +IOAddr::P1_JOYP: {
-            uint8_t byte = m_ioReg.m_joypad | 0x0F;
+            uint8_t byte = m_ioReg->m_joypad | 0x0F;
             // all bits are 0 == true
             if (!(byte & 0b00100000)) { // read buttons
                 if (m_inputState.m_a) {
@@ -1211,7 +1209,7 @@ uint8_t Emulator::read_io(uint16_t addr) const {
         default:
             EZ_ENSURE(IO_ADDR_RANGE.containsExclusive(addr));
             const auto offset = addr - IO_ADDR_RANGE.m_min;
-            return *(reinterpret_cast<const uint8_t*>(&m_ioReg) + offset);
+            return m_ioReg[offset];
     }
 }
 

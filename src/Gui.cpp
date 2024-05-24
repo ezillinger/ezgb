@@ -412,7 +412,7 @@ void Gui::draw_registers() {
 
         ImGui::Checkbox("Stop Mode", &m_state.m_emu->m_stopMode);
         ImGui::Checkbox("Halt Mode", &m_state.m_emu->m_haltMode);
-        auto brMapped = !m_state.m_emu->m_ioReg.m_bootromDisabled;
+        auto brMapped = !m_state.m_emu->m_ioReg->m_bootromDisabled;
         ImGui::Checkbox("Bootrom Mapped", &brMapped);
         ImGui::Checkbox("IME", &m_state.m_emu->m_interruptMasterEnable);
 
@@ -420,25 +420,25 @@ void Gui::draw_registers() {
             auto& ioReg = m_state.m_emu->m_ioReg;
             ImGui::LabelText("T-CYCLES", "{}"_format(m_state.m_emu->get_cycle_counter()).c_str());
             ImGui::LabelText("SYSCLK", "{}"_format(m_state.m_emu->m_sysclk).c_str());
-            ImGui::LabelText("DIV", "{}"_format(ioReg.m_timerDivider).c_str());
-            ImGui::LabelText("TIMA Enabled", "{}"_format(bool(ioReg.m_tac & 0b100)).c_str());
-            ImGui::LabelText("TIMA", "{}"_format(ioReg.m_tima).c_str());
-            ImGui::LabelText("MODULO", "{}"_format(ioReg.m_tma).c_str());
+            ImGui::LabelText("DIV", "{}"_format(ioReg->m_timerDivider).c_str());
+            ImGui::LabelText("TIMA Enabled", "{}"_format(bool(ioReg->m_tac & 0b100)).c_str());
+            ImGui::LabelText("TIMA", "{}"_format(ioReg->m_tima).c_str());
+            ImGui::LabelText("MODULO", "{}"_format(ioReg->m_tma).c_str());
         }
         if (ImGui::CollapsingHeader("Interrupts", ImGuiTreeNodeFlags_DefaultOpen)) {
             auto& ioReg = m_state.m_emu->m_ioReg;
             ImGui::Text(
                 "IE/IF:\n VB      {} {}\n LCD     {} {}\n TIMER   {} {}\n SERIAL  {} {}\n JOY     {} {}"_format(
-                    bool(ioReg.m_ie.vblank),
-                    bool(ioReg.m_if.vblank),
-                    bool(ioReg.m_ie.lcd),
-                    bool(ioReg.m_if.lcd),
-                    bool(ioReg.m_ie.timer),
-                    bool(ioReg.m_if.timer),
-                    bool(ioReg.m_ie.serial),
-                    bool(ioReg.m_if.serial),
-                    bool(ioReg.m_ie.joypad),
-                    bool(ioReg.m_if.joypad))
+                    bool(ioReg->m_ie.vblank),
+                    bool(ioReg->m_if.vblank),
+                    bool(ioReg->m_ie.lcd),
+                    bool(ioReg->m_if.lcd),
+                    bool(ioReg->m_ie.timer),
+                    bool(ioReg->m_if.timer),
+                    bool(ioReg->m_ie.serial),
+                    bool(ioReg->m_if.serial),
+                    bool(ioReg->m_ie.joypad),
+                    bool(ioReg->m_if.joypad))
                     .c_str());
         }
 

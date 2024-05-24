@@ -77,7 +77,7 @@ if(NOT EMSCRIPTEN)
 else()
   # for some reason setting set(CMAKE_CXX_STANDARD 20) chooses the wrong version
   target_compile_options(ezgb PRIVATE 
-    "-std=c++20" 
+    "-std=c++23" 
     "-sUSE_SDL=2"
   )
   target_link_options(ezgb PRIVATE 

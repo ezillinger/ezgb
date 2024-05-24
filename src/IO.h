@@ -3,6 +3,21 @@
 
 namespace ez {
 
+// wrapper to put all nasty pointer aliasing in one place
+template <typename TUnderlying>
+class Addressable {
+  public:
+    const uint8_t& operator[](int offset) const { return m_data[offset]; };
+    uint8_t& operator[](int offset) { return m_data[offset]; };
+
+    // todo, switch to std::start_lifetime_as when compiler support exists
+    TUnderlying* operator->() { return std::launder(reinterpret_cast<TUnderlying*>(m_data.data())); }
+    const TUnderlying* operator->() const { return std::launder(reinterpret_cast<const TUnderlying*>(m_data.data())); }
+
+  protected:
+    std::array<uint8_t, sizeof(TUnderlying)> m_data{};
+};
+
 // https://gbdev.io/pandocs/Hardware_Reg_List.html
 enum class IOAddr : uint16_t {
     P1_JOYP = 0xFF00,      // Joypad	Mixed	All
@@ -145,7 +160,6 @@ struct alignas(uint8_t) IORegisters {
     uint8_t m_nr12{};
     uint8_t m_nr13{};
     uint8_t m_nr14{};
-
 
     uint8_t detail_nr20{};
 

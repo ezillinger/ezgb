@@ -44,7 +44,7 @@ class PPU {
 
     static constexpr int OAM_SPRITE_COUNT = OAM_ADDR_RANGE.width() / int(sizeof(ObjectAttribute));
 
-    PPU(IORegisters& io);
+    PPU(Addressable<IORegisters>& io);
 
     void tick();
 
@@ -84,7 +84,7 @@ class PPU {
     bool m_statIRQ = false;
     bool m_statIRQRisingEdge = false;
 
-    IORegisters& m_reg;
+    Addressable<IORegisters>& m_reg;
 
     using ObjAndIdx = std::pair<ObjectAttribute, int>;
     std::vector<ObjAndIdx> m_spritesAndOamIdxOnLine;
