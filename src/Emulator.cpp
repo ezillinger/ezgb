@@ -929,14 +929,14 @@ void Emulator::tick_interrupts() {
 
     for (auto i = 0; i < +Interrupts::NUM_INTERRUPTS; ++i) {
         const uint8_t bitFlag = 0b1 << i;
-        if (m_ioReg->m_ie.data & bitFlag && m_ioReg->m_if.data & bitFlag) {
+        if (m_ioReg[+IOAddr::IF] & bitFlag && m_ioReg[+IOAddr::IE] & bitFlag) {
             // todo, implement halt bug
             m_haltMode = false;
             if (m_interruptMasterEnable) {
                 if (m_settings.m_logEnable) {
                     log_info("Calling ISR {}", i);
                 }
-                m_ioReg->m_if.data &= ~bitFlag;
+                m_ioReg[+IOAddr::IF] &= ~bitFlag;
                 m_interruptMasterEnable = false;
                 m_reg.sp -= 2;
                 write_addr_16(m_reg.sp, m_reg.pc);
@@ -1105,20 +1105,19 @@ void Emulator::write_io(uint16_t addr, uint8_t val) {
         }
         case +IOAddr::STAT: {
             // ppu mode and ly==lyc are read only
-            m_ioReg->m_lcd.m_status.m_data =
-                (val & ~0b111) | (m_ioReg->m_lcd.m_status.m_data & 0b111);
+            m_ioReg[+IOAddr::STAT] =
+                (val & ~0b111) | (m_ioReg[+IOAddr::STAT] & 0b111);
             break;
         }
         case +IOAddr::LCDC: {
-            m_ioReg->m_lcd.m_control.m_data = val;
+            m_ioReg[+IOAddr::LCDC] = val;
             if (!m_ioReg->m_lcd.m_control.m_ppuEnable) {
                 m_ppu.reset();
             }
             break;
         }
         default: {
-            const auto offset = addr - IO_ADDR_RANGE.m_min;
-            m_ioReg[offset] = val;
+            m_ioReg[addr] = val;
         } break;
     }
 }
@@ -1166,8 +1165,7 @@ void Emulator::maybe_log_registers() const {
 
 const uint8_t* Emulator::dbg_get_io_ptr(uint16_t addr) const {
     EZ_ENSURE(IO_ADDR_RANGE.containsExclusive(addr));
-    const auto offset = addr - IO_ADDR_RANGE.m_min;
-    return reinterpret_cast<const uint8_t*>(&m_ioReg) + offset;
+    return &m_ioReg[addr];
 }
 
 uint8_t Emulator::read_io(uint16_t addr) const {
@@ -1208,8 +1206,7 @@ uint8_t Emulator::read_io(uint16_t addr) const {
         }
         default:
             EZ_ENSURE(IO_ADDR_RANGE.containsExclusive(addr));
-            const auto offset = addr - IO_ADDR_RANGE.m_min;
-            return m_ioReg[offset];
+            return m_ioReg[addr];
     }
 }
 

@@ -199,7 +199,7 @@ class Emulator {
     bool get_Cond(Cond c) const;
 
     Reg m_reg{};
-    Addressable<IORegisters> m_ioReg;
+    IOReg m_ioReg;
     PPU m_ppu{m_ioReg};
     APU m_apu{m_ioReg};
 

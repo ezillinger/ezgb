@@ -3,7 +3,7 @@
 
 namespace ez {
 
-PPU::PPU(Addressable<IORegisters>& ioReg)
+PPU::PPU(IOReg& ioReg)
     : m_reg(ioReg) {
     reset();
 }
@@ -282,7 +282,8 @@ void PPU::do_oam_scan() {
     if (m_reg->m_lcd.m_control.m_objEnable) {
         ez_assert(iRange{0, DISPLAY_HEIGHT}.containsExclusive(y));
         for (auto objIdx = 0; objIdx < OAM_SPRITE_COUNT; ++objIdx) {
-            const auto oa = reinterpret_cast<ObjectAttribute*>(m_oam.data())[objIdx];
+            ObjectAttribute oa;
+            memcpy(&oa, m_oam.data() + sizeof(ObjectAttribute) * objIdx, sizeof(ObjectAttribute));
             const auto yMin = oa.m_yPosMinus16 - 16;
             const auto spriteRangeY = iRange{yMin, yMin + objHeight};
             if (spriteRangeY.containsExclusive(y)) {

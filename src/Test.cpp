@@ -135,37 +135,37 @@ bool Tester::test_io_reg() {
     emu.write_addr(+IOAddr::IF, 0b00010101);
     ez_assert(emu.read_addr(+IOAddr::IF) == 0b00010101);
     ez_assert(emu.m_ioReg->m_if.vblank);
-    ez_assert(emu.m_ioReg->m_if.data & 0b1 << +Interrupts::VBLANK);
+    ez_assert(emu.m_ioReg[+IOAddr::IF] & 0b1 << +Interrupts::VBLANK);
 
     ez_assert(!emu.m_ioReg->m_if.lcd);
-    ez_assert(!(emu.m_ioReg->m_if.data & 0b1 << +Interrupts::LCD));
+    ez_assert(!(emu.m_ioReg[+IOAddr::IF] & 0b1 << +Interrupts::LCD));
 
     ez_assert(emu.m_ioReg->m_if.timer);
-    ez_assert(emu.m_ioReg->m_if.data & 0b1 << +Interrupts::TIMER);
+    ez_assert(emu.m_ioReg[+IOAddr::IF] & 0b1 << +Interrupts::TIMER);
 
     ez_assert(!emu.m_ioReg->m_if.serial);
-    ez_assert(!(emu.m_ioReg->m_if.data & 0b1 << +Interrupts::SERIAL));
+    ez_assert(!(emu.m_ioReg[+IOAddr::IF] & 0b1 << +Interrupts::SERIAL));
 
     ez_assert(emu.m_ioReg->m_if.joypad);
-    ez_assert(emu.m_ioReg->m_if.data & 0b1 << +Interrupts::JOYPAD);
+    ez_assert(emu.m_ioReg[+IOAddr::IF] & 0b1 << +Interrupts::JOYPAD);
 
     emu.write_addr(+IOAddr::IE, 0b0001'0101);
     ez_assert(emu.read_addr(+IOAddr::IE) == 0b0001'0101);
 
     ez_assert(emu.m_ioReg->m_ie.vblank);
-    ez_assert(emu.m_ioReg->m_ie.data & 0b1 << +Interrupts::VBLANK);
+    ez_assert(emu.m_ioReg[+IOAddr::IE] & 0b1 << +Interrupts::VBLANK);
 
     ez_assert(!emu.m_ioReg->m_ie.lcd);
-    ez_assert(!(emu.m_ioReg->m_ie.data & 0b1 << +Interrupts::LCD));
+    ez_assert(!(emu.m_ioReg[+IOAddr::IE] & 0b1 << +Interrupts::LCD));
 
     ez_assert(emu.m_ioReg->m_ie.timer);
-    ez_assert(emu.m_ioReg->m_ie.data & 0b1 << +Interrupts::TIMER);
+    ez_assert(emu.m_ioReg[+IOAddr::IE] & 0b1 << +Interrupts::TIMER);
 
     ez_assert(!emu.m_ioReg->m_ie.serial);
-    ez_assert(!(emu.m_ioReg->m_ie.data & 0b1 << +Interrupts::SERIAL));
+    ez_assert(!(emu.m_ioReg[+IOAddr::IE] & 0b1 << +Interrupts::SERIAL));
 
     ez_assert(emu.m_ioReg->m_ie.joypad);
-    ez_assert(emu.m_ioReg->m_ie.data & 0b1 << +Interrupts::JOYPAD);
+    ez_assert(emu.m_ioReg[+IOAddr::IE] & 0b1 << +Interrupts::JOYPAD);
 
     return true;
 }

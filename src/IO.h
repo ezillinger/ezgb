@@ -4,15 +4,29 @@
 namespace ez {
 
 // wrapper to put all nasty pointer aliasing in one place
-template <typename TUnderlying>
+template <typename TUnderlying, int BASE_ADDR>
 class Addressable {
   public:
-    const uint8_t& operator[](int offset) const { return m_data[offset]; };
-    uint8_t& operator[](int offset) { return m_data[offset]; };
+    const uint8_t& operator[](int addr) const {
+        ez_assert(addr >= BASE_ADDR);
+        const auto offset = addr - BASE_ADDR;
+        ez_assert(offset < int(sizeof(TUnderlying)));
+        return m_data[offset];
+    };
+    uint8_t& operator[](int addr) { 
+        ez_assert(addr >= BASE_ADDR);
+        const auto offset = addr - BASE_ADDR;
+        ez_assert(offset < int(sizeof(TUnderlying)));
+        return m_data[offset]; 
+    };
 
     // todo, switch to std::start_lifetime_as when compiler support exists
-    TUnderlying* operator->() { return std::launder(reinterpret_cast<TUnderlying*>(m_data.data())); }
-    const TUnderlying* operator->() const { return std::launder(reinterpret_cast<const TUnderlying*>(m_data.data())); }
+    TUnderlying* operator->() {
+        return std::launder(reinterpret_cast<TUnderlying*>(m_data.data()));
+    }
+    const TUnderlying* operator->() const {
+        return std::launder(reinterpret_cast<const TUnderlying*>(m_data.data()));
+    }
 
   protected:
     std::array<uint8_t, sizeof(TUnderlying)> m_data{};
@@ -89,30 +103,24 @@ enum class PPUMode {
 };
 
 struct alignas(uint8_t) LCDRegisters {
-    union {
-        struct {
-            bool m_bgWindowEnable : 1;
-            bool m_objEnable : 1;
-            bool m_objSize : 1; // 8x8 if false, 8x16 if true
-            bool m_bgTilemap : 1;
-            bool m_bgWindowTileAddrMode : 1;
-            bool m_windowEnable : 1;
-            bool m_windowTilemap : 1;
-            bool m_ppuEnable : 1;
-        };
-        uint8_t m_data = 0;
+    struct {
+        bool m_bgWindowEnable : 1;
+        bool m_objEnable : 1;
+        bool m_objSize : 1; // 8x8 if false, 8x16 if true
+        bool m_bgTilemap : 1;
+        bool m_bgWindowTileAddrMode : 1;
+        bool m_windowEnable : 1;
+        bool m_windowTilemap : 1;
+        bool m_ppuEnable : 1;
     } m_control;
     static_assert(sizeof(m_control) == 1);
-    union {
-        struct {
-            uint8_t m_ppuMode : 2;
-            bool m_lycIsLy : 1;
-            bool m_mode0InterruptSelect : 1;
-            bool m_mode1InterruptSelect : 1;
-            bool m_mode2InterruptSelect : 1;
-            bool m_lycInterruptSelect : 1;
-        };
-        uint8_t m_data = 0;
+    struct {
+        uint8_t m_ppuMode : 2;
+        bool m_lycIsLy : 1;
+        bool m_mode0InterruptSelect : 1;
+        bool m_mode1InterruptSelect : 1;
+        bool m_mode2InterruptSelect : 1;
+        bool m_lycInterruptSelect : 1;
     } m_status;
     static_assert(sizeof(m_status) == 1);
     uint8_t m_scy = 0; // scy
@@ -129,17 +137,12 @@ struct alignas(uint8_t) LCDRegisters {
 static_assert(sizeof(LCDRegisters) == 12);
 
 struct InterruptControl {
-    union {
-        struct {
-            bool vblank : 1;
-            bool lcd : 1;
-            bool timer : 1;
-            bool serial : 1;
-            bool joypad : 1;
-            uint8_t detail_unused : 3;
-        };
-        uint8_t data = 0;
-    };
+    bool vblank : 1;
+    bool lcd : 1;
+    bool timer : 1;
+    bool serial : 1;
+    bool joypad : 1;
+    uint8_t detail_unused : 3;
 };
 static_assert(sizeof(InterruptControl) == sizeof(uint8_t));
 
@@ -209,6 +212,8 @@ static constexpr iRange WRAM1_ADDR_RANGE = {0xD000, 0xE000};
 static constexpr iRange MIRROR_ADDR_RANGE = {0xE000, 0xFE00};
 static constexpr iRange IO_ADDR_RANGE = {0xFF00, 0x10000};
 static_assert(sizeof(IORegisters) == IO_ADDR_RANGE.width());
+
+using IOReg = Addressable<IORegisters, IO_ADDR_RANGE.m_min>;
 
 static constexpr iRange HRAM_ADDR_RANGE = {0xFF80, 0xFFFF};
 

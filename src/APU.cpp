@@ -26,7 +26,7 @@ static void update_pulse_osc(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_
     osc.update(state);
 }
 
-APU::APU(Addressable<IORegisters>& io)
+APU::APU(IOReg& io)
     : m_reg(io){};
 
 APU::~APU() {}
@@ -44,8 +44,7 @@ uint8_t APU::read_addr(uint16_t addr) const {
             return v;
         }
         default: {
-            const auto offset = addr - IO_ADDR_RANGE.m_min;
-            return reinterpret_cast<uint8_t*>(&m_reg)[offset];
+            return m_reg[addr];
         } break;
     }
 }
@@ -102,8 +101,7 @@ void APU::write_addr(uint16_t addr, uint8_t val) {
             break;
         }
         default: {
-            const auto offset = addr - IO_ADDR_RANGE.m_min;
-            reinterpret_cast<uint8_t*>(&m_reg)[offset] = val;
+            m_reg[addr] = val;
         } break;
     }
 }

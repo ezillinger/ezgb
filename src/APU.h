@@ -14,7 +14,7 @@ class APU {
     static constexpr auto AUDIO_ADDR_RANGE = iRange{0xFF10, 0xFF40};
     static constexpr int CHANNELS = 4;
 
-    APU(Addressable<IORegisters>& io);
+    APU(IOReg& io);
     ~APU();
 
     uint8_t read_addr(uint16_t addr) const;
@@ -31,7 +31,7 @@ class APU {
     void update_osc3();
     void update_osc4();
 
-    Addressable<IORegisters>& m_reg;
+    IOReg& m_reg;
     chrono::nanoseconds m_timeSinceEmitSample = 0ns;
     std::vector<audio::Sample> m_outputBuffer;
 
