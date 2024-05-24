@@ -4,7 +4,7 @@ EZ_MSVC_WARN_PUSH()
 EZ_MSVC_WARN_DISABLE(4701)
 
 EZ_CLANG_GCC_WARN_PUSH()
-#if !EZ_WASM
+#if EZ_GCC
 EZ_CLANG_GCC_WARN_DISABLE("-Wmaybe-uninitialized")
 #endif
 
